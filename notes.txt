@@ -1,0 +1,6 @@
+# debug layer loading
+export VK_LOADER_DEBUG=all
+
+# enable validation (requires vk_layer_settings.txt)
+export VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation
+

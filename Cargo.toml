@@ -1,0 +1,18 @@
+[package]
+name = "vki"
+version = "0.1.0"
+authors = ["Aaron Loucks <aloucks@cofront.net>"]
+edition = "2018"
+
+[dependencies]
+ash = { git = "https://github.com/MaikKlein/ash.git", rev = "775a7d0" }
+lazy_static = "1.3.0"
+libc = "0.2.50"
+parking_lot = "0.7.1"
+bitflags = "1.0.4"
+log = "0.4.6"
+pretty_env_logger = "0.3.0"
+crossbeam = "0.7.1"
+
+[dev-dependencies]
+winit = { git = "https://github.com/tomaka/winit.git", rev = "3cd40ef" } # branch = "eventloop-2.0"
