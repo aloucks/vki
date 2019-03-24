@@ -14,7 +14,6 @@ impl SurfaceInner {
                 .raw_ext
                 .surface_win32
                 .create_win32_surface(&create_info, None)?
-
         };
         Ok(SurfaceInner { instance, handle })
     }

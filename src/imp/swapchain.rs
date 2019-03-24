@@ -1,8 +1,8 @@
 use crate::error::SurfaceError;
-use crate::imp::convert;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
+use crate::imp::texture;
 use crate::imp::{DeviceInner, InstanceInner, SwapchainInner, TextureInner};
-use crate::{Extent3D, Swapchain, SwapchainDescriptor, SwapchainImage, TextureDescriptor, TextureDimension};
+use crate::{Extent3D, Swapchain, SwapchainDescriptor, SwapchainImage, TextureDescriptor, TextureDimension, TextureUsageFlags};
 
 use ash::prelude::VkResult;
 use ash::version::DeviceV1_0;
@@ -44,11 +44,11 @@ impl SwapchainInner {
             let dimensions = surface_caps.current_extent;
 
             let surface_format = vk::SurfaceFormatKHR {
-                format: convert::image_format(descriptor.format),
+                format: texture::image_format(descriptor.format),
                 color_space: vk::ColorSpaceKHR::SRGB_NONLINEAR,
             };
             let surface_image_transform = vk::SurfaceTransformFlagsKHR::IDENTITY;
-            let surface_image_usage = convert::image_usage(descriptor.usage, descriptor.format);
+            let surface_image_usage = texture::image_usage(descriptor.usage, descriptor.format);
             let surface_image_count = surface_image_count(&surface_caps);
             let surface_image_extent = surface_image_extent(&surface_caps, dimensions);
             let surface_present_mode = surface_present_mode(instance, physical_device, surface_handle)?;
@@ -57,9 +57,7 @@ impl SwapchainInner {
             surface_image_usage_check(&surface_caps, surface_image_usage)?;
             surface_image_transform_check(&surface_caps, surface_image_transform)?;
 
-            let old_swapchain_handle = old_swapchain
-                .map(|s| s.handle)
-                .unwrap_or(vk::SwapchainKHR::null());
+            let old_swapchain_handle = old_swapchain.map(|s| s.handle).unwrap_or(vk::SwapchainKHR::null());
 
             let create_info = vk::SwapchainCreateInfoKHR {
                 s_type: StructureType::SWAPCHAIN_CREATE_INFO_KHR,
@@ -97,49 +95,23 @@ impl SwapchainInner {
                 sample_count: 1,
                 dimension: TextureDimension::Texture2D,
                 format: descriptor.format,
-                usage: descriptor.usage,
+                usage: TextureUsageFlags::PRESENT,
             };
 
             let textures = images.iter().cloned().map(|handle| TextureInner {
                 handle,
+                device: device.clone(),
                 owned: false,
-                last_usage: Mutex::new(descriptor.usage),
+                last_usage: Mutex::new(TextureUsageFlags::NONE),
                 descriptor: texture_descriptor,
             });
             let textures: Vec<_> = textures.collect();
 
             // initial transition
-
             let mut state = device.state.lock();
             let command_buffer = state.get_pending_command_buffer(&device)?;
             for texture in textures.iter() {
-                let barrier = vk::ImageMemoryBarrier::builder()
-                    .old_layout(vk::ImageLayout::UNDEFINED)
-                    .new_layout(vk::ImageLayout::PRESENT_SRC_KHR)
-                    .image(texture.handle)
-                    .subresource_range(vk::ImageSubresourceRange {
-                        aspect_mask: vk::ImageAspectFlags::COLOR,
-                        base_mip_level: 0,
-                        level_count: texture.descriptor.mip_level_count,
-                        base_array_layer: 0,
-                        layer_count: texture.descriptor.array_layer_count,
-                    });
-
-                let src_stage_mask = vk::PipelineStageFlags::TOP_OF_PIPE;
-                let dst_stage_mask = vk::PipelineStageFlags::TOP_OF_PIPE;
-                let dependency_flags = vk::DependencyFlags::empty();
-                let memory_barriers = &[];
-                let buffer_memory_barriers = &[];
-                let image_memory_barriers = &[*barrier];
-                device.raw.cmd_pipeline_barrier(
-                    command_buffer,
-                    src_stage_mask,
-                    dst_stage_mask,
-                    dependency_flags,
-                    memory_barriers,
-                    buffer_memory_barriers,
-                    image_memory_barriers,
-                );
+                texture.transition_usage(command_buffer, texture.descriptor.usage)?;
             }
             drop(state);
 

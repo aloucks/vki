@@ -5,7 +5,6 @@ use parking_lot::{Mutex, ReentrantMutex};
 use std::sync::Arc;
 
 mod adapter;
-mod convert;
 mod debug;
 mod device;
 mod fenced_deleter;
@@ -22,7 +21,7 @@ mod polyfill;
 pub use crate::imp::debug::validate;
 
 use crate::imp::device::DeviceState;
-use crate::{Extensions, Limits, TextureDescriptor, TextureUsageFlags};
+use crate::{Extensions, Extent3D, Limits, TextureDescriptor, TextureUsageFlags};
 
 pub struct InstanceInner {
     raw: ash::Instance,
@@ -93,7 +92,33 @@ pub struct QueueInner {
 #[derive(Debug)]
 pub struct TextureInner {
     handle: vk::Image,
+    device: Arc<DeviceInner>,
     descriptor: TextureDescriptor,
     last_usage: Mutex<TextureUsageFlags>,
     owned: bool,
+}
+
+pub fn has_zero_or_one_bits(bits: u32) -> bool {
+    let bits = bits as i32;
+    bits & bits - 1 == 0
+}
+
+pub fn extent_3d(extent: Extent3D) -> vk::Extent3D {
+    vk::Extent3D {
+        width: extent.width,
+        height: extent.height,
+        depth: extent.depth,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    fn test_has_zero_or_one_bits() {
+        use crate::TextureUsageFlags;
+        assert!(super::has_zero_or_one_bits(TextureUsageFlags::NONE.bits()));
+        assert!(super::has_zero_or_one_bits(TextureUsageFlags::TRANSFER_SRC.bits()));
+        assert!(!super::has_zero_or_one_bits(
+            (TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST).bits()
+        ));
+    }
 }

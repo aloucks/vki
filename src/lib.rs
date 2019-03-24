@@ -109,6 +109,8 @@ bitflags! {
         const SAMPLED = 4;
         const STORAGE = 8;
         const OUTPUT_ATTACHMENT = 16;
+        #[doc(hidden)]
+        const PRESENT = 32;
     }
 }
 
