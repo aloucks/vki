@@ -100,7 +100,7 @@ pub struct TextureInner {
 
 pub fn has_zero_or_one_bits(bits: u32) -> bool {
     let bits = bits as i32;
-    bits & bits - 1 == 0
+    bits & (bits - 1) == 0
 }
 
 pub fn extent_3d(extent: Extent3D) -> vk::Extent3D {
@@ -113,6 +113,8 @@ pub fn extent_3d(extent: Extent3D) -> vk::Extent3D {
 
 #[cfg(test)]
 mod tests {
+
+    #[test]
     fn test_has_zero_or_one_bits() {
         use crate::TextureUsageFlags;
         assert!(super::has_zero_or_one_bits(TextureUsageFlags::NONE.bits()));

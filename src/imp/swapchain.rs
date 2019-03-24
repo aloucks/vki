@@ -57,7 +57,7 @@ impl SwapchainInner {
             surface_image_usage_check(&surface_caps, surface_image_usage)?;
             surface_image_transform_check(&surface_caps, surface_image_transform)?;
 
-            let old_swapchain_handle = old_swapchain.map(|s| s.handle).unwrap_or(vk::SwapchainKHR::null());
+            let old_swapchain_handle = old_swapchain.map(|s| s.handle).unwrap_or_else(vk::SwapchainKHR::null);
 
             let create_info = vk::SwapchainCreateInfoKHR {
                 s_type: StructureType::SWAPCHAIN_CREATE_INFO_KHR,
@@ -265,7 +265,7 @@ pub fn surface_image_transform_check(
     surface_caps: &vk::SurfaceCapabilitiesKHR,
     transform_flags: vk::SurfaceTransformFlagsKHR,
 ) -> Result<(), SurfaceError> {
-    if surface_caps.supported_transforms.contains(transform_flags.into()) {
+    if surface_caps.supported_transforms.contains(transform_flags) {
         log::debug!("selected image transform: {}", transform_flags);
         Ok(())
     } else {

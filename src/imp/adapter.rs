@@ -101,7 +101,7 @@ impl AdapterInner {
                     for (index, properties) in physical_device_properties.iter().enumerate() {
                         if properties.device_type == vk::PhysicalDeviceType::DISCRETE_GPU {
                             let inner = new_inner(instance.clone(), physical_devices[index], *properties)?;
-                            return Ok(inner.into());
+                            return Ok(inner);
                         }
                     }
                 }
@@ -109,7 +109,7 @@ impl AdapterInner {
                     for (index, properties) in physical_device_properties.iter().enumerate() {
                         if properties.device_type == vk::PhysicalDeviceType::INTEGRATED_GPU {
                             let inner = new_inner(instance.clone(), physical_devices[index], *properties)?;
-                            return Ok(inner.into());
+                            return Ok(inner);
                         }
                     }
                 }

@@ -386,11 +386,10 @@ impl DeviceState {
 
     fn get_unused_fence(&mut self, device: &DeviceInner) -> Result<vk::Fence, vk::Result> {
         match self.unused_fences.pop() {
-            Some(fence) => return Ok(fence),
+            Some(fence) => Ok(fence),
             None => {
                 let create_info = vk::FenceCreateInfo::default();
-                let fence = unsafe { device.raw.create_fence(&create_info, None) };
-                fence
+                unsafe { device.raw.create_fence(&create_info, None) }
             }
         }
     }

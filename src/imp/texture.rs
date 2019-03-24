@@ -103,7 +103,7 @@ pub fn aspect_mask(format: TextureFormat) -> vk::ImageAspectFlags {
         flags |= vk::ImageAspectFlags::STENCIL;
     }
     if !flags.is_empty() {
-        return flags;
+        flags
     } else {
         vk::ImageAspectFlags::COLOR
     }
