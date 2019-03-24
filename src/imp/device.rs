@@ -431,5 +431,5 @@ pub fn select_queue_family_index(
         }
     }
 
-    Err(vk::Result::SUCCESS)
+    Err(vk::Result::ERROR_INCOMPATIBLE_DISPLAY_KHR)
 }
