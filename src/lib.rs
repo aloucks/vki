@@ -1,9 +1,13 @@
 #![allow(clippy::needless_lifetimes)]
 #![allow(dead_code)]
 
-use std::sync::Arc;
+// TODO: Using `extern crate` here helps intellij find `bitflags!` defined structs,
+//       although auto-completion for the associated constants still does not work.
+#[macro_use]
+extern crate bitflags;
+//use bitflags::bitflags;
 
-use bitflags::bitflags;
+use std::sync::Arc;
 
 use parking_lot::ReentrantMutexGuard;
 
@@ -86,19 +90,6 @@ pub enum TextureFormat {
 
     D32FloatS8Uint,
 }
-
-//#[derive(Clone, Copy, Debug)]
-//#[repr(transparent)]
-//pub struct TextureUsageFlags(u32);
-//
-//impl TextureUsageFlags {
-//    pub const NONE: TextureUsageFlags = TextureUsageFlags(0);
-//    pub const TRANSFER_SRC: TextureUsageFlags = TextureUsageFlags(1);
-//    pub const TRANSFER_DST: TextureUsageFlags = TextureUsageFlags(2);
-//    pub const SAMPLED: TextureUsageFlags = TextureUsageFlags(4);
-//    pub const STORAGE: TextureUsageFlags = TextureUsageFlags(8);
-//    pub const OUTPUT_ATTACHMENT: TextureUsageFlags = TextureUsageFlags(16);
-//}
 
 bitflags! {
     #[repr(transparent)]
