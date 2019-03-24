@@ -118,17 +118,17 @@ pub fn pipeline_stage(usage: TextureUsageFlags, format: TextureFormat) -> vk::Pi
         return vk::PipelineStageFlags::TOP_OF_PIPE;
     }
 
-    if usage & (TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST) > NONE {
+    if usage.contains(TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST) {
         flags |= vk::PipelineStageFlags::TRANSFER;
     }
 
-    if usage & (TextureUsageFlags::SAMPLED | TextureUsageFlags::STORAGE) > NONE {
+    if usage.contains(TextureUsageFlags::SAMPLED | TextureUsageFlags::STORAGE) {
         flags |= vk::PipelineStageFlags::VERTEX_SHADER
             | vk::PipelineStageFlags::FRAGMENT_SHADER
             | vk::PipelineStageFlags::COMPUTE_SHADER;
     }
 
-    if usage & TextureUsageFlags::OUTPUT_ATTACHMENT > NONE {
+    if usage.contains(TextureUsageFlags::OUTPUT_ATTACHMENT) {
         if is_depth_or_stencil(format) {
             flags |= vk::PipelineStageFlags::EARLY_FRAGMENT_TESTS | vk::PipelineStageFlags::LATE_FRAGMENT_TESTS;
         // TODO: Depth write? FRAGMENT_SHADER stage ?
@@ -137,7 +137,7 @@ pub fn pipeline_stage(usage: TextureUsageFlags, format: TextureFormat) -> vk::Pi
         }
     }
 
-    if usage & TextureUsageFlags::PRESENT > NONE {
+    if usage.contains(TextureUsageFlags::PRESENT) {
         // Dawn uses BOTTOM_OF_PIPE but notes that TOP_OF_PIPE has potential to block less
         flags |= vk::PipelineStageFlags::BOTTOM_OF_PIPE
     }
@@ -146,27 +146,26 @@ pub fn pipeline_stage(usage: TextureUsageFlags, format: TextureFormat) -> vk::Pi
 }
 
 pub fn access_flags(usage: TextureUsageFlags, format: TextureFormat) -> vk::AccessFlags {
-    const NONE: TextureUsageFlags = TextureUsageFlags::NONE;
 
     let mut flags = vk::AccessFlags::empty();
 
-    if usage & TextureUsageFlags::TRANSFER_SRC > NONE {
+    if usage.contains(TextureUsageFlags::TRANSFER_SRC) {
         flags |= vk::AccessFlags::TRANSFER_READ;
     }
 
-    if usage & TextureUsageFlags::TRANSFER_DST > NONE {
+    if usage.contains(TextureUsageFlags::TRANSFER_DST) {
         flags |= vk::AccessFlags::TRANSFER_WRITE;
     }
 
-    if usage & TextureUsageFlags::SAMPLED > NONE {
+    if usage.contains(TextureUsageFlags::SAMPLED) {
         flags |= vk::AccessFlags::SHADER_READ;
     }
 
-    if usage & TextureUsageFlags::STORAGE > NONE {
+    if usage.contains(TextureUsageFlags::STORAGE) {
         flags |= vk::AccessFlags::SHADER_READ | vk::AccessFlags::SHADER_WRITE;
     }
 
-    if usage & TextureUsageFlags::OUTPUT_ATTACHMENT > NONE {
+    if usage.contains(TextureUsageFlags::OUTPUT_ATTACHMENT) {
         if is_depth_or_stencil(format) {
             flags |= vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_READ | vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_WRITE;
         } else {
@@ -174,7 +173,7 @@ pub fn access_flags(usage: TextureUsageFlags, format: TextureFormat) -> vk::Acce
         }
     }
 
-    if usage & TextureUsageFlags::PRESENT > NONE {
+    if usage.contains(TextureUsageFlags::PRESENT) {
         flags |= vk::AccessFlags::empty();
     }
 
@@ -275,5 +274,13 @@ impl TextureInner {
         *last_usage = usage;
 
         Ok(())
+    }
+}
+
+impl Drop for TextureInner {
+    fn drop(&mut self) {
+        if self.owned {
+            // TODO:
+        }
     }
 }
