@@ -1,8 +1,8 @@
-use ash::vk;
 use ash::version::DeviceV1_0;
+use ash::vk;
 
+use crate::imp::has_zero_or_one_bits;
 use crate::imp::TextureInner;
-use crate::imp::{has_zero_or_one_bits};
 use crate::{TextureFormat, TextureUsageFlags};
 
 fn read_only_texture_usage() -> TextureUsageFlags {
@@ -268,7 +268,7 @@ impl TextureInner {
                 dependency_flags,
                 memory_barriers,
                 buffer_memory_barriers,
-                image_memory_barriers
+                image_memory_barriers,
             );
         }
 

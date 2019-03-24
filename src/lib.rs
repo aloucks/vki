@@ -1,5 +1,4 @@
 #![allow(clippy::needless_lifetimes)]
-
 #![allow(dead_code)]
 
 use std::sync::Arc;

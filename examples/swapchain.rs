@@ -1,7 +1,7 @@
 use vki::{DeviceDescriptor, Instance, RequestAdapterOptions, SwapchainDescriptor, TextureFormat, TextureUsageFlags};
 
 use winit::dpi::LogicalSize;
-use winit::event::{Event, WindowEvent};
+use winit::event::{Event, StartCause, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::platform::desktop::EventLoopExtDesktop;
 use winit::platform::windows::WindowExtWindows;
@@ -18,19 +18,18 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let window = winit::window::WindowBuilder::new()
         .with_title("swapchain.rs")
         .with_dimensions(LogicalSize::new(1024 as _, 768 as _))
+        .with_visibility(false)
         .build(&event_loop)?;
 
-    let hwnd = window.get_hwnd();
-
     let instance = Instance::new()?;
-
-    let adapter = instance.request_adaptor(RequestAdapterOptions::default())?;
+    let adapter_options = RequestAdapterOptions::default();
+    let adapter = instance.request_adaptor(adapter_options)?;
     println!("{:?}", adapter);
 
+    let hwnd = window.get_hwnd();
     let surface = instance.create_surface_win32(hwnd)?;
 
     let device_desc = DeviceDescriptor::default().with_surface_support(&surface);
-
     let device = adapter.create_device(device_desc)?;
     println!("{:?}", device);
 
@@ -41,11 +40,13 @@ fn main() -> Result<(), Box<std::error::Error>> {
     };
 
     let mut swapchain = device.create_swapchain(swapchain_desc, None)?;
+    let mut last_frame_time = Instant::now();
+    window.show();
 
     event_loop.run_return(|event, _target, control_flow| {
-        let mut do_event = || {
+        let mut handle_event = || {
             match event {
-                Event::NewEvents(_) => {
+                Event::NewEvents(StartCause::Init) | Event::NewEvents(StartCause::ResumeTimeReached { .. }) => {
                     window.request_redraw();
                 }
                 Event::WindowEvent {
@@ -63,17 +64,20 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     ..
                 } => {
                     let frame = swapchain.acquire_next_image()?;
-                    //println!("new frame; time: {:?}", Instant::now());
+                    let frame_time = Instant::now();
+                    //println!("new frame; time: {:?}", frame_time);
                     let queue = device.get_queue();
                     queue.present(frame)?;
-                    *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(16));
+
+                    *control_flow = ControlFlow::WaitUntil(last_frame_time + Duration::from_millis(16));
+                    last_frame_time = frame_time;
                 }
                 _ => {}
             }
             Ok(())
         };
-        let result: Result<(), Box<std::error::Error>> = do_event();
-        result.unwrap();
+        let result: Result<(), Box<std::error::Error>> = handle_event();
+        result.expect("event loop error");
     });
 
     Ok(())

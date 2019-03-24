@@ -2,7 +2,9 @@ use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::texture;
 use crate::imp::{DeviceInner, InstanceInner, SwapchainInner, TextureInner};
-use crate::{Extent3D, Swapchain, SwapchainDescriptor, SwapchainImage, TextureDescriptor, TextureDimension, TextureUsageFlags};
+use crate::{
+    Extent3D, Swapchain, SwapchainDescriptor, SwapchainImage, TextureDescriptor, TextureDimension, TextureUsageFlags,
+};
 
 use ash::prelude::VkResult;
 use ash::version::DeviceV1_0;

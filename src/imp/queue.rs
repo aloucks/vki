@@ -4,7 +4,6 @@ use crate::{Queue, SwapchainImage};
 
 impl<'a> Queue<'a> {
     pub fn present(self, frame: SwapchainImage) -> Result<(), vk::Result> {
-
         let mut wait_semaphores = vec![];
 
         {
