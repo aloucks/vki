@@ -6,7 +6,7 @@ use parking_lot::{Mutex, ReentrantMutex, ReentrantMutexGuard};
 use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
 use crate::imp::serial::{Serial, SerialQueue};
-use crate::imp::{AdapterInner, DeviceExt, DeviceInner, QueueInner, SurfaceInner};
+use crate::imp::{AdapterInner, DeviceExt, DeviceInner, QueueInner, SurfaceInner, SwapchainInner};
 use crate::{Device, DeviceDescriptor, Limits, Queue, Swapchain, SwapchainDescriptor};
 
 use std::fmt::{self, Debug};
@@ -39,21 +39,16 @@ struct CommandPoolAndBuffer {
 }
 
 impl Device {
-    pub(crate) fn new(adapter: Arc<AdapterInner>, descriptor: DeviceDescriptor) -> Result<Device, vk::Result> {
-        let inner = DeviceInner::new(adapter, descriptor)?;
-        Ok(inner.into())
-    }
-
     pub fn create_swapchain(
         &self,
         descriptor: SwapchainDescriptor,
         old_swapchain: Option<&Swapchain>,
     ) -> Result<Swapchain, SurfaceError> {
-        let swapchain = Swapchain::new(self.inner.clone(), descriptor, old_swapchain.map(|s| s.inner.clone()))?;
+        let swapchain = SwapchainInner::new(self.inner.clone(), descriptor, old_swapchain.map(|s| &*s.inner))?;
 
-        self.tick()?;
+        self.inner.tick()?;
 
-        Ok(swapchain)
+        Ok(swapchain.into())
     }
 
     pub fn get_queue<'a>(&'a self) -> Queue<'a> {
@@ -61,14 +56,10 @@ impl Device {
             inner: self.inner.get_queue(),
         }
     }
-
-    pub fn tick(&self) -> Result<(), vk::Result> {
-        self.inner.tick()
-    }
 }
 
 impl DeviceInner {
-    fn new(adapter: Arc<AdapterInner>, descriptor: DeviceDescriptor) -> Result<DeviceInner, vk::Result> {
+    pub fn new(adapter: Arc<AdapterInner>, descriptor: DeviceDescriptor) -> Result<DeviceInner, vk::Result> {
         let extension_names = [c_str!("VK_KHR_swapchain")];
 
         let surface = descriptor.surface_support.map(|v| v.inner.as_ref());

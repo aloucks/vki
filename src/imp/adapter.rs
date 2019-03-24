@@ -1,4 +1,4 @@
-use crate::imp::{AdapterInner, InstanceInner, SurfaceInner};
+use crate::imp::{AdapterInner, DeviceInner, InstanceInner, SurfaceInner};
 use crate::{Adapter, Device, DeviceDescriptor, Extensions, PowerPreference, RequestAdapterOptions};
 
 use ash::version::InstanceV1_0;
@@ -17,13 +17,9 @@ impl Adapter {
         &self.inner.extensions
     }
 
-    pub(crate) fn new(instance: Arc<InstanceInner>, options: RequestAdapterOptions) -> Result<Adapter, vk::Result> {
-        let inner = AdapterInner::new(instance, options)?;
-        Ok(inner.into())
-    }
-
     pub fn create_device(&self, descriptor: DeviceDescriptor) -> Result<Device, vk::Result> {
-        Device::new(self.inner.clone(), descriptor)
+        let device = DeviceInner::new(self.inner.clone(), descriptor)?;
+        Ok(device.into())
     }
 }
 
@@ -34,7 +30,7 @@ impl Into<Adapter> for AdapterInner {
 }
 
 impl AdapterInner {
-    fn new(instance: Arc<InstanceInner>, options: RequestAdapterOptions) -> Result<AdapterInner, vk::Result> {
+    pub fn new(instance: Arc<InstanceInner>, options: RequestAdapterOptions) -> Result<AdapterInner, vk::Result> {
         fn new_inner(
             instance: Arc<InstanceInner>,
             physical_device: vk::PhysicalDevice,

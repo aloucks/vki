@@ -6,18 +6,23 @@ use ash::vk;
 use std::ffi::c_void;
 use std::sync::Arc;
 
-impl Surface {
-    pub(crate) fn new_win32(instance: Arc<InstanceInner>, hwnd: *const c_void) -> Result<Surface, vk::Result> {
-        unsafe {
-            let create_info = vk::Win32SurfaceCreateInfoKHR::builder().hwnd(hwnd);
-            let handle = instance
+impl SurfaceInner {
+    pub fn new_win32(instance: Arc<InstanceInner>, hwnd: *const c_void) -> Result<SurfaceInner, vk::Result> {
+        let create_info = vk::Win32SurfaceCreateInfoKHR::builder().hwnd(hwnd);
+        let handle = unsafe {
+            instance
                 .raw_ext
                 .surface_win32
-                .create_win32_surface(&create_info, None)?;
-            let inner = SurfaceInner { instance, handle };
+                .create_win32_surface(&create_info, None)?
 
-            Ok(Surface { inner: Arc::new(inner) })
-        }
+        };
+        Ok(SurfaceInner { instance, handle })
+    }
+}
+
+impl Into<Surface> for SurfaceInner {
+    fn into(self) -> Surface {
+        Surface { inner: Arc::new(self) }
     }
 }
 

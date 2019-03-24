@@ -14,15 +14,6 @@ use std::sync::Arc;
 use std::time::Duration;
 
 impl Swapchain {
-    pub(crate) fn new(
-        device: Arc<DeviceInner>,
-        descriptor: SwapchainDescriptor,
-        old_swapchain: Option<Arc<SwapchainInner>>,
-    ) -> Result<Swapchain, SurfaceError> {
-        let inner = SwapchainInner::new(device, descriptor, old_swapchain)?;
-        Ok(inner.into())
-    }
-
     pub fn acquire_next_image(&self) -> Result<SwapchainImage, vk::Result> {
         let image_index = self.inner.acquire_next_image_index()?;
         Ok(SwapchainImage {
@@ -34,10 +25,10 @@ impl Swapchain {
 
 impl SwapchainInner {
     /// Recipe: _Creating a swapchain_ (page `105`)
-    fn new(
+    pub fn new(
         device: Arc<DeviceInner>,
         descriptor: SwapchainDescriptor,
-        mut old_swapchain: Option<Arc<SwapchainInner>>,
+        old_swapchain: Option<&SwapchainInner>,
     ) -> Result<SwapchainInner, SurfaceError> {
         unsafe {
             let instance = &device.adapter.instance;
@@ -67,7 +58,6 @@ impl SwapchainInner {
             surface_image_transform_check(&surface_caps, surface_image_transform)?;
 
             let old_swapchain_handle = old_swapchain
-                .as_ref() // do not drop !
                 .map(|s| s.handle)
                 .unwrap_or(vk::SwapchainKHR::null());
 
@@ -93,10 +83,6 @@ impl SwapchainInner {
             };
 
             let swapchain = device.raw_ext.swapchain.create_swapchain(&create_info, None)?;
-
-            {
-                old_swapchain.take(); // verify that old_swapchain will be dropped *after* re-creation
-            }
 
             let images = device.raw_ext.swapchain.get_swapchain_images(swapchain)?;
 

@@ -10,7 +10,7 @@ use std::fmt;
 use std::mem;
 use std::sync::Arc;
 
-use crate::imp::{debug, InstanceExt, InstanceInner};
+use crate::imp::{debug, AdapterInner, InstanceExt, InstanceInner, SurfaceInner};
 use crate::{Adapter, InitError, Instance, RequestAdapterOptions, Surface};
 
 use std::fmt::Debug;
@@ -36,30 +36,13 @@ impl Instance {
     }
 
     pub fn request_adaptor(&self, options: RequestAdapterOptions) -> Result<Adapter, vk::Result> {
-        Adapter::new(self.inner.clone(), options)
+        let adapter = AdapterInner::new(self.inner.clone(), options)?;
+        Ok(adapter.into())
     }
 
     pub fn create_surface_win32(&self, hwnd: *const c_void) -> Result<Surface, vk::Result> {
-        Surface::new_win32(self.inner.clone(), hwnd)
-    }
-}
-
-impl Debug for InstanceInner {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "{:?}", self.raw.handle())
-    }
-}
-
-impl Drop for InstanceInner {
-    fn drop(&mut self) {
-        unsafe {
-            if let Some(debug_report_callback) = self.debug_report_callback {
-                self.raw_ext
-                    .debug_report
-                    .destroy_debug_report_callback(debug_report_callback, None);
-            }
-            self.raw.destroy_instance(None);
-        }
+        let surface = SurfaceInner::new_win32(self.inner.clone(), hwnd)?;
+        Ok(surface.into())
     }
 }
 
@@ -137,5 +120,24 @@ impl InstanceInner {
 impl Into<Instance> for InstanceInner {
     fn into(self) -> Instance {
         Instance { inner: Arc::new(self) }
+    }
+}
+
+impl Debug for InstanceInner {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "{:?}", self.raw.handle())
+    }
+}
+
+impl Drop for InstanceInner {
+    fn drop(&mut self) {
+        unsafe {
+            if let Some(debug_report_callback) = self.debug_report_callback {
+                self.raw_ext
+                    .debug_report
+                    .destroy_debug_report_callback(debug_report_callback, None);
+            }
+            self.raw.destroy_instance(None);
+        }
     }
 }
