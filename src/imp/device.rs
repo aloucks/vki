@@ -2,17 +2,18 @@ use ash::extensions::khr;
 use ash::version::{DeviceV1_0, InstanceV1_0};
 use ash::vk;
 use parking_lot::{Mutex, ReentrantMutex, ReentrantMutexGuard};
+use vk_mem::{Allocator, AllocatorCreateInfo};
 
 use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
 use crate::imp::serial::{Serial, SerialQueue};
-use crate::imp::{AdapterInner, DeviceExt, DeviceInner, QueueInner, SurfaceInner, SwapchainInner};
-use crate::{Device, DeviceDescriptor, Limits, Queue, Swapchain, SwapchainDescriptor};
+use crate::imp::{AdapterInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SurfaceInner, SwapchainInner};
+use crate::{Buffer, BufferDescriptor, Device, DeviceDescriptor, Limits, Queue, Swapchain, SwapchainDescriptor};
 
 use std::fmt::{self, Debug};
+use std::mem::ManuallyDrop;
 use std::sync::Arc;
 
-#[derive(Default)]
 pub struct DeviceState {
     // the fences in flight for our single queue
     fences_in_flight: SerialQueue<vk::Fence>,
@@ -29,7 +30,9 @@ pub struct DeviceState {
     pending_commands: Option<CommandPoolAndBuffer>,
     unused_commands: Vec<CommandPoolAndBuffer>,
 
-    deleter: FencedDeleter,
+    fenced_deleter: FencedDeleter,
+
+    allocator: ManuallyDrop<Allocator>,
 }
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -55,6 +58,11 @@ impl Device {
         Queue {
             inner: self.inner.get_queue(),
         }
+    }
+
+    pub fn create_buffer(&self, descriptor: BufferDescriptor) -> Result<Buffer, vk::Result> {
+        let buffer = BufferInner::new(self.inner.clone(), descriptor)?;
+        Ok(buffer.into())
     }
 }
 
@@ -96,8 +104,26 @@ impl DeviceInner {
             let swapchain = khr::Swapchain::new(&adapter.instance.raw, &raw);
             let raw_ext = DeviceExt { swapchain };
 
-            let mut state = DeviceState::default();
-            state.last_submitted_serial = Serial::one();
+            let mut allocator_create_info = AllocatorCreateInfo::default();
+            allocator_create_info.device = raw.clone();
+            allocator_create_info.instance = adapter.instance.raw.clone();
+            allocator_create_info.physical_device = adapter.physical_device;
+
+            // TODO: Add generic error type
+            let allocator = Allocator::new(&allocator_create_info).expect("Allocator creation failed");
+
+            let state = DeviceState {
+                fences_in_flight: SerialQueue::default(),
+                commands_in_flight: SerialQueue::default(),
+                wait_semaphores: Vec::default(),
+                unused_fences: Vec::default(),
+                last_completed_serial: Serial::zero(),
+                last_submitted_serial: Serial::one(),
+                pending_commands: None,
+                unused_commands: Vec::new(),
+                fenced_deleter: FencedDeleter::default(),
+                allocator: ManuallyDrop::new(allocator),
+            };
 
             let state = Mutex::new(state);
 
@@ -175,7 +201,11 @@ impl Drop for DeviceInner {
             // Increment the completed serial to account for any pending deletes
             let serial = state.last_completed_serial.increment();
 
-            state.deleter.tick(serial, self);
+            // Work-around for a weird borrow issue with the mutex guard auto-deref
+            {
+                let state = &mut *state;
+                state.fenced_deleter.tick(serial, &self, &mut state.allocator);
+            }
 
             for (fence, _) in state.fences_in_flight.drain(..) {
                 self.raw.destroy_fence(fence, None);
@@ -198,6 +228,10 @@ impl Drop for DeviceInner {
                 self.raw.destroy_semaphore(semaphore, None);
             }
 
+            ManuallyDrop::drop(&mut state.allocator);
+
+            drop(state);
+
             log::debug!("destroying device: {:?}", self.raw.handle());
             self.raw.destroy_device(None);
         }
@@ -214,7 +248,8 @@ impl DeviceState {
         self.check_passed_fences(device)?;
         self.recycle_completed_commands(device)?;
         // TODO: maprequest/uploader/allocator ticks
-        self.deleter.tick(self.last_completed_serial, device);
+        self.fenced_deleter
+            .tick(self.last_completed_serial, device, &mut self.allocator);
         let queue = device.queue.lock();
         self.submit_pending_commands(device, *queue)?;
 
@@ -290,7 +325,7 @@ impl DeviceState {
     }
 
     pub fn get_fenced_deleter(&mut self) -> &mut FencedDeleter {
-        &mut self.deleter
+        &mut self.fenced_deleter
     }
 
     pub fn submit_pending_commands(&mut self, device: &DeviceInner, queue: QueueInner) -> Result<(), vk::Result> {
@@ -343,7 +378,7 @@ impl DeviceState {
     pub fn delete_when_unused_wait_semaphores(&mut self) {
         let next_pending_serial = self.get_next_pending_serial();
         for semaphore in self.wait_semaphores.iter().cloned() {
-            self.deleter.delete_when_unused(semaphore, next_pending_serial);
+            self.fenced_deleter.delete_when_unused(semaphore, next_pending_serial);
         }
         self.wait_semaphores.clear();
     }
@@ -408,6 +443,14 @@ impl DeviceState {
 
     pub fn get_next_pending_serial(&self) -> Serial {
         self.last_submitted_serial.next()
+    }
+
+    pub fn allocator_mut(&mut self) -> &mut Allocator {
+        &mut self.allocator
+    }
+
+    pub fn allocator(&mut self) -> &Allocator {
+        &mut self.allocator
     }
 }
 

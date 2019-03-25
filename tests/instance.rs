@@ -2,6 +2,7 @@ use vki::{DeviceDescriptor, Instance, PowerPreference, RequestAdapterOptions};
 
 #[test]
 fn instance_new() {
+    let _ = pretty_env_logger::try_init();
     vki::validate(|| {
         let instance = Instance::new()?;
 
@@ -11,6 +12,7 @@ fn instance_new() {
 
 #[test]
 fn instance_request_adapter() {
+    let _ = pretty_env_logger::try_init();
     vki::validate(|| {
         let instance = Instance::new()?;
 
@@ -32,6 +34,7 @@ fn instance_request_adapter() {
 
 #[test]
 fn instance_create_device() {
+    let _ = pretty_env_logger::try_init();
     vki::validate(|| {
         let instance = Instance::new()?;
         let options = RequestAdapterOptions::default();

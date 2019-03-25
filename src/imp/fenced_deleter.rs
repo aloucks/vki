@@ -1,6 +1,8 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
+use vk_mem::{Allocation, Allocator};
+
 use crate::imp::serial::{Serial, SerialQueue};
 use crate::imp::DeviceInner;
 
@@ -10,10 +12,11 @@ use std::fmt::Debug;
 pub struct FencedDeleter {
     swapchains_to_delete: SerialQueue<vk::SwapchainKHR>,
     semaphores_to_delete: SerialQueue<vk::Semaphore>,
+    buffers_to_delete: SerialQueue<(vk::Buffer, Allocation)>,
 }
 
 impl FencedDeleter {
-    pub fn tick(&mut self, last_completed_serial: Serial, device: &DeviceInner) {
+    pub fn tick(&mut self, last_completed_serial: Serial, device: &DeviceInner, allocator: &mut Allocator) {
         log::trace!("swapchains_to_delete.len: {}", self.swapchains_to_delete.len());
         log::trace!("semaphores_to_delete.len: {}", self.semaphores_to_delete.len());
 
@@ -30,10 +33,19 @@ impl FencedDeleter {
                 device.raw.destroy_semaphore(semaphore, None);
             }
         }
+
+        for ((buffer, allocation), serial) in self.buffers_to_delete.drain_up_to(last_completed_serial) {
+            log::trace!("destroying buffer: {:?}, completed_serial: {:?}", buffer, serial);
+            if let Err(e) = allocator.destroy_buffer(buffer, &allocation) {
+                log::warn!("buffer destruction failed; buffer: {:?}, error: {:?}", buffer, e);
+            }
+        }
     }
 
     pub fn is_empty(&self) -> bool {
-        self.swapchains_to_delete.iter().count() == 0 && self.semaphores_to_delete.iter().count() == 0
+        self.swapchains_to_delete.len() == 0
+            && self.semaphores_to_delete.len() == 0
+            && self.buffers_to_delete.len() == 0
     }
 }
 
@@ -58,5 +70,11 @@ impl DeleteWhenUnused<vk::SwapchainKHR> for FencedDeleter {
 impl DeleteWhenUnused<vk::Semaphore> for FencedDeleter {
     fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::Semaphore> {
         &mut self.semaphores_to_delete
+    }
+}
+
+impl DeleteWhenUnused<(vk::Buffer, Allocation)> for FencedDeleter {
+    fn get_serial_queue(&mut self) -> &mut SerialQueue<(vk::Buffer, Allocation)> {
+        &mut self.buffers_to_delete
     }
 }

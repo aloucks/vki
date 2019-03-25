@@ -77,7 +77,7 @@ pub struct Device {
     inner: Arc<imp::DeviceInner>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TextureFormat {
     R8G8B8A8Unorm,
     R8G8Unorm,
@@ -145,21 +145,21 @@ pub struct SwapchainImage {
     image_index: u32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Extent3D {
     pub width: u32,
     pub height: u32,
     pub depth: u32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TextureDimension {
     Texture1D,
     Texture2D,
     Texture3D,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TextureDescriptor {
     pub size: Extent3D,
     pub array_layer_count: u32,
@@ -168,4 +168,29 @@ pub struct TextureDescriptor {
     pub dimension: TextureDimension,
     pub format: TextureFormat,
     pub usage: TextureUsageFlags,
+}
+
+bitflags! {
+    #[repr(transparent)]
+    pub struct BufferUsageFlags: u32 {
+        const NONE = 0;
+        const MAP_READ = 1;
+        const MAP_WRITE = 2;
+        const TRANSFER_SRC = 4;
+        const TRANSFER_DST = 8;
+        const INDEX = 16;
+        const VERTEX = 32;
+        const UNIFORM = 64;
+        const STORAGE = 128;
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct BufferDescriptor {
+    pub size: u64,
+    pub usage: BufferUsageFlags,
+}
+
+pub struct Buffer {
+    inner: Arc<imp::BufferInner>,
 }

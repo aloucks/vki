@@ -10,6 +10,7 @@ use winit::window::Window;
 
 pub fn init() -> Result<(EventLoop<()>, Window, Instance, Surface, Adapter, Device, Swapchain), Box<std::error::Error>>
 {
+    let _ = pretty_env_logger::try_init();
     let event_loop = winit::event_loop::EventLoop::new();
     let window = winit::window::WindowBuilder::new()
         .with_dimensions(LogicalSize {

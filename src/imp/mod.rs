@@ -1,10 +1,12 @@
 use ash::extensions::{ext, khr};
 use ash::vk;
 use parking_lot::{Mutex, ReentrantMutex};
+use vk_mem::{Allocation, AllocationInfo};
 
 use std::sync::Arc;
 
 mod adapter;
+mod buffer;
 mod debug;
 mod device;
 mod fenced_deleter;
@@ -21,7 +23,7 @@ mod polyfill;
 pub use crate::imp::debug::validate;
 
 use crate::imp::device::DeviceState;
-use crate::{Extensions, Extent3D, Limits, TextureDescriptor, TextureUsageFlags};
+use crate::{BufferDescriptor, BufferUsageFlags, Extensions, Extent3D, Limits, TextureDescriptor, TextureUsageFlags};
 
 pub struct InstanceInner {
     raw: ash::Instance,
@@ -96,6 +98,24 @@ pub struct TextureInner {
     descriptor: TextureDescriptor,
     last_usage: Mutex<TextureUsageFlags>,
     owned: bool,
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum BufferState {
+    Mapped,
+    Unmapped,
+    Destroyed,
+}
+
+#[derive(Debug)]
+pub struct BufferInner {
+    handle: vk::Buffer,
+    device: Arc<DeviceInner>,
+    descriptor: BufferDescriptor,
+    allocation: Allocation,
+    allocation_info: AllocationInfo,
+    last_usage: Mutex<BufferUsageFlags>,
+    buffer_state: Mutex<BufferState>,
 }
 
 pub fn has_zero_or_one_bits(bits: u32) -> bool {

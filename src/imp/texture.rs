@@ -146,7 +146,6 @@ pub fn pipeline_stage(usage: TextureUsageFlags, format: TextureFormat) -> vk::Pi
 }
 
 pub fn access_flags(usage: TextureUsageFlags, format: TextureFormat) -> vk::AccessFlags {
-
     let mut flags = vk::AccessFlags::empty();
 
     if usage.contains(TextureUsageFlags::TRANSFER_SRC) {
