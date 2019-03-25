@@ -4,13 +4,14 @@ use ash::vk;
 use vk_mem::{Allocation, Allocator};
 
 use crate::imp::serial::{Serial, SerialQueue};
-use crate::imp::DeviceInner;
+use crate::imp::{DeviceInner, SurfaceInner};
 
 use std::fmt::Debug;
+use std::sync::Arc;
 
 #[derive(Default, Debug)]
 pub struct FencedDeleter {
-    swapchains_to_delete: SerialQueue<vk::SwapchainKHR>,
+    swapchains_to_delete: SerialQueue<(vk::SwapchainKHR, Arc<SurfaceInner>)>,
     semaphores_to_delete: SerialQueue<vk::Semaphore>,
     buffers_to_delete: SerialQueue<(vk::Buffer, Allocation)>,
 }
@@ -20,11 +21,12 @@ impl FencedDeleter {
         log::trace!("swapchains_to_delete.len: {}", self.swapchains_to_delete.len());
         log::trace!("semaphores_to_delete.len: {}", self.semaphores_to_delete.len());
 
-        for (swapchain, serial) in self.swapchains_to_delete.drain_up_to(last_completed_serial) {
+        for ((swapchain, surface), serial) in self.swapchains_to_delete.drain_up_to(last_completed_serial) {
             log::debug!("destroying swapchain: {:?}, completed_serial: {:?}", swapchain, serial);
             unsafe {
                 device.raw_ext.swapchain.destroy_swapchain(swapchain, None);
             }
+            drop(surface); // the surface must kept alive at least as long as the swapchain
         }
 
         for (semaphore, serial) in self.semaphores_to_delete.drain_up_to(last_completed_serial) {
@@ -61,8 +63,8 @@ pub trait DeleteWhenUnused<T: Debug> {
     }
 }
 
-impl DeleteWhenUnused<vk::SwapchainKHR> for FencedDeleter {
-    fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::SwapchainKHR> {
+impl DeleteWhenUnused<(vk::SwapchainKHR, Arc<SurfaceInner>)> for FencedDeleter {
+    fn get_serial_queue(&mut self) -> &mut SerialQueue<(vk::SwapchainKHR, Arc<SurfaceInner>)> {
         &mut self.swapchains_to_delete
     }
 }

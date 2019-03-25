@@ -121,6 +121,7 @@ impl SwapchainInner {
                 handle: swapchain,
                 textures,
                 device,
+                surface: descriptor.surface.inner.clone(),
             })
         }
     }
@@ -130,13 +131,8 @@ impl SwapchainInner {
             let timeout = Duration::from_millis(100);
             let timeout = timeout.as_nanos() as u64;
             let fence = vk::Fence::null();
-            let semaphore = {
-                let create_info = vk::SemaphoreCreateInfo::builder();
-                let semaphore = self.device.raw.create_semaphore(&create_info, None)?;
-                let mut state = self.device.state.lock();
-                state.add_wait_semaphore(semaphore);
-                semaphore
-            };
+            let create_info = vk::SemaphoreCreateInfo::builder();
+            let semaphore = self.device.raw.create_semaphore(&create_info, None)?;
             let result = self
                 .device
                 .raw_ext
@@ -146,9 +142,13 @@ impl SwapchainInner {
             loop {
                 match result {
                     Ok((index, false)) => {
+                        let mut state = self.device.state.lock();
+                        state.add_wait_semaphore(semaphore);
                         return Ok(index);
                     }
                     Ok((index, true)) => {
+                        let mut state = self.device.state.lock();
+                        state.add_wait_semaphore(semaphore);
                         log::warn!("acquire_next_image_index: suboptimal");
                         return Ok(index);
                     }
@@ -157,6 +157,9 @@ impl SwapchainInner {
                         continue;
                     }
                     Err(err) => {
+                        let mut state = self.device.state.lock();
+                        let serial = state.get_next_pending_serial();
+                        state.get_fenced_deleter().delete_when_unused(semaphore, serial);
                         return Err(err);
                     }
                 }
@@ -177,7 +180,7 @@ impl Drop for SwapchainInner {
         let next_pending_serial = state.get_next_pending_serial();
         state
             .get_fenced_deleter()
-            .delete_when_unused(self.handle, next_pending_serial);
+            .delete_when_unused((self.handle, self.surface.clone()), next_pending_serial);
     }
 }
 

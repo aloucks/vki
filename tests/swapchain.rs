@@ -99,3 +99,19 @@ fn recreate_after_resize() {
         Ok(instance)
     });
 }
+
+#[test]
+fn keep_surface_alive() {
+    vki::validate(|| {
+        let (mut event_loop, window, instance, surface, _adapter, device, swapchain) = support::init()?;
+
+        // Assert that the swapchain keeps the surface alive until after the swapchain is destroyed
+        drop(surface);
+
+        let frame = swapchain.acquire_next_image()?;
+        let queue = device.get_queue();
+        queue.present(frame)?;
+
+        Ok(instance)
+    });
+}

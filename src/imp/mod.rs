@@ -74,6 +74,7 @@ struct DeviceExt {
 pub struct SwapchainInner {
     handle: vk::SwapchainKHR,
     device: Arc<DeviceInner>,
+    surface: Arc<SurfaceInner>,
     //images: Vec<vk::Image>,
     textures: Vec<TextureInner>,
 }
