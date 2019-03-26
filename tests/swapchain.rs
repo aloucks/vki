@@ -1,37 +1,24 @@
-use vki::{DeviceDescriptor, Instance, RequestAdapterOptions, SwapchainDescriptor, TextureFormat, TextureUsageFlags};
+use vki::winit_surface_descriptor;
+use vki::{DeviceDescriptor, Instance, RequestAdapterOptions};
 
 use winit::dpi::LogicalSize;
 use winit::event::{Event, WindowEvent};
 use winit::event_loop::ControlFlow;
 use winit::platform::desktop::EventLoopExtDesktop;
-use winit::platform::windows::WindowExtWindows;
 
-mod support;
+pub mod support;
 
 #[test]
 fn create_swapchain() {
-    let _ = pretty_env_logger::try_init();
     vki::validate(|| {
+        support::init_environment();
+        let (_event_loop, window) = support::headless_window()?;
         let instance = Instance::new()?;
-
-        let event_loop = winit::event_loop::EventLoop::new();
-        let window = winit::window::WindowBuilder::new()
-            .with_dimensions(LogicalSize {
-                width: 1024 as _,
-                height: 768 as _,
-            })
-            .with_visibility(false)
-            .build(&event_loop)?;
-
-        let surface = instance.create_surface_win32(window.get_hwnd())?;
         let adapter = instance.request_adaptor(RequestAdapterOptions::default())?;
+        let surface_descriptor = winit_surface_descriptor!(window);
+        let surface = instance.create_surface(&surface_descriptor)?;
         let device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
-
-        let swapchain_descriptor = SwapchainDescriptor {
-            surface: &surface,
-            format: TextureFormat::B8G8R8A8UnormSRGB,
-            usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
-        };
+        let swapchain_descriptor = support::swapchain_descriptor(&surface);
 
         let _swapchain = device.create_swapchain(swapchain_descriptor, None)?;
 
@@ -42,7 +29,9 @@ fn create_swapchain() {
 #[test]
 fn acquire_next_image() {
     vki::validate(|| {
-        let (_event_loop, _window, instance, _surface, _adapter, _device, swapchain) = support::init()?;
+        let (_event_loop, window) = support::headless_window()?;
+        let (instance, _adapter, _device, _surface, swapchain) = support::init_with_window(&window)?;
+
         let _frame = swapchain.acquire_next_image()?;
 
         Ok(instance)
@@ -52,7 +41,9 @@ fn acquire_next_image() {
 #[test]
 fn present() {
     vki::validate(|| {
-        let (_event_loop, _window, instance, _surface, _adapter, device, swapchain) = support::init()?;
+        let (_event_loop, window) = support::headless_window()?;
+        let (instance, _adapter, device, _surface, swapchain) = support::init_with_window(&window)?;
+
         let frame = swapchain.acquire_next_image()?;
 
         let queue = device.get_queue();
@@ -65,17 +56,23 @@ fn present() {
 #[test]
 fn recreate_after_resize() {
     vki::validate(|| {
-        let (mut event_loop, window, instance, surface, _adapter, device, mut swapchain) = support::init()?;
+        let (mut event_loop, window) = support::headless_window()?;
+        let (instance, _adapter, device, surface, mut swapchain) = support::init_with_window(&window)?;
 
         let frame = swapchain.acquire_next_image()?;
         let queue = device.get_queue();
         queue.present(frame)?;
 
-        let mut resized = false;
-        window.set_inner_size(LogicalSize {
+        let new_size = LogicalSize {
             width: 800 as _,
             height: 600 as _,
-        });
+        };
+
+        let old_size = window.get_inner_size().expect("window size");
+        assert_ne!(new_size, old_size);
+
+        let mut resized = false;
+        window.set_inner_size(new_size);
         event_loop.run_return(|event, _target, control_flow| match event {
             Event::WindowEvent {
                 event: WindowEvent::Resized(_),
@@ -103,7 +100,8 @@ fn recreate_after_resize() {
 #[test]
 fn keep_surface_alive() {
     vki::validate(|| {
-        let (mut event_loop, window, instance, surface, _adapter, device, swapchain) = support::init()?;
+        let (_event_loop, window) = support::headless_window()?;
+        let (instance, _adapter, device, surface, swapchain) = support::init_with_window(&window)?;
 
         // Assert that the swapchain keeps the surface alive until after the swapchain is destroyed
         drop(surface);

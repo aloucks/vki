@@ -1,11 +1,11 @@
 use vki::{BufferDescriptor, BufferUsageFlags};
 
-mod support;
+pub mod support;
 
 #[test]
 fn create_buffer_vertex_transfer_dst() {
     vki::validate(|| {
-        let (_event_loop, _window, instance, _surface, _adapter, device, _swapchain) = support::init()?;
+        let (instance, _adapter, device) = support::init()?;
 
         let descriptor = BufferDescriptor {
             usage: BufferUsageFlags::VERTEX | BufferUsageFlags::TRANSFER_DST,
@@ -21,7 +21,7 @@ fn create_buffer_vertex_transfer_dst() {
 #[test]
 fn create_buffer_uniform_mapped_write() {
     vki::validate(|| {
-        let (_event_loop, _window, instance, _surface, _adapter, device, _swapchain) = support::init()?;
+        let (instance, _adapter, device) = support::init()?;
 
         let descriptor = BufferDescriptor {
             usage: BufferUsageFlags::UNIFORM | BufferUsageFlags::MAP_WRITE,
@@ -37,7 +37,7 @@ fn create_buffer_uniform_mapped_write() {
 #[test]
 fn create_buffer_write_staging() {
     vki::validate(|| {
-        let (_event_loop, _window, instance, _surface, _adapter, device, _swapchain) = support::init()?;
+        let (instance, _adapter, device) = support::init()?;
 
         let descriptor = BufferDescriptor {
             usage: BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::MAP_WRITE,
@@ -53,7 +53,7 @@ fn create_buffer_write_staging() {
 #[test]
 fn create_buffer_read_staging() {
     vki::validate(|| {
-        let (_event_loop, _window, instance, _surface, _adapter, device, _swapchain) = support::init()?;
+        let (instance, _adapter, device) = support::init()?;
 
         let descriptor = BufferDescriptor {
             usage: BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::MAP_READ,
@@ -69,7 +69,7 @@ fn create_buffer_read_staging() {
 #[test]
 fn create_buffer_read_storage() {
     vki::validate(|| {
-        let (_event_loop, _window, instance, _surface, _adapter, device, _swapchain) = support::init()?;
+        let (instance, _adapter, device) = support::init()?;
 
         let descriptor = BufferDescriptor {
             usage: BufferUsageFlags::STORAGE | BufferUsageFlags::MAP_READ,
@@ -77,6 +77,8 @@ fn create_buffer_read_storage() {
         };
 
         let _buffer = device.create_buffer(descriptor)?;
+
+        drop(_buffer);
 
         Ok(instance)
     });

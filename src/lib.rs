@@ -128,7 +128,12 @@ pub struct Swapchain {
     inner: Arc<imp::SwapchainInner>,
 }
 
-pub struct SurfaceDescriptorWin32 {}
+pub struct SurfaceDescriptorWin32 {
+    pub hwnd: *const std::ffi::c_void,
+}
+
+#[cfg(windows)]
+pub type SurfaceDescriptor = SurfaceDescriptorWin32;
 
 #[derive(Clone, Debug)]
 pub struct Surface {
@@ -193,4 +198,8 @@ pub struct BufferDescriptor {
 
 pub struct Buffer {
     inner: Arc<imp::BufferInner>,
+}
+
+pub struct Texture {
+    inner: Arc<imp::TextureInner>,
 }

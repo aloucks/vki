@@ -139,7 +139,7 @@ pub fn access_flags(usage: BufferUsageFlags) -> vk::AccessFlags {
 
 impl BufferInner {
     pub fn new(device: Arc<DeviceInner>, descriptor: BufferDescriptor) -> Result<BufferInner, vk::Result> {
-        let buffer_create_info = vk::BufferCreateInfo::builder()
+        let create_info = vk::BufferCreateInfo::builder()
             .size(descriptor.size)
             .usage(usage_flags(descriptor.usage))
             .sharing_mode(vk::SharingMode::EXCLUSIVE)
@@ -155,15 +155,30 @@ impl BufferInner {
             memory_type_bits: 0,
         };
 
-        log::trace!("buffer_create_info: {:?}", buffer_create_info);
-        log::trace!("allocation_create_info: {:?}", allocation_create_info);
+        log::trace!(
+            "buffer create_info: {:?}, allocation_create_info: {:?}",
+            create_info,
+            allocation_create_info
+        );
 
         let mut state = device.state.lock();
         let allocator = state.allocator_mut();
 
-        let (buffer, allocation, allocation_info) = allocator
-            .create_buffer(&buffer_create_info, &allocation_create_info)
-            .unwrap();
+        let result = allocator.create_buffer(&create_info, &allocation_create_info);
+
+        // See TextureInner::new
+        if let Err(ref e) = &result {
+            match e.kind() {
+                &vk_mem::ErrorKind::Vulkan(vk::Result::ERROR_VALIDATION_FAILED_EXT) => unsafe {
+                    let dummy = device.raw.create_buffer(&create_info, None)?;
+                    device.raw.destroy_buffer(dummy, None);
+                    return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+                },
+                _ => {}
+            }
+        }
+
+        let (buffer, allocation, allocation_info) = result.expect("failed to create buffer"); // TODO
 
         log::trace!("created buffer: {:?}, allocation_info: {:?}", buffer, allocation_info);
 
@@ -235,6 +250,7 @@ impl BufferInner {
         Ok(())
     }
 }
+
 impl Into<Buffer> for BufferInner {
     fn into(self) -> Buffer {
         Buffer { inner: Arc::new(self) }

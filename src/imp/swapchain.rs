@@ -90,7 +90,7 @@ impl SwapchainInner {
                 size: Extent3D {
                     width: surface_image_extent.width,
                     height: surface_image_extent.height,
-                    depth: 0,
+                    depth: 1,
                 },
                 array_layer_count: create_info.image_array_layers,
                 mip_level_count: 1,
@@ -103,7 +103,8 @@ impl SwapchainInner {
             let textures = images.iter().cloned().map(|handle| TextureInner {
                 handle,
                 device: device.clone(),
-                owned: false,
+                allocation: None,
+                allocation_info: None,
                 last_usage: Mutex::new(TextureUsageFlags::NONE),
                 descriptor: texture_descriptor,
             });

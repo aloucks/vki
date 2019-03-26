@@ -14,12 +14,15 @@ pub struct FencedDeleter {
     swapchains_to_delete: SerialQueue<(vk::SwapchainKHR, Arc<SurfaceInner>)>,
     semaphores_to_delete: SerialQueue<vk::Semaphore>,
     buffers_to_delete: SerialQueue<(vk::Buffer, Allocation)>,
+    images_to_delete: SerialQueue<(vk::Image, Allocation)>,
 }
 
 impl FencedDeleter {
     pub fn tick(&mut self, last_completed_serial: Serial, device: &DeviceInner, allocator: &mut Allocator) {
         log::trace!("swapchains_to_delete.len: {}", self.swapchains_to_delete.len());
         log::trace!("semaphores_to_delete.len: {}", self.semaphores_to_delete.len());
+        log::trace!("buffers_to_delete.len: {}", self.semaphores_to_delete.len());
+        log::trace!("images_to_delete.len: {}", self.semaphores_to_delete.len());
 
         for ((swapchain, surface), serial) in self.swapchains_to_delete.drain_up_to(last_completed_serial) {
             log::debug!("destroying swapchain: {:?}, completed_serial: {:?}", swapchain, serial);
@@ -42,12 +45,20 @@ impl FencedDeleter {
                 log::warn!("buffer destruction failed; buffer: {:?}, error: {:?}", buffer, e);
             }
         }
+
+        for ((image, allocation), serial) in self.images_to_delete.drain_up_to(last_completed_serial) {
+            log::trace!("destroying image: {:?}, completed_serial: {:?}", image, serial);
+            if let Err(e) = allocator.destroy_image(image, &allocation) {
+                log::warn!("image destruction failed; buffer: {:?}, error: {:?}", image, e);
+            }
+        }
     }
 
     pub fn is_empty(&self) -> bool {
         self.swapchains_to_delete.len() == 0
             && self.semaphores_to_delete.len() == 0
             && self.buffers_to_delete.len() == 0
+        && self.images_to_delete.len() == 0
     }
 }
 
@@ -78,5 +89,11 @@ impl DeleteWhenUnused<vk::Semaphore> for FencedDeleter {
 impl DeleteWhenUnused<(vk::Buffer, Allocation)> for FencedDeleter {
     fn get_serial_queue(&mut self) -> &mut SerialQueue<(vk::Buffer, Allocation)> {
         &mut self.buffers_to_delete
+    }
+}
+
+impl DeleteWhenUnused<(vk::Image, Allocation)> for FencedDeleter {
+    fn get_serial_queue(&mut self) -> &mut SerialQueue<(vk::Image, Allocation)> {
+        &mut self.images_to_delete
     }
 }

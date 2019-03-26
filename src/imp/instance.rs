@@ -11,7 +11,7 @@ use std::mem;
 use std::sync::Arc;
 
 use crate::imp::{debug, AdapterInner, InstanceExt, InstanceInner, SurfaceInner};
-use crate::{Adapter, InitError, Instance, RequestAdapterOptions, Surface};
+use crate::{Adapter, InitError, Instance, RequestAdapterOptions, Surface, SurfaceDescriptor, SurfaceDescriptorWin32};
 
 use std::fmt::Debug;
 use std::sync::atomic::Ordering;
@@ -43,6 +43,12 @@ impl Instance {
     pub fn create_surface_win32(&self, hwnd: *const c_void) -> Result<Surface, vk::Result> {
         let surface = SurfaceInner::new_win32(self.inner.clone(), hwnd)?;
         Ok(surface.into())
+    }
+
+    #[cfg(target_os = "windows")]
+    pub fn create_surface(&self, descriptor: &SurfaceDescriptor) -> Result<Surface, vk::Result> {
+        let descriptor: &SurfaceDescriptorWin32 = descriptor;
+        self.create_surface_win32(descriptor.hwnd)
     }
 }
 

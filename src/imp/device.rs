@@ -7,8 +7,13 @@ use vk_mem::{Allocator, AllocatorCreateInfo};
 use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
 use crate::imp::serial::{Serial, SerialQueue};
-use crate::imp::{AdapterInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SurfaceInner, SwapchainInner};
-use crate::{Buffer, BufferDescriptor, Device, DeviceDescriptor, Limits, Queue, Swapchain, SwapchainDescriptor};
+use crate::imp::{
+    AdapterInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SurfaceInner, SwapchainInner, TextureInner,
+};
+use crate::{
+    Buffer, BufferDescriptor, Device, DeviceDescriptor, Limits, Queue, Swapchain, SwapchainDescriptor, Texture,
+    TextureDescriptor,
+};
 
 use std::fmt::{self, Debug};
 use std::mem::ManuallyDrop;
@@ -64,6 +69,11 @@ impl Device {
         let buffer = BufferInner::new(self.inner.clone(), descriptor)?;
         Ok(buffer.into())
     }
+
+    pub fn create_texture(&self, descriptor: TextureDescriptor) -> Result<Texture, vk::Result> {
+        let texture = TextureInner::new(self.inner.clone(), descriptor)?;
+        Ok(texture.into())
+    }
 }
 
 impl DeviceInner {
@@ -118,7 +128,7 @@ impl DeviceInner {
                 wait_semaphores: Vec::default(),
                 unused_fences: Vec::default(),
                 last_completed_serial: Serial::zero(),
-                last_submitted_serial: Serial::one(),
+                last_submitted_serial: Serial::zero(),
                 pending_commands: None,
                 unused_commands: Vec::new(),
                 fenced_deleter: FencedDeleter::default(),
@@ -205,6 +215,7 @@ impl Drop for DeviceInner {
             {
                 let state = &mut *state;
                 state.fenced_deleter.tick(serial, &self, &mut state.allocator);
+                assert!(state.fenced_deleter.is_empty());
             }
 
             for (fence, _) in state.fences_in_flight.drain(..) {

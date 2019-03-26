@@ -1,9 +1,15 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
-use crate::imp::has_zero_or_one_bits;
+use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::TextureInner;
-use crate::{TextureFormat, TextureUsageFlags};
+use crate::imp::{extent_3d, has_zero_or_one_bits, DeviceInner};
+use crate::{Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags};
+
+use ash::vk::MemoryPropertyFlags;
+use parking_lot::Mutex;
+use std::sync::Arc;
+use vk_mem::{AllocationCreateFlags, AllocationCreateInfo, MemoryUsage};
 
 fn read_only_texture_usage() -> TextureUsageFlags {
     TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::SAMPLED | TextureUsageFlags::PRESENT
@@ -11,6 +17,10 @@ fn read_only_texture_usage() -> TextureUsageFlags {
 
 fn writable_texture_usages() -> TextureUsageFlags {
     TextureUsageFlags::TRANSFER_DST | TextureUsageFlags::STORAGE | TextureUsageFlags::OUTPUT_ATTACHMENT
+}
+
+pub fn memory_usage(_usage: TextureUsageFlags) -> MemoryUsage {
+    MemoryUsage::GpuOnly
 }
 
 pub fn is_depth(format: TextureFormat) -> bool {
@@ -29,6 +39,15 @@ pub fn is_stencil(format: TextureFormat) -> bool {
 
 pub fn is_depth_or_stencil(format: TextureFormat) -> bool {
     is_depth(format) || is_stencil(format)
+}
+
+pub fn image_type(dimension: TextureDimension) -> vk::ImageType {
+    // TODO: arrays?
+    match dimension {
+        TextureDimension::Texture1D => vk::ImageType::TYPE_1D,
+        TextureDimension::Texture2D => vk::ImageType::TYPE_2D,
+        TextureDimension::Texture3D => vk::ImageType::TYPE_3D,
+    }
 }
 
 pub fn image_usage(usage: TextureUsageFlags, format: TextureFormat) -> vk::ImageUsageFlags {
@@ -207,6 +226,79 @@ pub fn image_layout(usage: TextureUsageFlags, format: TextureFormat) -> vk::Imag
 }
 
 impl TextureInner {
+    pub fn new(device: Arc<DeviceInner>, descriptor: TextureDescriptor) -> Result<TextureInner, vk::Result> {
+        let flags = if descriptor.array_layer_count >= 6 && descriptor.size.width == descriptor.size.height {
+            vk::ImageCreateFlags::CUBE_COMPATIBLE
+        } else {
+            vk::ImageCreateFlags::empty()
+        };
+
+        let create_info = vk::ImageCreateInfo {
+            flags,
+            image_type: image_type(descriptor.dimension),
+            format: image_format(descriptor.format),
+            extent: extent_3d(descriptor.size),
+            mip_levels: descriptor.mip_level_count,
+            array_layers: descriptor.array_layer_count,
+            samples: vk::SampleCountFlags::TYPE_1,
+            tiling: vk::ImageTiling::OPTIMAL,
+            usage: image_usage(descriptor.usage, descriptor.format),
+            sharing_mode: vk::SharingMode::EXCLUSIVE,
+            initial_layout: vk::ImageLayout::UNDEFINED,
+            ..Default::default()
+        };
+
+        let mut state = device.state.lock();
+        let allocator = state.allocator_mut();
+        let allocation_create_info = AllocationCreateInfo {
+            pool: None,
+            user_data: None,
+            required_flags: MemoryPropertyFlags::empty(),
+            preferred_flags: MemoryPropertyFlags::empty(),
+            flags: AllocationCreateFlags::NONE,
+            memory_type_bits: 0,
+            usage: memory_usage(descriptor.usage),
+        };
+
+        log::trace!(
+            "image create_info: {:?}, allocation_create_info: {:?}",
+            create_info,
+            allocation_create_info
+        );
+
+        let result = allocator.create_image(&create_info, &allocation_create_info);
+
+        // VMA does some basic pre-checks on the input, but doesn't provide any info around why the
+        // input was invalid and just returns `VK_ERROR_VALIDAITON_FAILED_EXT` without triggering
+        // any validation messages (it doesn't call `vkCreateImage` if it's pre-checks fail).
+        // So, in the event of a validation error, we'll create a dummy image that triggers the
+        // validation message (so we can see what exactly the problem was) and then destroy it
+        // immediately.
+        if let Err(ref e) = &result {
+            match e.kind() {
+                &vk_mem::ErrorKind::Vulkan(vk::Result::ERROR_VALIDATION_FAILED_EXT) => unsafe {
+                    let dummy = device.raw.create_image(&create_info, None)?;
+                    device.raw.destroy_image(dummy, None);
+                    return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+                },
+                _ => {}
+            }
+        }
+
+        let (image, allocation, allocation_info) = result.expect("failed to create image"); // TODO
+
+        log::trace!("created image: {:?}, allocation_info: {:?}", image, allocation_info);
+
+        Ok(TextureInner {
+            handle: image,
+            device: device.clone(),
+            allocation: Some(allocation),
+            allocation_info: Some(allocation_info),
+            descriptor,
+            last_usage: Mutex::new(TextureUsageFlags::NONE),
+        })
+    }
+
     pub fn transition_usage(
         &self,
         command_buffer: vk::CommandBuffer,
@@ -276,10 +368,20 @@ impl TextureInner {
     }
 }
 
+impl Into<Texture> for TextureInner {
+    fn into(self) -> Texture {
+        Texture { inner: Arc::new(self) }
+    }
+}
+
 impl Drop for TextureInner {
     fn drop(&mut self) {
-        if self.owned {
-            // TODO:
+        if let Some(allocation) = self.allocation.as_ref() {
+            let mut state = self.device.state.lock();
+            let serial = state.get_next_pending_serial();
+            state
+                .get_fenced_deleter()
+                .delete_when_unused((self.handle, allocation.clone()), serial);
         }
     }
 }

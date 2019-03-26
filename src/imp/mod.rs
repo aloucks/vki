@@ -46,6 +46,7 @@ pub struct AdapterInner {
     physical_device: vk::PhysicalDevice,
     physical_device_features: vk::PhysicalDeviceFeatures,
     physical_device_properties: vk::PhysicalDeviceProperties,
+    physical_device_format_properties: Vec<(vk::Format, vk::FormatProperties)>,
     queue_family_properties: Vec<vk::QueueFamilyProperties>,
     name: String,
     extensions: Extensions,
@@ -98,7 +99,9 @@ pub struct TextureInner {
     device: Arc<DeviceInner>,
     descriptor: TextureDescriptor,
     last_usage: Mutex<TextureUsageFlags>,
-    owned: bool,
+    // if the allocation is None, the image is owned by the swapchain
+    allocation: Option<Allocation>,
+    allocation_info: Option<AllocationInfo>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
