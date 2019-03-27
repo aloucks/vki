@@ -32,7 +32,9 @@ pub fn init() -> Result<(Instance, Adapter, Device), Box<std::error::Error>> {
     Ok((instance, adapter, device))
 }
 
-pub fn init_with_window(window: &Window) -> Result<(Instance, Adapter, Device, Surface, Swapchain), Box<std::error::Error>> {
+pub fn init_with_window(
+    window: &Window,
+) -> Result<(Instance, Adapter, Device, Surface, Swapchain), Box<std::error::Error>> {
     init_environment();
     let instance = Instance::new()?;
     let adapter = instance.request_adaptor(RequestAdapterOptions::default())?;

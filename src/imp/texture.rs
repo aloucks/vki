@@ -2,9 +2,11 @@ use ash::version::DeviceV1_0;
 use ash::vk;
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
-use crate::imp::TextureInner;
 use crate::imp::{extent_3d, has_zero_or_one_bits, DeviceInner};
-use crate::{Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags};
+use crate::imp::{TextureInner, TextureViewInner};
+use crate::{
+    Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView, TextureViewDescriptor,
+};
 
 use ash::vk::MemoryPropertyFlags;
 use parking_lot::Mutex;
@@ -44,9 +46,24 @@ pub fn is_depth_or_stencil(format: TextureFormat) -> bool {
 pub fn image_type(dimension: TextureDimension) -> vk::ImageType {
     // TODO: arrays?
     match dimension {
-        TextureDimension::Texture1D => vk::ImageType::TYPE_1D,
-        TextureDimension::Texture2D => vk::ImageType::TYPE_2D,
-        TextureDimension::Texture3D => vk::ImageType::TYPE_3D,
+        TextureDimension::D1 => vk::ImageType::TYPE_1D,
+        TextureDimension::D2 => vk::ImageType::TYPE_2D,
+        TextureDimension::D3 => vk::ImageType::TYPE_3D,
+    }
+}
+
+pub fn image_view_type(texture: &TextureInner, descriptor: &TextureViewDescriptor) -> vk::ImageViewType {
+    // TODO: arrays? / is this right?
+    match descriptor.dimension {
+        TextureDimension::D1 => vk::ImageViewType::TYPE_1D,
+        TextureDimension::D2 => vk::ImageViewType::TYPE_2D,
+        TextureDimension::D3 => {
+            if descriptor.array_layer_count >= 6 && texture.descriptor.size.width == texture.descriptor.size.height {
+                vk::ImageViewType::CUBE
+            } else {
+                vk::ImageViewType::TYPE_3D
+            }
+        }
     }
 }
 
@@ -225,6 +242,33 @@ pub fn image_layout(usage: TextureUsageFlags, format: TextureFormat) -> vk::Imag
     }
 }
 
+pub fn default_texture_view_descriptor(texture: &TextureInner) -> TextureViewDescriptor {
+    let aspect_flags = aspect_mask(texture.descriptor.format);
+    let aspect = unsafe { std::mem::transmute(aspect_flags) };
+
+    TextureViewDescriptor {
+        array_layer_count: texture.descriptor.array_layer_count,
+        format: texture.descriptor.format,
+        mip_level_count: texture.descriptor.mip_level_count,
+        dimension: texture.descriptor.dimension,
+        base_array_layer: 0,
+        base_mip_level: 0,
+        aspect,
+    }
+}
+
+impl Texture {
+    pub fn create_view(&self, descriptor: TextureViewDescriptor) -> Result<TextureView, vk::Result> {
+        let texture_view = TextureViewInner::new(self.inner.clone(), descriptor)?;
+        Ok(texture_view.into())
+    }
+
+    pub fn create_default_view(&self) -> Result<TextureView, vk::Result> {
+        let descriptor = default_texture_view_descriptor(&self.inner);
+        self.create_view(descriptor)
+    }
+}
+
 impl TextureInner {
     pub fn new(device: Arc<DeviceInner>, descriptor: TextureDescriptor) -> Result<TextureInner, vk::Result> {
         let flags = if descriptor.array_layer_count >= 6 && descriptor.size.width == descriptor.size.height {
@@ -383,5 +427,63 @@ impl Drop for TextureInner {
                 .get_fenced_deleter()
                 .delete_when_unused((self.handle, allocation.clone()), serial);
         }
+    }
+}
+
+impl TextureViewInner {
+    pub fn new(texture: Arc<TextureInner>, descriptor: TextureViewDescriptor) -> Result<TextureViewInner, vk::Result> {
+        let aspect_mask = unsafe { std::mem::transmute(descriptor.aspect) };
+        let base_mip_level = descriptor.base_mip_level;
+        let level_count = descriptor.mip_level_count;
+        let base_array_layer = descriptor.base_array_layer;
+        let layer_count = descriptor.array_layer_count;
+        let view_type = image_view_type(&texture, &descriptor);
+
+        let create_info = vk::ImageViewCreateInfo {
+            format: image_format(descriptor.format),
+            flags: vk::ImageViewCreateFlags::empty(),
+            image: texture.handle,
+            subresource_range: vk::ImageSubresourceRange {
+                aspect_mask,
+                base_mip_level,
+                level_count,
+                base_array_layer,
+                layer_count,
+            },
+            components: vk::ComponentMapping {
+                r: vk::ComponentSwizzle::R,
+                g: vk::ComponentSwizzle::G,
+                b: vk::ComponentSwizzle::B,
+                a: vk::ComponentSwizzle::A,
+            },
+            view_type,
+            ..Default::default()
+        };
+
+        log::trace!("image_view create_info: {:?}", create_info);
+
+        let image_view = unsafe { texture.device.raw.create_image_view(&create_info, None)? };
+
+        log::trace!("created image_view: {:?}", image_view);
+
+        Ok(TextureViewInner {
+            descriptor,
+            handle: image_view,
+            texture,
+        })
+    }
+}
+
+impl Into<TextureView> for TextureViewInner {
+    fn into(self) -> TextureView {
+        TextureView { inner: Arc::new(self) }
+    }
+}
+
+impl Drop for TextureViewInner {
+    fn drop(&mut self) {
+        let mut state = self.texture.device.state.lock();
+        let serial = state.get_next_pending_serial();
+        state.get_fenced_deleter().delete_when_unused(self.handle, serial);
     }
 }

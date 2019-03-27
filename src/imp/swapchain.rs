@@ -1,9 +1,10 @@
 use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
-use crate::imp::texture;
+use crate::imp::{texture, TextureViewInner};
 use crate::imp::{DeviceInner, InstanceInner, SwapchainInner, TextureInner};
 use crate::{
-    Extent3D, Swapchain, SwapchainDescriptor, SwapchainImage, TextureDescriptor, TextureDimension, TextureUsageFlags,
+    Extent3D, Swapchain, SwapchainDescriptor, SwapchainImage, Texture, TextureDescriptor, TextureDimension,
+    TextureUsageFlags, TextureView,
 };
 
 use ash::prelude::VkResult;
@@ -20,6 +21,12 @@ impl Swapchain {
         let image_index = self.inner.acquire_next_image_index()?;
         Ok(SwapchainImage {
             swapchain: Arc::clone(&self.inner),
+            texture: Texture {
+                inner: Arc::clone(&self.inner.textures[image_index as usize]),
+            },
+            view: TextureView {
+                inner: Arc::clone(&self.inner.views[image_index as usize]),
+            },
             image_index,
         })
     }
@@ -95,20 +102,29 @@ impl SwapchainInner {
                 array_layer_count: create_info.image_array_layers,
                 mip_level_count: 1,
                 sample_count: 1,
-                dimension: TextureDimension::Texture2D,
+                dimension: TextureDimension::D2,
                 format: descriptor.format,
                 usage: TextureUsageFlags::PRESENT,
             };
 
-            let textures = images.iter().cloned().map(|handle| TextureInner {
-                handle,
-                device: device.clone(),
-                allocation: None,
-                allocation_info: None,
-                last_usage: Mutex::new(TextureUsageFlags::NONE),
-                descriptor: texture_descriptor,
+            let textures = images.iter().cloned().map(|handle| {
+                Arc::new(TextureInner {
+                    handle,
+                    device: device.clone(),
+                    allocation: None,
+                    allocation_info: None,
+                    last_usage: Mutex::new(TextureUsageFlags::NONE),
+                    descriptor: texture_descriptor,
+                })
             });
             let textures: Vec<_> = textures.collect();
+
+            let mut views = Vec::with_capacity(textures.len());
+
+            for texture in textures.iter() {
+                let view = TextureViewInner::new(texture.clone(), texture::default_texture_view_descriptor(&texture))?;
+                views.push(Arc::new(view));
+            }
 
             // initial transition
             let mut state = device.state.lock();
@@ -121,6 +137,7 @@ impl SwapchainInner {
             Ok(SwapchainInner {
                 handle: swapchain,
                 textures,
+                views,
                 device,
                 surface: descriptor.surface.inner.clone(),
             })

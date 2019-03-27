@@ -15,14 +15,17 @@ pub struct FencedDeleter {
     semaphores_to_delete: SerialQueue<vk::Semaphore>,
     buffers_to_delete: SerialQueue<(vk::Buffer, Allocation)>,
     images_to_delete: SerialQueue<(vk::Image, Allocation)>,
+    image_views_to_delete: SerialQueue<vk::ImageView>,
 }
 
 impl FencedDeleter {
     pub fn tick(&mut self, last_completed_serial: Serial, device: &DeviceInner, allocator: &mut Allocator) {
-        log::trace!("swapchains_to_delete.len: {}", self.swapchains_to_delete.len());
-        log::trace!("semaphores_to_delete.len: {}", self.semaphores_to_delete.len());
-        log::trace!("buffers_to_delete.len: {}", self.semaphores_to_delete.len());
-        log::trace!("images_to_delete.len: {}", self.semaphores_to_delete.len());
+        log::trace!("last_completed_serial: {:?}", last_completed_serial);
+        log::trace!("swapchains_to_delete:  {}", self.swapchains_to_delete.len());
+        log::trace!("semaphores_to_delete:  {}", self.semaphores_to_delete.len());
+        log::trace!("buffers_to_delete:     {}", self.buffers_to_delete.len());
+        log::trace!("images_to_delete:      {}", self.images_to_delete.len());
+        log::trace!("image_views_to_delete: {}", self.image_views_to_delete.len());
 
         for ((swapchain, surface), serial) in self.swapchains_to_delete.drain_up_to(last_completed_serial) {
             log::debug!("destroying swapchain: {:?}, completed_serial: {:?}", swapchain, serial);
@@ -52,13 +55,24 @@ impl FencedDeleter {
                 log::warn!("image destruction failed; buffer: {:?}, error: {:?}", image, e);
             }
         }
+
+        for (image_view, serial) in self.image_views_to_delete.drain_up_to(last_completed_serial) {
+            log::trace!(
+                "destroying image_view: {:?}, completed_serial: {:?}",
+                image_view,
+                serial
+            );
+            unsafe {
+                device.raw.destroy_image_view(image_view, None);
+            }
+        }
     }
 
     pub fn is_empty(&self) -> bool {
         self.swapchains_to_delete.len() == 0
             && self.semaphores_to_delete.len() == 0
             && self.buffers_to_delete.len() == 0
-        && self.images_to_delete.len() == 0
+            && self.images_to_delete.len() == 0
     }
 }
 
@@ -95,5 +109,11 @@ impl DeleteWhenUnused<(vk::Buffer, Allocation)> for FencedDeleter {
 impl DeleteWhenUnused<(vk::Image, Allocation)> for FencedDeleter {
     fn get_serial_queue(&mut self) -> &mut SerialQueue<(vk::Image, Allocation)> {
         &mut self.images_to_delete
+    }
+}
+
+impl DeleteWhenUnused<vk::ImageView> for FencedDeleter {
+    fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::ImageView> {
+        &mut self.image_views_to_delete
     }
 }

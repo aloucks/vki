@@ -23,7 +23,10 @@ mod polyfill;
 pub use crate::imp::debug::validate;
 
 use crate::imp::device::DeviceState;
-use crate::{BufferDescriptor, BufferUsageFlags, Extensions, Extent3D, Limits, TextureDescriptor, TextureUsageFlags};
+use crate::{
+    BufferDescriptor, BufferUsageFlags, Extensions, Extent3D, Limits, TextureDescriptor, TextureUsageFlags,
+    TextureViewDescriptor,
+};
 
 pub struct InstanceInner {
     raw: ash::Instance,
@@ -77,7 +80,8 @@ pub struct SwapchainInner {
     device: Arc<DeviceInner>,
     surface: Arc<SurfaceInner>,
     //images: Vec<vk::Image>,
-    textures: Vec<TextureInner>,
+    textures: Vec<Arc<TextureInner>>,
+    views: Vec<Arc<TextureViewInner>>,
 }
 
 #[derive(Debug)]
@@ -102,6 +106,13 @@ pub struct TextureInner {
     // if the allocation is None, the image is owned by the swapchain
     allocation: Option<Allocation>,
     allocation_info: Option<AllocationInfo>,
+}
+
+#[derive(Debug)]
+pub struct TextureViewInner {
+    handle: vk::ImageView,
+    texture: Arc<TextureInner>,
+    descriptor: TextureViewDescriptor,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]

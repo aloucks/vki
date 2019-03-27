@@ -16,9 +16,8 @@ mod macros;
 mod error;
 mod imp;
 
+pub use crate::error::InitError;
 pub use crate::imp::validate;
-
-pub use error::InitError;
 
 #[derive(Clone, Debug)]
 pub struct Instance {
@@ -77,34 +76,6 @@ pub struct Device {
     inner: Arc<imp::DeviceInner>,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub enum TextureFormat {
-    R8G8B8A8Unorm,
-    R8G8Unorm,
-    R8Unorm,
-    R8G8B8A8Uint,
-    R8G8Uint,
-    R8Uint,
-    B8G8R8A8Unorm,
-    B8G8R8A8UnormSRGB,
-
-    D32FloatS8Uint,
-}
-
-bitflags! {
-    #[repr(transparent)]
-    pub struct TextureUsageFlags: u32 {
-        const NONE = 0;
-        const TRANSFER_SRC = 1;
-        const TRANSFER_DST = 2;
-        const SAMPLED = 4;
-        const STORAGE = 8;
-        const OUTPUT_ATTACHMENT = 16;
-        #[doc(hidden)]
-        const PRESENT = 32;
-    }
-}
-
 #[derive(Clone, Copy, Debug)]
 pub struct SwapchainDescriptor<'a> {
     pub surface: &'a Surface,
@@ -148,6 +119,8 @@ pub struct SwapchainImage {
     // TODO: See if this can still be ergonomic with a reference instead
     swapchain: Arc<imp::SwapchainInner>,
     image_index: u32,
+    pub texture: Texture,
+    pub view: TextureView,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -158,10 +131,38 @@ pub struct Extent3D {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum TextureFormat {
+    R8G8B8A8Unorm,
+    R8G8Unorm,
+    R8Unorm,
+    R8G8B8A8Uint,
+    R8G8Uint,
+    R8Uint,
+    B8G8R8A8Unorm,
+    B8G8R8A8UnormSRGB,
+
+    D32FloatS8Uint,
+}
+
+bitflags! {
+    #[repr(transparent)]
+    pub struct TextureUsageFlags: u32 {
+        const NONE = 0;
+        const TRANSFER_SRC = 1;
+        const TRANSFER_DST = 2;
+        const SAMPLED = 4;
+        const STORAGE = 8;
+        const OUTPUT_ATTACHMENT = 16;
+        #[doc(hidden)]
+        const PRESENT = 32;
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TextureDimension {
-    Texture1D,
-    Texture2D,
-    Texture3D,
+    D1,
+    D2,
+    D3,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -173,6 +174,31 @@ pub struct TextureDescriptor {
     pub dimension: TextureDimension,
     pub format: TextureFormat,
     pub usage: TextureUsageFlags,
+}
+
+bitflags! {
+    #[repr(transparent)]
+    pub struct TextureAspectFlags: u32 {
+        const COLOR = 0b1;      // vk::ImageAspectFlags::COLOR;
+        const DEPTH = 0b10;     // vk::ImageAspectFlags::DEPTH;
+        const STENCIL = 0b1000; // vk::ImageAspectFlags::STENCIL;
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct TextureViewDescriptor {
+    pub format: TextureFormat,
+    pub dimension: TextureDimension,
+    pub aspect: TextureAspectFlags,
+    pub base_mip_level: u32,
+    pub mip_level_count: u32,
+    pub base_array_layer: u32,
+    pub array_layer_count: u32,
+}
+
+#[derive(Debug)]
+pub struct TextureView {
+    inner: Arc<imp::TextureViewInner>,
 }
 
 bitflags! {
