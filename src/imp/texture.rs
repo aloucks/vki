@@ -6,6 +6,7 @@ use crate::imp::{extent_3d, has_zero_or_one_bits, DeviceInner};
 use crate::imp::{TextureInner, TextureViewInner};
 use crate::{
     Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView, TextureViewDescriptor,
+    TextureViewDimension,
 };
 
 use ash::vk::MemoryPropertyFlags;
@@ -52,18 +53,13 @@ pub fn image_type(dimension: TextureDimension) -> vk::ImageType {
     }
 }
 
-pub fn image_view_type(texture: &TextureInner, descriptor: &TextureViewDescriptor) -> vk::ImageViewType {
+pub fn image_view_type(descriptor: &TextureViewDescriptor) -> vk::ImageViewType {
     // TODO: arrays? / is this right?
     match descriptor.dimension {
-        TextureDimension::D1 => vk::ImageViewType::TYPE_1D,
-        TextureDimension::D2 => vk::ImageViewType::TYPE_2D,
-        TextureDimension::D3 => {
-            if descriptor.array_layer_count >= 6 && texture.descriptor.size.width == texture.descriptor.size.height {
-                vk::ImageViewType::CUBE
-            } else {
-                vk::ImageViewType::TYPE_3D
-            }
-        }
+        TextureViewDimension::D1 => vk::ImageViewType::TYPE_1D,
+        TextureViewDimension::D2 => vk::ImageViewType::TYPE_2D,
+        TextureViewDimension::D3 => vk::ImageViewType::TYPE_3D,
+        TextureViewDimension::Cube => vk::ImageViewType::CUBE,
     }
 }
 
@@ -246,11 +242,23 @@ pub fn default_texture_view_descriptor(texture: &TextureInner) -> TextureViewDes
     let aspect_flags = aspect_mask(texture.descriptor.format);
     let aspect = unsafe { std::mem::transmute(aspect_flags) };
 
+    let dimension = if texture.descriptor.array_layer_count >= 6
+        && texture.descriptor.size.width == texture.descriptor.size.height
+    {
+        TextureViewDimension::Cube
+    } else {
+        match texture.descriptor.dimension {
+            TextureDimension::D1 => TextureViewDimension::D1,
+            TextureDimension::D2 => TextureViewDimension::D2,
+            TextureDimension::D3 => TextureViewDimension::D3,
+        }
+    };
+
     TextureViewDescriptor {
         array_layer_count: texture.descriptor.array_layer_count,
         format: texture.descriptor.format,
         mip_level_count: texture.descriptor.mip_level_count,
-        dimension: texture.descriptor.dimension,
+        dimension,
         base_array_layer: 0,
         base_mip_level: 0,
         aspect,
@@ -265,6 +273,7 @@ impl Texture {
 
     pub fn create_default_view(&self) -> Result<TextureView, vk::Result> {
         let descriptor = default_texture_view_descriptor(&self.inner);
+        log::trace!("default image_view descriptor: {:?}", descriptor);
         self.create_view(descriptor)
     }
 }
@@ -437,7 +446,7 @@ impl TextureViewInner {
         let level_count = descriptor.mip_level_count;
         let base_array_layer = descriptor.base_array_layer;
         let layer_count = descriptor.array_layer_count;
-        let view_type = image_view_type(&texture, &descriptor);
+        let view_type = image_view_type(&descriptor);
 
         let create_info = vk::ImageViewCreateInfo {
             format: image_format(descriptor.format),

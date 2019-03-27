@@ -99,6 +99,7 @@ pub struct Swapchain {
     inner: Arc<imp::SwapchainInner>,
 }
 
+#[derive(Debug)]
 pub struct SurfaceDescriptorWin32 {
     pub hwnd: *const std::ffi::c_void,
 }
@@ -166,6 +167,14 @@ pub enum TextureDimension {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum TextureViewDimension {
+    D1,
+    D2,
+    D3,
+    Cube,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TextureDescriptor {
     pub size: Extent3D,
     pub array_layer_count: u32,
@@ -188,7 +197,7 @@ bitflags! {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TextureViewDescriptor {
     pub format: TextureFormat,
-    pub dimension: TextureDimension,
+    pub dimension: TextureViewDimension,
     pub aspect: TextureAspectFlags,
     pub base_mip_level: u32,
     pub mip_level_count: u32,
@@ -222,10 +231,12 @@ pub struct BufferDescriptor {
     pub usage: BufferUsageFlags,
 }
 
+#[derive(Debug)]
 pub struct Buffer {
     inner: Arc<imp::BufferInner>,
 }
 
+#[derive(Debug)]
 pub struct Texture {
     inner: Arc<imp::TextureInner>,
 }
