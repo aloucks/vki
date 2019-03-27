@@ -139,11 +139,12 @@ pub fn access_flags(usage: BufferUsageFlags) -> vk::AccessFlags {
 
 impl BufferInner {
     pub fn new(device: Arc<DeviceInner>, descriptor: BufferDescriptor) -> Result<BufferInner, vk::Result> {
-        let create_info = vk::BufferCreateInfo::builder()
-            .size(descriptor.size)
-            .usage(usage_flags(descriptor.usage))
-            .sharing_mode(vk::SharingMode::EXCLUSIVE)
-            .build();
+        let create_info = vk::BufferCreateInfo {
+            size: descriptor.size,
+            usage: usage_flags(descriptor.usage),
+            sharing_mode: vk::SharingMode::EXCLUSIVE,
+            .. Default::default()
+        };
 
         let allocation_create_info = AllocationCreateInfo {
             usage: memory_usage(descriptor.usage),
@@ -220,15 +221,16 @@ impl BufferInner {
         let src_access_mask = access_flags(*last_usage);
         let dst_access_mask = access_flags(usage);
 
-        let buffer_memory_barrier = vk::BufferMemoryBarrier::builder()
-            .src_access_mask(src_access_mask)
-            .dst_access_mask(dst_access_mask)
-            .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-            .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-            .buffer(self.handle)
-            .offset(0)
-            .size(self.descriptor.size)
-            .build();
+        let buffer_memory_barrier = vk::BufferMemoryBarrier {
+            src_access_mask,
+            dst_access_mask,
+            src_queue_family_index: vk::QUEUE_FAMILY_IGNORED,
+            dst_queue_family_index: vk::QUEUE_FAMILY_IGNORED,
+            buffer: self.handle,
+            offset: 0,
+            size: self.descriptor.size,
+            .. Default::default()
+        };
 
         let dependency_flags = DependencyFlags::empty();
         let memory_barriers = &[];

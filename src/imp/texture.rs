@@ -388,26 +388,28 @@ impl TextureInner {
         let base_array_layer = 0;
         let layer_count = self.descriptor.array_layer_count;
 
-        let image_memory_barrier = vk::ImageMemoryBarrier::builder()
-            .src_access_mask(src_access_mask)
-            .dst_access_mask(dst_access_mask)
-            .old_layout(old_layout)
-            .new_layout(new_layout)
-            .src_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-            .dst_queue_family_index(vk::QUEUE_FAMILY_IGNORED)
-            .image(image)
-            .subresource_range(vk::ImageSubresourceRange {
+        let image_memory_barrier = vk::ImageMemoryBarrier {
+            src_access_mask,
+            dst_access_mask,
+            old_layout,
+            new_layout,
+            src_queue_family_index: vk::QUEUE_FAMILY_IGNORED,
+            dst_queue_family_index: vk::QUEUE_FAMILY_IGNORED,
+            image,
+            subresource_range: vk::ImageSubresourceRange {
                 aspect_mask,
                 base_mip_level,
                 level_count,
                 base_array_layer,
                 layer_count,
-            });
+            },
+            .. Default::default()
+        };
 
         let dependency_flags = vk::DependencyFlags::empty();
         let memory_barriers = &[];
         let buffer_memory_barriers = &[];
-        let image_memory_barriers = &[*image_memory_barrier];
+        let image_memory_barriers = &[image_memory_barrier];
 
         unsafe {
             self.device.raw.cmd_pipeline_barrier(

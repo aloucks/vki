@@ -114,10 +114,12 @@ impl DeviceInner {
             let swapchain = khr::Swapchain::new(&adapter.instance.raw, &raw);
             let raw_ext = DeviceExt { swapchain };
 
-            let mut allocator_create_info = AllocatorCreateInfo::default();
-            allocator_create_info.device = raw.clone();
-            allocator_create_info.instance = adapter.instance.raw.clone();
-            allocator_create_info.physical_device = adapter.physical_device;
+            let allocator_create_info = AllocatorCreateInfo {
+                device: raw.clone(),
+                instance: adapter.instance.raw.clone(),
+                physical_device: adapter.physical_device,
+                .. Default::default()
+            };
 
             // TODO: Add generic error type
             let allocator = Allocator::new(&allocator_create_info).expect("Allocator creation failed");
@@ -321,7 +323,10 @@ impl DeviceState {
     pub fn get_pending_command_buffer(&mut self, device: &DeviceInner) -> Result<vk::CommandBuffer, vk::Result> {
         if self.pending_commands.is_none() {
             let pending_commands = self.get_unused_commands(device)?;
-            let begin_info = vk::CommandBufferBeginInfo::builder().flags(vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT);
+            let begin_info = vk::CommandBufferBeginInfo {
+                flags: vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT,
+                .. Default::default()
+            };
             unsafe {
                 device
                     .raw
@@ -404,21 +409,25 @@ impl DeviceState {
             command_buffer: vk::CommandBuffer::null(),
         };
 
-        let create_info = vk::CommandPoolCreateInfo::builder()
-            .flags(vk::CommandPoolCreateFlags::TRANSIENT)
-            .queue_family_index(device.queue.lock().queue_family_index);
+        let create_info = vk::CommandPoolCreateInfo {
+            flags: vk::CommandPoolCreateFlags::TRANSIENT,
+            queue_family_index: device.queue.lock().queue_family_index,
+            .. Default::default()
+        };
 
         commands.pool = unsafe { device.raw.create_command_pool(&create_info, None)? };
 
-        let allocate_info = vk::CommandBufferAllocateInfo::builder()
-            .command_pool(commands.pool)
-            .level(vk::CommandBufferLevel::PRIMARY)
-            .command_buffer_count(1);
+        let allocate_info = vk::CommandBufferAllocateInfo {
+            command_pool: commands.pool,
+            level: vk::CommandBufferLevel::PRIMARY,
+            command_buffer_count: 1,
+            .. Default::default()
+        };
 
         let result = unsafe {
             device.raw.fp_v1_0().allocate_command_buffers(
                 device.raw.handle(),
-                &*allocate_info,
+                &allocate_info,
                 &mut commands.command_buffer,
             )
         };
