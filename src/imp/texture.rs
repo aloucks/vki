@@ -372,7 +372,7 @@ impl TextureInner {
         }
 
         let src_stage_mask = pipeline_stage(*last_usage, format);
-        let dst_stage_mask = pipeline_stage(*last_usage, format);
+        let dst_stage_mask = pipeline_stage(usage, format);
 
         let src_access_mask = access_flags(*last_usage, format);
         let dst_access_mask = access_flags(usage, format);
