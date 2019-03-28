@@ -124,11 +124,26 @@ pub struct SwapchainImage {
     pub view: TextureView,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Hash, PartialOrd, Ord)]
 pub struct Extent3D {
     pub width: u32,
     pub height: u32,
     pub depth: u32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Hash, PartialOrd, Ord)]
+pub struct Origin3D {
+    pub x: u32,
+    pub y: u32,
+    pub z: u32,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+pub struct Color {
+    pub r: f32,
+    pub g: f32,
+    pub b: f32,
+    pub a: f32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
