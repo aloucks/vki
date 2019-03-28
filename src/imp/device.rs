@@ -8,11 +8,12 @@ use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
 use crate::imp::serial::{Serial, SerialQueue};
 use crate::imp::{
-    AdapterInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SurfaceInner, SwapchainInner, TextureInner,
+    AdapterInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SamplerInner, SurfaceInner, SwapchainInner,
+    TextureInner,
 };
 use crate::{
-    Buffer, BufferDescriptor, Device, DeviceDescriptor, Limits, Queue, Swapchain, SwapchainDescriptor, Texture,
-    TextureDescriptor,
+    Buffer, BufferDescriptor, Device, DeviceDescriptor, Limits, Queue, Sampler, SamplerDescriptor, Swapchain,
+    SwapchainDescriptor, Texture, TextureDescriptor,
 };
 
 use std::fmt::{self, Debug};
@@ -74,6 +75,11 @@ impl Device {
         let texture = TextureInner::new(self.inner.clone(), descriptor)?;
         Ok(texture.into())
     }
+
+    pub fn create_sampler(&self, descriptor: SamplerDescriptor) -> Result<Sampler, vk::Result> {
+        let sampler = SamplerInner::new(self.inner.clone(), descriptor)?;
+        Ok(sampler.into())
+    }
 }
 
 impl DeviceInner {
@@ -118,7 +124,7 @@ impl DeviceInner {
                 device: raw.clone(),
                 instance: adapter.instance.raw.clone(),
                 physical_device: adapter.physical_device,
-                .. Default::default()
+                ..Default::default()
             };
 
             // TODO: Add generic error type
@@ -325,7 +331,7 @@ impl DeviceState {
             let pending_commands = self.get_unused_commands(device)?;
             let begin_info = vk::CommandBufferBeginInfo {
                 flags: vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT,
-                .. Default::default()
+                ..Default::default()
             };
             unsafe {
                 device
@@ -412,7 +418,7 @@ impl DeviceState {
         let create_info = vk::CommandPoolCreateInfo {
             flags: vk::CommandPoolCreateFlags::TRANSIENT,
             queue_family_index: device.queue.lock().queue_family_index,
-            .. Default::default()
+            ..Default::default()
         };
 
         commands.pool = unsafe { device.raw.create_command_pool(&create_info, None)? };
@@ -421,7 +427,7 @@ impl DeviceState {
             command_pool: commands.pool,
             level: vk::CommandBufferLevel::PRIMARY,
             command_buffer_count: 1,
-            .. Default::default()
+            ..Default::default()
         };
 
         let result = unsafe {

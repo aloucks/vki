@@ -16,6 +16,7 @@ pub struct FencedDeleter {
     buffers_to_delete: SerialQueue<(vk::Buffer, Allocation)>,
     images_to_delete: SerialQueue<(vk::Image, Allocation)>,
     image_views_to_delete: SerialQueue<vk::ImageView>,
+    samplers_to_delete: SerialQueue<vk::Sampler>,
 }
 
 impl FencedDeleter {
@@ -66,6 +67,13 @@ impl FencedDeleter {
                 device.raw.destroy_image_view(image_view, None);
             }
         }
+
+        for (sampler, serial) in self.samplers_to_delete.drain_up_to(last_completed_serial) {
+            log::trace!("destroying sampler: {:?}, completed_serial: {:?}", sampler, serial);
+            unsafe {
+                device.raw.destroy_sampler(sampler, None);
+            }
+        }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -73,6 +81,7 @@ impl FencedDeleter {
             && self.semaphores_to_delete.len() == 0
             && self.buffers_to_delete.len() == 0
             && self.images_to_delete.len() == 0
+            && self.samplers_to_delete.len() == 0
     }
 }
 
@@ -115,5 +124,11 @@ impl DeleteWhenUnused<(vk::Image, Allocation)> for FencedDeleter {
 impl DeleteWhenUnused<vk::ImageView> for FencedDeleter {
     fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::ImageView> {
         &mut self.image_views_to_delete
+    }
+}
+
+impl DeleteWhenUnused<vk::Sampler> for FencedDeleter {
+    fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::Sampler> {
+        &mut self.samplers_to_delete
     }
 }

@@ -242,17 +242,17 @@ pub fn default_texture_view_descriptor(texture: &TextureInner) -> TextureViewDes
     let aspect_flags = aspect_mask(texture.descriptor.format);
     let aspect = unsafe { std::mem::transmute(aspect_flags) };
 
-//    let dimension = if texture.descriptor.array_layer_count >= 6
-//        && texture.descriptor.size.width == texture.descriptor.size.height
-//    {
-//        TextureViewDimension::Cube
-//    } else {
-//        match texture.descriptor.dimension {
-//            TextureDimension::D1 => TextureViewDimension::D1,
-//            TextureDimension::D2 => TextureViewDimension::D2,
-//            TextureDimension::D3 => TextureViewDimension::D3,
-//        }
-//    };
+    //    let dimension = if texture.descriptor.array_layer_count >= 6
+    //        && texture.descriptor.size.width == texture.descriptor.size.height
+    //    {
+    //        TextureViewDimension::Cube
+    //    } else {
+    //        match texture.descriptor.dimension {
+    //            TextureDimension::D1 => TextureViewDimension::D1,
+    //            TextureDimension::D2 => TextureViewDimension::D2,
+    //            TextureDimension::D3 => TextureViewDimension::D3,
+    //        }
+    //    };
 
     let dimension = match texture.descriptor.dimension {
         TextureDimension::D1 => TextureViewDimension::D1,
@@ -403,7 +403,7 @@ impl TextureInner {
                 base_array_layer,
                 layer_count,
             },
-            .. Default::default()
+            ..Default::default()
         };
 
         let dependency_flags = vk::DependencyFlags::empty();

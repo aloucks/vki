@@ -143,7 +143,7 @@ impl BufferInner {
             size: descriptor.size,
             usage: usage_flags(descriptor.usage),
             sharing_mode: vk::SharingMode::EXCLUSIVE,
-            .. Default::default()
+            ..Default::default()
         };
 
         let allocation_create_info = AllocationCreateInfo {
@@ -229,7 +229,7 @@ impl BufferInner {
             buffer: self.handle,
             offset: 0,
             size: self.descriptor.size,
-            .. Default::default()
+            ..Default::default()
         };
 
         let dependency_flags = DependencyFlags::empty();

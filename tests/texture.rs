@@ -1,4 +1,7 @@
-use vki::{Extent3D, TextureAspectFlags, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureViewDescriptor, TextureViewDimension};
+use vki::{
+    Extent3D, TextureAspectFlags, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
+    TextureViewDescriptor, TextureViewDimension,
+};
 
 pub mod support;
 

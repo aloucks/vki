@@ -12,6 +12,7 @@ mod device;
 mod fenced_deleter;
 mod instance;
 mod queue;
+mod sampler;
 mod serial;
 mod surface;
 mod swapchain;
@@ -24,8 +25,8 @@ pub use crate::imp::debug::validate;
 
 use crate::imp::device::DeviceState;
 use crate::{
-    BufferDescriptor, BufferUsageFlags, Extensions, Extent3D, Limits, TextureDescriptor, TextureUsageFlags,
-    TextureViewDescriptor,
+    BufferDescriptor, BufferUsageFlags, Extensions, Extent3D, Limits, SamplerDescriptor, TextureDescriptor,
+    TextureUsageFlags, TextureViewDescriptor,
 };
 
 pub struct InstanceInner {
@@ -131,6 +132,12 @@ pub struct BufferInner {
     allocation_info: AllocationInfo,
     last_usage: Mutex<BufferUsageFlags>,
     buffer_state: Mutex<BufferState>,
+}
+
+pub struct SamplerInner {
+    handle: vk::Sampler,
+    device: Arc<DeviceInner>,
+    descriptor: SamplerDescriptor,
 }
 
 pub fn has_zero_or_one_bits(bits: u32) -> bool {

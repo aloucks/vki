@@ -240,3 +240,61 @@ pub struct Buffer {
 pub struct Texture {
     inner: Arc<imp::TextureInner>,
 }
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum FilterMode {
+    Nearest,
+    Linear,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum AddressMode {
+    ClampToEdge,
+    Repeat,
+    MirrorRepeat,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum CompareFunction {
+    Never,
+    Less,
+    Equal,
+    LessEqual,
+    Greater,
+    NotEqual,
+    GreaterEqual,
+    Always,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct SamplerDescriptor {
+    address_mode_u: AddressMode,
+    address_mode_v: AddressMode,
+    address_mode_w: AddressMode,
+    mag_filter: FilterMode,
+    min_filter: FilterMode,
+    mipmap_filter: FilterMode,
+    lod_min_clamp: f32,
+    lod_max_clamp: f32,
+    compare_function: CompareFunction,
+}
+
+impl Default for SamplerDescriptor {
+    fn default() -> SamplerDescriptor {
+        SamplerDescriptor {
+            address_mode_u: AddressMode::ClampToEdge,
+            address_mode_v: AddressMode::ClampToEdge,
+            address_mode_w: AddressMode::ClampToEdge,
+            mag_filter: FilterMode::Nearest,
+            min_filter: FilterMode::Nearest,
+            mipmap_filter: FilterMode::Nearest,
+            lod_min_clamp: 0.0,
+            lod_max_clamp: std::f32::MAX,
+            compare_function: CompareFunction::Never,
+        }
+    }
+}
+
+pub struct Sampler {
+    inner: Arc<imp::SamplerInner>,
+}
