@@ -51,6 +51,7 @@ impl SamplerInner {
             min_filter: filter_mode(descriptor.min_filter),
             mipmap_mode: mipmap_mode(descriptor.mipmap_filter),
             mip_lod_bias: 0.0,
+            // TODO: Inspect device features/properties to set anisotropy values
             anisotropy_enable: vk::FALSE,
             max_anisotropy: 1.0,
             compare_op: compare_op(descriptor.compare_function),

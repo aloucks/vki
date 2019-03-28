@@ -19,6 +19,7 @@ mod imp;
 pub use crate::error::InitError;
 pub use crate::imp::validate;
 use std::ops::Range;
+use std::hash::{Hash, Hasher};
 
 #[derive(Clone, Debug)]
 pub struct Instance {
@@ -284,15 +285,28 @@ pub enum CompareFunction {
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct SamplerDescriptor {
-    address_mode_u: AddressMode,
-    address_mode_v: AddressMode,
-    address_mode_w: AddressMode,
-    mag_filter: FilterMode,
-    min_filter: FilterMode,
-    mipmap_filter: FilterMode,
-    lod_min_clamp: f32,
-    lod_max_clamp: f32,
-    compare_function: CompareFunction,
+    pub address_mode_u: AddressMode,
+    pub address_mode_v: AddressMode,
+    pub address_mode_w: AddressMode,
+    pub mag_filter: FilterMode,
+    pub min_filter: FilterMode,
+    pub mipmap_filter: FilterMode,
+    pub lod_min_clamp: f32,
+    pub lod_max_clamp: f32,
+    pub compare_function: CompareFunction,
+}
+
+impl Eq for SamplerDescriptor {}
+
+impl Hash for SamplerDescriptor {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        use std::{slice, mem};
+        let size = mem::size_of::<SamplerDescriptor>();
+        let bytes = unsafe {
+            slice::from_raw_parts(self as *const _ as *const u8, size)
+        };
+        state.write(bytes);
+    }
 }
 
 impl Default for SamplerDescriptor {
