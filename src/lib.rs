@@ -18,6 +18,7 @@ mod imp;
 
 pub use crate::error::InitError;
 pub use crate::imp::validate;
+use std::ops::Range;
 
 #[derive(Clone, Debug)]
 pub struct Instance {
@@ -138,7 +139,7 @@ pub struct Origin3D {
     pub z: u32,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Default)]
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Color {
     pub r: f32,
     pub g: f32,
@@ -220,7 +221,7 @@ pub struct TextureViewDescriptor {
     pub array_layer_count: u32,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct TextureView {
     inner: Arc<imp::TextureViewInner>,
 }
@@ -246,12 +247,12 @@ pub struct BufferDescriptor {
     pub usage: BufferUsageFlags,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Buffer {
     inner: Arc<imp::BufferInner>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct Texture {
     inner: Arc<imp::TextureInner>,
 }
@@ -310,6 +311,173 @@ impl Default for SamplerDescriptor {
     }
 }
 
+#[derive(Clone, Debug)]
 pub struct Sampler {
     inner: Arc<imp::SamplerInner>,
+}
+
+bitflags! {
+    #[repr(transparent)]
+    pub struct ShaderStageFlags: u32 {
+        const NONE = 0;
+        const VERTEX = 1;
+        const FRAGMENT = 2;
+        const COMPUTE = 4;
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum BindingType {
+    UniformBuffer,
+    DynamicUniformBuffer,
+    Sampler,
+    SampledTexture,
+    StorageBuffer,
+    DynamicStorageBuffer,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct BindGroupLayoutBinding {
+    pub binding: u32,
+    pub visibility: ShaderStageFlags,
+    pub binding_type: BindingType,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct BindGroupLayoutDescriptor<'a> {
+    pub bindings: &'a [BindGroupLayoutBinding],
+}
+
+#[derive(Clone, Debug)]
+pub struct BindGroupLayout {
+    inner: Arc<imp::BindGroupLayoutInner>,
+}
+
+#[derive(Clone, Debug)]
+pub enum BindingResource {
+    Sampler(Sampler),
+    TextureView(TextureView),
+    Buffer(Buffer, Range<u64>),
+}
+
+#[derive(Clone, Debug)]
+pub struct BindGroupBinding {
+    pub binding: u32,
+    pub resource: BindingResource,
+}
+
+#[derive(Clone, Debug)]
+pub struct BindGroupDescriptor<'a> {
+    pub layout: BindGroupLayout,
+    pub bindings: &'a [BindGroupBinding],
+}
+
+#[derive(Clone, Debug)]
+pub struct BindGroup {
+    // TODO: inner: Arc<imp::BindGroup>
+}
+
+pub struct PipelineLayoutDescriptor<'a> {
+    pub bind_group_layouts: &'a [BindGroupLayout],
+}
+
+#[derive(Clone)]
+pub struct PipelineLayout {
+    // TODO: inner: Arc<imp::PipelineLayoutInner>
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum FrontFace {
+    Ccw,
+    Cw,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum CullMode {
+    None,
+    Front,
+    Back,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum BlendFactor {
+    Zero,
+    One,
+    SrcColor,
+    OneMinusSrcColor,
+    SrcAlpha,
+    DstColor,
+    OneMinusDstColor,
+    DstAlpha,
+    OneMinusDstAlpha,
+    SrcAlphaSaturated,
+    BlendColor,
+    OneMinusBlendColor,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum BlendOperation {
+    Add,
+    Subtract,
+    ReverseSubtract,
+    Min,
+    Max,
+}
+
+bitflags! {
+    #[repr(transparent)]
+    pub struct ColorWriteFlags: u32 {
+        const NONE = 0;
+        const RED = 1;
+        const GREEN = 2;
+        const BLUE = 4;
+        const ALPHA = 8;
+        const ALL = 15;
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct BlendDescriptor {
+    pub src_factor: BlendFactor,
+    pub dst_factor: BlendFactor,
+    pub operation: BlendOperation,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct ColorStateDescriptor {
+    pub format: TextureFormat,
+    pub alpha_blend: BlendDescriptor,
+    pub color_blend: BlendDescriptor,
+    pub write_mask: ColorWriteFlags,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum StencilOperation {
+    Keep,
+    Zero,
+    Replace,
+    Invert,
+    IncrementClamp,
+    DecrementClamp,
+    IncrementWrap,
+    DecrementWrap,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct StencilStateFaceDescriptor {
+    pub compare: CompareFunction,
+    pub fail_op: StencilOperation,
+    pub depth_fail_op: StencilOperation,
+    pub pass_op: StencilOperation,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct DepthStencilStateDescriptor {
+    pub format: TextureFormat,
+    pub depth_write_enabled: bool,
+    pub depth_compare: CompareFunction,
+    pub stencil_front: StencilStateFaceDescriptor,
+    pub stencil_back: StencilStateFaceDescriptor,
+    pub stencil_read_mask: u32,
+    pub stencil_write_mask: u32,
 }

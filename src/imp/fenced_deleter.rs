@@ -17,61 +17,66 @@ pub struct FencedDeleter {
     images_to_delete: SerialQueue<(vk::Image, Allocation)>,
     image_views_to_delete: SerialQueue<vk::ImageView>,
     samplers_to_delete: SerialQueue<vk::Sampler>,
+    descriptor_set_layouts_to_delete: SerialQueue<vk::DescriptorSetLayout>,
 }
 
 impl FencedDeleter {
     pub fn tick(&mut self, last_completed_serial: Serial, device: &DeviceInner, allocator: &mut Allocator) {
         log::trace!("last_completed_serial: {:?}", last_completed_serial);
-        log::trace!("swapchains_to_delete:  {}", self.swapchains_to_delete.len());
-        log::trace!("semaphores_to_delete:  {}", self.semaphores_to_delete.len());
-        log::trace!("buffers_to_delete:     {}", self.buffers_to_delete.len());
-        log::trace!("images_to_delete:      {}", self.images_to_delete.len());
-        log::trace!("image_views_to_delete: {}", self.image_views_to_delete.len());
+        log::trace!("swapchains_to_delete:             {}", self.swapchains_to_delete.len());
+        log::trace!("semaphores_to_delete:             {}", self.semaphores_to_delete.len());
+        log::trace!("buffers_to_delete:                {}", self.buffers_to_delete.len());
+        log::trace!("images_to_delete:                 {}", self.images_to_delete.len());
+        log::trace!("image_views_to_delete:            {}", self.image_views_to_delete.len());
+        log::trace!("descriptor_set_layouts_to_delete: {}", self.image_views_to_delete.len());
 
-        for ((swapchain, surface), serial) in self.swapchains_to_delete.drain_up_to(last_completed_serial) {
-            log::debug!("destroying swapchain: {:?}, completed_serial: {:?}", swapchain, serial);
+        for ((handle, surface), serial) in self.swapchains_to_delete.drain_up_to(last_completed_serial) {
+            log::debug!("destroy swapchain: {:?}, completed: {:?}", handle, serial);
             unsafe {
-                device.raw_ext.swapchain.destroy_swapchain(swapchain, None);
+                device.raw_ext.swapchain.destroy_swapchain(handle, None);
             }
             drop(surface); // the surface must kept alive at least as long as the swapchain
         }
 
-        for (semaphore, serial) in self.semaphores_to_delete.drain_up_to(last_completed_serial) {
-            log::trace!("destroying semaphore: {:?}, completed_serial: {:?}", semaphore, serial);
+        for (handle, serial) in self.semaphores_to_delete.drain_up_to(last_completed_serial) {
+            log::trace!("destroy semaphore: {:?}, completed: {:?}", handle, serial);
             unsafe {
-                device.raw.destroy_semaphore(semaphore, None);
+                device.raw.destroy_semaphore(handle, None);
             }
         }
 
-        for ((buffer, allocation), serial) in self.buffers_to_delete.drain_up_to(last_completed_serial) {
-            log::trace!("destroying buffer: {:?}, completed_serial: {:?}", buffer, serial);
-            if let Err(e) = allocator.destroy_buffer(buffer, &allocation) {
-                log::warn!("buffer destruction failed; buffer: {:?}, error: {:?}", buffer, e);
+        for ((handle, allocation), serial) in self.buffers_to_delete.drain_up_to(last_completed_serial) {
+            log::trace!("destroy buffer: {:?}, completed: {:?}", handle, serial);
+            if let Err(e) = allocator.destroy_buffer(handle, &allocation) {
+                log::warn!("buffer destruction failed; buffer: {:?}, error: {:?}", handle, e);
             }
         }
 
-        for ((image, allocation), serial) in self.images_to_delete.drain_up_to(last_completed_serial) {
-            log::trace!("destroying image: {:?}, completed_serial: {:?}", image, serial);
-            if let Err(e) = allocator.destroy_image(image, &allocation) {
-                log::warn!("image destruction failed; buffer: {:?}, error: {:?}", image, e);
+        for ((handle, allocation), serial) in self.images_to_delete.drain_up_to(last_completed_serial) {
+            log::trace!("destroy image: {:?}, completed: {:?}", handle, serial);
+            if let Err(e) = allocator.destroy_image(handle, &allocation) {
+                log::warn!("image destruction failed; buffer: {:?}, error: {:?}", handle, e);
             }
         }
 
-        for (image_view, serial) in self.image_views_to_delete.drain_up_to(last_completed_serial) {
-            log::trace!(
-                "destroying image_view: {:?}, completed_serial: {:?}",
-                image_view,
-                serial
-            );
+        for (handle, serial) in self.image_views_to_delete.drain_up_to(last_completed_serial) {
+            log::trace!("destroy image_view: {:?}, completed: {:?}", handle, serial);
             unsafe {
-                device.raw.destroy_image_view(image_view, None);
+                device.raw.destroy_image_view(handle, None);
             }
         }
 
-        for (sampler, serial) in self.samplers_to_delete.drain_up_to(last_completed_serial) {
-            log::trace!("destroying sampler: {:?}, completed_serial: {:?}", sampler, serial);
+        for (handle, serial) in self.samplers_to_delete.drain_up_to(last_completed_serial) {
+            log::trace!("destroy sampler: {:?}, completed: {:?}", handle, serial);
             unsafe {
-                device.raw.destroy_sampler(sampler, None);
+                device.raw.destroy_sampler(handle, None);
+            }
+        }
+
+        for (handle, serial) in self.descriptor_set_layouts_to_delete.drain_up_to(last_completed_serial) {
+            log::trace!("destroy descriptor set layout: {:?}, completed: {:?}", handle, serial);
+            unsafe {
+                device.raw.destroy_descriptor_set_layout(handle, None);
             }
         }
     }
@@ -82,6 +87,7 @@ impl FencedDeleter {
             && self.buffers_to_delete.len() == 0
             && self.images_to_delete.len() == 0
             && self.samplers_to_delete.len() == 0
+            && self.descriptor_set_layouts_to_delete.len() == 0
     }
 }
 
@@ -130,5 +136,11 @@ impl DeleteWhenUnused<vk::ImageView> for FencedDeleter {
 impl DeleteWhenUnused<vk::Sampler> for FencedDeleter {
     fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::Sampler> {
         &mut self.samplers_to_delete
+    }
+}
+
+impl DeleteWhenUnused<vk::DescriptorSetLayout> for FencedDeleter {
+    fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::DescriptorSetLayout> {
+        &mut self.descriptor_set_layouts_to_delete
     }
 }

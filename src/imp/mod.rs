@@ -6,6 +6,7 @@ use vk_mem::{Allocation, AllocationInfo};
 use std::sync::Arc;
 
 mod adapter;
+mod binding;
 mod buffer;
 mod debug;
 mod device;
@@ -134,10 +135,17 @@ pub struct BufferInner {
     buffer_state: Mutex<BufferState>,
 }
 
+#[derive(Debug)]
 pub struct SamplerInner {
     handle: vk::Sampler,
     device: Arc<DeviceInner>,
     descriptor: SamplerDescriptor,
+}
+
+#[derive(Debug)]
+pub struct BindGroupLayoutInner {
+    handle: vk::DescriptorSetLayout,
+    device: Arc<DeviceInner>,
 }
 
 pub fn has_zero_or_one_bits(bits: u32) -> bool {
