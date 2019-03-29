@@ -26,8 +26,8 @@ pub use crate::imp::debug::validate;
 
 use crate::imp::device::DeviceState;
 use crate::{
-    BufferDescriptor, BufferUsageFlags, Extensions, Extent3D, Limits, SamplerDescriptor, TextureDescriptor,
-    TextureUsageFlags, TextureViewDescriptor,
+    BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions, Extent3D, Limits,
+    SamplerDescriptor, TextureDescriptor, TextureUsageFlags, TextureViewDescriptor,
 };
 
 pub struct InstanceInner {
@@ -146,6 +146,16 @@ pub struct SamplerInner {
 pub struct BindGroupLayoutInner {
     handle: vk::DescriptorSetLayout,
     device: Arc<DeviceInner>,
+    bindings: Vec<BindGroupLayoutBinding>,
+}
+
+#[derive(Debug)]
+pub struct BindGroupInner {
+    descriptor_set: vk::DescriptorSet,
+    descriptor_pool: vk::DescriptorPool,
+    layout: Arc<BindGroupLayoutInner>,
+    // Keep the resources alive as long as the bind group exists
+    bindings: Vec<BindGroupBinding>,
 }
 
 pub fn has_zero_or_one_bits(bits: u32) -> bool {

@@ -18,6 +18,7 @@ pub struct FencedDeleter {
     image_views_to_delete: SerialQueue<vk::ImageView>,
     samplers_to_delete: SerialQueue<vk::Sampler>,
     descriptor_set_layouts_to_delete: SerialQueue<vk::DescriptorSetLayout>,
+    descriptor_pools_to_delete: SerialQueue<vk::DescriptorPool>,
 }
 
 impl FencedDeleter {
@@ -79,6 +80,13 @@ impl FencedDeleter {
                 device.raw.destroy_descriptor_set_layout(handle, None);
             }
         }
+
+        for (handle, serial) in self.descriptor_pools_to_delete.drain_up_to(last_completed_serial) {
+            log::trace!("destroy descriptor pool: {:?}, completed: {:?}", handle, serial);
+            unsafe {
+                device.raw.destroy_descriptor_pool(handle, None);
+            }
+        }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -88,6 +96,7 @@ impl FencedDeleter {
             && self.images_to_delete.len() == 0
             && self.samplers_to_delete.len() == 0
             && self.descriptor_set_layouts_to_delete.len() == 0
+            && self.descriptor_pools_to_delete.len() == 0
     }
 }
 
@@ -142,5 +151,11 @@ impl DeleteWhenUnused<vk::Sampler> for FencedDeleter {
 impl DeleteWhenUnused<vk::DescriptorSetLayout> for FencedDeleter {
     fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::DescriptorSetLayout> {
         &mut self.descriptor_set_layouts_to_delete
+    }
+}
+
+impl DeleteWhenUnused<vk::DescriptorPool> for FencedDeleter {
+    fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::DescriptorPool> {
+        &mut self.descriptor_pools_to_delete
     }
 }

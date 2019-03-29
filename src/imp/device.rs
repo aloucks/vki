@@ -8,12 +8,13 @@ use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
 use crate::imp::serial::{Serial, SerialQueue};
 use crate::imp::{
-    AdapterInner, BindGroupLayoutInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SamplerInner, SurfaceInner,
-    SwapchainInner, TextureInner,
+    AdapterInner, BindGroupInner, BindGroupLayoutInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SamplerInner,
+    SurfaceInner, SwapchainInner, TextureInner,
 };
 use crate::{
-    BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor, Device, DeviceDescriptor, Limits, Queue,
-    Sampler, SamplerDescriptor, Swapchain, SwapchainDescriptor, Texture, TextureDescriptor,
+    BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor, Device,
+    DeviceDescriptor, Limits, Queue, Sampler, SamplerDescriptor, Swapchain, SwapchainDescriptor, Texture,
+    TextureDescriptor,
 };
 
 use std::fmt::{self, Debug};
@@ -87,6 +88,11 @@ impl Device {
     ) -> Result<BindGroupLayout, vk::Result> {
         let bind_group_layout = BindGroupLayoutInner::new(self.inner.clone(), descriptor)?;
         Ok(bind_group_layout.into())
+    }
+
+    pub fn create_bind_group(&self, descriptor: BindGroupDescriptor) -> Result<BindGroup, vk::Result> {
+        let bind_group = BindGroupInner::new(descriptor)?;
+        Ok(bind_group.into())
     }
 }
 

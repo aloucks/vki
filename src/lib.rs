@@ -18,8 +18,8 @@ mod imp;
 
 pub use crate::error::InitError;
 pub use crate::imp::validate;
-use std::ops::Range;
 use std::hash::{Hash, Hasher};
+use std::ops::Range;
 
 #[derive(Clone, Debug)]
 pub struct Instance {
@@ -300,11 +300,9 @@ impl Eq for SamplerDescriptor {}
 
 impl Hash for SamplerDescriptor {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        use std::{slice, mem};
+        use std::{mem, slice};
         let size = mem::size_of::<SamplerDescriptor>();
-        let bytes = unsafe {
-            slice::from_raw_parts(self as *const _ as *const u8, size)
-        };
+        let bytes = unsafe { slice::from_raw_parts(self as *const _ as *const u8, size) };
         state.write(bytes);
     }
 }
@@ -388,7 +386,7 @@ pub struct BindGroupDescriptor<'a> {
 
 #[derive(Clone, Debug)]
 pub struct BindGroup {
-    // TODO: inner: Arc<imp::BindGroup>
+    inner: Arc<imp::BindGroupInner>,
 }
 
 pub struct PipelineLayoutDescriptor<'a> {
