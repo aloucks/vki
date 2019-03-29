@@ -5,3 +5,9 @@ export VK_LOADER_DEBUG=all
 export VK_INSTANCE_LAYERS=VK_LAYER_LUNARG_standard_validation
 
 https://github.com/KhronosGroup/GLSL/blob/master/extensions/khr/GL_KHR_vulkan_glsl.txt
+
+https://developer.nvidia.com/vulkan-shader-resource-binding
+
+https://renderdoc.org/vulkan-in-30-minutes.html
+
+https://i.redd.it/4bigribcd1o21.png

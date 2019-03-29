@@ -96,14 +96,22 @@ pub fn image_usage(usage: TextureUsageFlags, format: TextureFormat) -> vk::Image
 pub fn image_format(format: TextureFormat) -> vk::Format {
     match format {
         TextureFormat::B8G8R8A8UnormSRGB => vk::Format::B8G8R8A8_SRGB,
-        TextureFormat::R8G8B8A8Unorm => vk::Format::R8G8B8A8_UNORM,
+        TextureFormat::B8G8R8A8Unorm => vk::Format::B8G8R8A8_UNORM,
         TextureFormat::R8G8Unorm => vk::Format::R8G8_UNORM,
         TextureFormat::R8G8Uint => vk::Format::R8G8_UINT,
         TextureFormat::R8Unorm => vk::Format::R8_UNORM,
         TextureFormat::R8Uint => vk::Format::R8_UINT,
-        TextureFormat::B8G8R8A8Unorm => vk::Format::B8G8R8A8_UNORM,
+        TextureFormat::R8G8B8A8Unorm => vk::Format::R8G8B8A8_UNORM,
         TextureFormat::R8G8B8A8Uint => vk::Format::R8G8B8A8_UINT,
         TextureFormat::D32FloatS8Uint => vk::Format::D32_SFLOAT_S8_UINT,
+    }
+}
+
+pub fn texture_format(format: vk::Format) -> TextureFormat {
+    match format {
+        vk::Format::B8G8R8A8_SRGB => TextureFormat::B8G8R8A8UnormSRGB,
+        vk::Format::B8G8R8A8_UNORM => TextureFormat::B8G8R8A8Unorm,
+        _ => unimplemented!("todo: missing format conversion: {:?}", format), // TODO
     }
 }
 
@@ -334,13 +342,12 @@ impl TextureInner {
         // validation message (so we can see what exactly the problem was) and then destroy it
         // immediately.
         if let Err(ref e) = &result {
-            match e.kind() {
-                &vk_mem::ErrorKind::Vulkan(vk::Result::ERROR_VALIDATION_FAILED_EXT) => unsafe {
+            if let vk_mem::ErrorKind::Vulkan(vk::Result::ERROR_VALIDATION_FAILED_EXT) = e.kind() {
+                unsafe {
                     let dummy = device.raw.create_image(&create_info, None)?;
                     device.raw.destroy_image(dummy, None);
                     return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
-                },
-                _ => {}
+                }
             }
         }
 

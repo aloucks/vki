@@ -53,14 +53,14 @@ impl BindGroupLayoutInner {
             })
             .collect();
 
-        let create_info = vk::DescriptorSetLayoutCreateInfo::builder().bindings(&bindings).build();
+        let create_info = vk::DescriptorSetLayoutCreateInfo::builder().bindings(&bindings);
 
         let handle = unsafe { device.raw.create_descriptor_set_layout(&create_info, None)? };
 
         Ok(BindGroupLayoutInner {
             handle,
             device,
-            bindings: descriptor.bindings.iter().cloned().collect(),
+            bindings: descriptor.bindings.to_vec(),
         })
     }
 }
@@ -107,9 +107,9 @@ impl BindGroupInner {
 
         let mut bind_group = BindGroupInner {
             layout: descriptor.layout.inner.clone(),
-            bindings: descriptor.bindings.iter().cloned().collect(),
+            bindings: descriptor.bindings.to_vec(),
             descriptor_pool: vk::DescriptorPool::default(),
-            descriptor_set: vk::DescriptorSet::default(),
+            handle: vk::DescriptorSet::default(),
         };
 
         unsafe {
@@ -135,7 +135,7 @@ impl BindGroupInner {
             let result = device.raw.fp_v1_0().allocate_descriptor_sets(
                 device.raw.handle(),
                 &allocate_info,
-                &mut bind_group.descriptor_set,
+                &mut bind_group.handle,
             );
             if result != vk::Result::SUCCESS {
                 return Err(result);
@@ -155,7 +155,7 @@ impl BindGroupInner {
             let layout_binding = layout_bindings[index];
 
             let write = &mut writes[num_writes];
-            write.dst_set = bind_group.descriptor_set;
+            write.dst_set = bind_group.handle;
             write.dst_binding = binding.binding;
             write.dst_array_element = 0;
             write.descriptor_count = 1;

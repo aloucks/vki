@@ -7,14 +7,17 @@ use vk_mem::{Allocator, AllocatorCreateInfo};
 use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
 use crate::imp::serial::{Serial, SerialQueue};
+use crate::imp::{swapchain, ShaderModuleInner};
+use crate::imp::{texture, PipelineLayoutInner};
 use crate::imp::{
     AdapterInner, BindGroupInner, BindGroupLayoutInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SamplerInner,
     SurfaceInner, SwapchainInner, TextureInner,
 };
 use crate::{
     BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor, Device,
-    DeviceDescriptor, Limits, Queue, Sampler, SamplerDescriptor, Swapchain, SwapchainDescriptor, Texture,
-    TextureDescriptor,
+    DeviceDescriptor, Limits, PipelineLayout, PipelineLayoutDescriptor, Queue, Sampler, SamplerDescriptor,
+    ShaderModule, ShaderModuleDescriptor, Surface, Swapchain, SwapchainDescriptor, Texture, TextureDescriptor,
+    TextureFormat,
 };
 
 use std::fmt::{self, Debug};
@@ -61,6 +64,26 @@ impl Device {
         Ok(swapchain.into())
     }
 
+    pub fn get_supported_swapchain_formats(&self, surface: &Surface) -> Result<Vec<TextureFormat>, vk::Result> {
+        let surface_handle = surface.inner.handle;
+        let physical_device = self.inner.adapter.physical_device;
+        let formats = unsafe {
+            self.inner
+                .adapter
+                .instance
+                .raw_ext
+                .surface
+                .get_physical_device_surface_formats(physical_device, surface_handle)?
+                .iter()
+                .cloned()
+                .filter(|format| format.color_space == swapchain::COLOR_SPACE)
+                .map(|format| texture::texture_format(format.format))
+                .collect()
+        };
+
+        Ok(formats)
+    }
+
     pub fn get_queue<'a>(&'a self) -> Queue<'a> {
         Queue {
             inner: self.inner.get_queue(),
@@ -93,6 +116,16 @@ impl Device {
     pub fn create_bind_group(&self, descriptor: BindGroupDescriptor) -> Result<BindGroup, vk::Result> {
         let bind_group = BindGroupInner::new(descriptor)?;
         Ok(bind_group.into())
+    }
+
+    pub fn create_shader_module(&self, descriptor: ShaderModuleDescriptor) -> Result<ShaderModule, vk::Result> {
+        let shader_module = ShaderModuleInner::new(self.inner.clone(), descriptor)?;
+        Ok(shader_module.into())
+    }
+
+    pub fn create_pipeline_layout(&self, descriptor: PipelineLayoutDescriptor) -> Result<PipelineLayout, vk::Result> {
+        let pipeline_layout = PipelineLayoutInner::new(self.inner.clone(), descriptor)?;
+        Ok(pipeline_layout.into())
     }
 }
 

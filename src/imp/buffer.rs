@@ -169,13 +169,12 @@ impl BufferInner {
 
         // See TextureInner::new
         if let Err(ref e) = &result {
-            match e.kind() {
-                &vk_mem::ErrorKind::Vulkan(vk::Result::ERROR_VALIDATION_FAILED_EXT) => unsafe {
+            if let vk_mem::ErrorKind::Vulkan(vk::Result::ERROR_VALIDATION_FAILED_EXT) = e.kind() {
+                unsafe {
                     let dummy = device.raw.create_buffer(&create_info, None)?;
                     device.raw.destroy_buffer(dummy, None);
                     return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
-                },
-                _ => {}
+                }
             }
         }
 

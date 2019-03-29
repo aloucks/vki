@@ -18,6 +18,7 @@ mod imp;
 
 pub use crate::error::InitError;
 pub use crate::imp::validate;
+
 use std::hash::{Hash, Hasher};
 use std::ops::Range;
 
@@ -26,6 +27,7 @@ pub struct Instance {
     inner: Arc<imp::InstanceInner>,
 }
 
+#[repr(u32)]
 #[derive(Copy, Clone, Debug)]
 pub enum PowerPreference {
     LowPower,
@@ -148,6 +150,7 @@ pub struct Color {
     pub a: f32,
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TextureFormat {
     R8G8B8A8Unorm,
@@ -176,6 +179,7 @@ bitflags! {
     }
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TextureDimension {
     D1,
@@ -183,6 +187,7 @@ pub enum TextureDimension {
     D3,
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TextureViewDimension {
     D1,
@@ -258,12 +263,14 @@ pub struct Texture {
     inner: Arc<imp::TextureInner>,
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum FilterMode {
     Nearest,
     Linear,
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum AddressMode {
     ClampToEdge,
@@ -271,6 +278,7 @@ pub enum AddressMode {
     MirrorRepeat,
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum CompareFunction {
     Never,
@@ -298,6 +306,7 @@ pub struct SamplerDescriptor {
 
 impl Eq for SamplerDescriptor {}
 
+#[allow(clippy::derive_hash_xor_eq)]
 impl Hash for SamplerDescriptor {
     fn hash<H: Hasher>(&self, state: &mut H) {
         use std::{mem, slice};
@@ -338,6 +347,7 @@ bitflags! {
     }
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum BindingType {
     UniformBuffer,
@@ -395,15 +405,17 @@ pub struct PipelineLayoutDescriptor<'a> {
 
 #[derive(Clone)]
 pub struct PipelineLayout {
-    // TODO: inner: Arc<imp::PipelineLayoutInner>
+    inner: Arc<imp::PipelineLayoutInner>,
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum FrontFace {
     Ccw,
     Cw,
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum CullMode {
     None,
@@ -411,6 +423,7 @@ pub enum CullMode {
     Back,
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum BlendFactor {
     Zero,
@@ -427,6 +440,7 @@ pub enum BlendFactor {
     OneMinusBlendColor,
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum BlendOperation {
     Add,
@@ -463,6 +477,7 @@ pub struct ColorStateDescriptor {
     pub write_mask: ColorWriteFlags,
 }
 
+#[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum StencilOperation {
     Keep,
@@ -492,4 +507,103 @@ pub struct DepthStencilStateDescriptor {
     pub stencil_back: StencilStateFaceDescriptor,
     pub stencil_read_mask: u32,
     pub stencil_write_mask: u32,
+}
+
+pub struct ShaderModuleDescriptor<'a> {
+    pub code: &'a [u8],
+}
+
+pub struct ShaderModule {
+    inner: Arc<imp::ShaderModuleInner>,
+}
+
+pub struct PipelineStageDescriptor<'a> {
+    pub module: ShaderModule,
+    pub entry_point: &'a str,
+}
+
+pub struct ComputePipelineDescriptor<'a> {
+    pub layout: PipelineLayout,
+    pub compute_stage: PipelineStageDescriptor<'a>,
+}
+
+pub struct ComputePipeline {
+    // TODO: inner: Arc<imp::ComputePipelineInner>
+}
+
+#[repr(u32)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum PrimitiveTopology {
+    PointList,
+    LineList,
+    LineStrip,
+    TriangleList,
+    TriangleStrip,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct RasterizationStateDescriptor {
+    pub front_face: FrontFace,
+    pub cull_mode: CullMode,
+    pub depth_bias: i32,
+    pub depth_bias_slope_scale: f32,
+    pub depth_bias_clamp: f32,
+}
+
+#[repr(u32)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum IndexFormat {
+    U16,
+    U32,
+}
+
+#[repr(u32)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum InputStepMode {
+    Vertex,
+    Instance,
+}
+
+#[repr(u32)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum VertexFormat {
+    // TODO
+    Float3,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct VertexAttributeDescriptor {
+    pub shader_location: u32,
+    pub input_slot: u32,
+    pub offset: u32,
+    pub format: VertexFormat,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct VertexInputDescriptor {
+    pub input_slot: u32,
+    pub stride: u64,
+    pub step_mode: InputStepMode,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct InputStateDescriptor<'a> {
+    pub index_format: IndexFormat,
+    pub attributes: &'a [VertexAttributeDescriptor],
+    pub inputs: &'a [VertexInputDescriptor],
+}
+
+pub struct RenderPipelineDescriptor<'a> {
+    pub layout: PipelineLayout,
+    pub vertex_stage: PipelineStageDescriptor<'a>,
+    pub fragment_stage: PipelineStageDescriptor<'a>,
+    pub primitive_topology: PrimitiveTopology,
+    pub rasterization_state: RasterizationStateDescriptor,
+    pub color_states: &'a [ColorStateDescriptor],
+    pub depth_stencil_state: Option<DepthStencilStateDescriptor>,
+    pub input_state: InputStateDescriptor<'a>,
+}
+
+pub struct RenderPipeline {
+    // TODO: inner: Arc<imp::RenderPipelineInner>
 }

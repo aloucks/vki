@@ -16,6 +16,11 @@ use parking_lot::Mutex;
 use std::sync::Arc;
 use std::time::Duration;
 
+// The gpuweb spec doesn't mention anything about color space for the swapchain
+// creation, so we'll hardcode one that should be available everywhere.
+// Supported formats should only be advertised for this color space.
+pub const COLOR_SPACE: vk::ColorSpaceKHR = vk::ColorSpaceKHR::SRGB_NONLINEAR;
+
 impl Swapchain {
     pub fn acquire_next_image(&self) -> Result<SwapchainImage, vk::Result> {
         let image_index = self.inner.acquire_next_image_index()?;
@@ -54,7 +59,7 @@ impl SwapchainInner {
 
             let surface_format = vk::SurfaceFormatKHR {
                 format: texture::image_format(descriptor.format),
-                color_space: vk::ColorSpaceKHR::SRGB_NONLINEAR,
+                color_space: COLOR_SPACE,
             };
             let surface_image_transform = vk::SurfaceTransformFlagsKHR::IDENTITY;
             let surface_image_usage = texture::image_usage(descriptor.usage, descriptor.format);

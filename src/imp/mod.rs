@@ -12,9 +12,11 @@ mod debug;
 mod device;
 mod fenced_deleter;
 mod instance;
+mod pipeline;
 mod queue;
 mod sampler;
 mod serial;
+mod shader;
 mod surface;
 mod swapchain;
 mod texture;
@@ -151,11 +153,22 @@ pub struct BindGroupLayoutInner {
 
 #[derive(Debug)]
 pub struct BindGroupInner {
-    descriptor_set: vk::DescriptorSet,
+    handle: vk::DescriptorSet,
     descriptor_pool: vk::DescriptorPool,
     layout: Arc<BindGroupLayoutInner>,
     // Keep the resources alive as long as the bind group exists
     bindings: Vec<BindGroupBinding>,
+}
+
+pub struct ShaderModuleInner {
+    handle: vk::ShaderModule,
+    device: Arc<DeviceInner>,
+}
+
+#[derive(Debug)]
+pub struct PipelineLayoutInner {
+    handle: vk::PipelineLayout,
+    device: Arc<DeviceInner>,
 }
 
 pub fn has_zero_or_one_bits(bits: u32) -> bool {

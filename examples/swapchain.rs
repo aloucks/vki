@@ -33,6 +33,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let device = adapter.create_device(device_desc)?;
     println!("{:?}", device);
 
+    let formats = device.get_supported_swapchain_formats(&surface)?;
+    println!("{:#?}", formats);
+
     let swapchain_desc = SwapchainDescriptor {
         surface: &surface,
         format: TextureFormat::B8G8R8A8UnormSRGB,
