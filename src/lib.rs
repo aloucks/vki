@@ -431,13 +431,14 @@ pub enum BlendFactor {
     SrcColor,
     OneMinusSrcColor,
     SrcAlpha,
+    OneMinusSrcAlpha,
     DstColor,
     OneMinusDstColor,
     DstAlpha,
     OneMinusDstAlpha,
-    SrcAlphaSaturated,
     BlendColor,
     OneMinusBlendColor,
+    SrcAlphaSaturated,
 }
 
 #[repr(u32)]
@@ -507,6 +508,30 @@ pub struct DepthStencilStateDescriptor {
     pub stencil_back: StencilStateFaceDescriptor,
     pub stencil_read_mask: u32,
     pub stencil_write_mask: u32,
+}
+
+impl Default for DepthStencilStateDescriptor {
+    fn default() -> DepthStencilStateDescriptor {
+        DepthStencilStateDescriptor {
+            format: TextureFormat::D32FloatS8Uint,
+            depth_write_enabled: false,
+            depth_compare: CompareFunction::Never,
+            stencil_front: StencilStateFaceDescriptor {
+                compare: CompareFunction::Never,
+                depth_fail_op: StencilOperation::Keep,
+                fail_op: StencilOperation::Keep,
+                pass_op: StencilOperation::Keep,
+            },
+            stencil_back: StencilStateFaceDescriptor {
+                compare: CompareFunction::Never,
+                depth_fail_op: StencilOperation::Keep,
+                fail_op: StencilOperation::Keep,
+                pass_op: StencilOperation::Keep,
+            },
+            stencil_read_mask: 0,
+            stencil_write_mask: 0,
+        }
+    }
 }
 
 pub struct ShaderModuleDescriptor<'a> {
@@ -605,5 +630,5 @@ pub struct RenderPipelineDescriptor<'a> {
 }
 
 pub struct RenderPipeline {
-    // TODO: inner: Arc<imp::RenderPipelineInner>
+    inner: Arc<imp::RenderPipelineInner>,
 }

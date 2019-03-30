@@ -177,3 +177,9 @@ pub struct ComputePipelineInner {
     handle: vk::Pipeline,
     device: Arc<DeviceInner>,
 }
+
+#[derive(Debug)]
+pub struct RenderPipelineInner {
+    handle: vk::Pipeline,
+    device: Arc<DeviceInner>,
+}
