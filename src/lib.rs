@@ -510,30 +510,6 @@ pub struct DepthStencilStateDescriptor {
     pub stencil_write_mask: u32,
 }
 
-impl Default for DepthStencilStateDescriptor {
-    fn default() -> DepthStencilStateDescriptor {
-        DepthStencilStateDescriptor {
-            format: TextureFormat::D32FloatS8Uint,
-            depth_write_enabled: false,
-            depth_compare: CompareFunction::Never,
-            stencil_front: StencilStateFaceDescriptor {
-                compare: CompareFunction::Never,
-                depth_fail_op: StencilOperation::Keep,
-                fail_op: StencilOperation::Keep,
-                pass_op: StencilOperation::Keep,
-            },
-            stencil_back: StencilStateFaceDescriptor {
-                compare: CompareFunction::Never,
-                depth_fail_op: StencilOperation::Keep,
-                fail_op: StencilOperation::Keep,
-                pass_op: StencilOperation::Keep,
-            },
-            stencil_read_mask: 0,
-            stencil_write_mask: 0,
-        }
-    }
-}
-
 pub struct ShaderModuleDescriptor<'a> {
     pub code: &'a [u8],
 }

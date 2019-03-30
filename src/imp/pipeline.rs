@@ -11,7 +11,8 @@ use crate::{
     BlendFactor, BlendOperation, ColorStateDescriptor, ColorWriteFlags, CompareFunction, ComputePipeline,
     ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, FrontFace, InputStepMode, PipelineLayout,
     PipelineLayoutDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPipeline,
-    RenderPipelineDescriptor, StencilOperation, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
+    RenderPipelineDescriptor, StencilOperation, StencilStateFaceDescriptor, TextureFormat, VertexAttributeDescriptor,
+    VertexFormat, VertexInputDescriptor,
 };
 
 pub const MAX_PUSH_CONSTANTS_SIZE: u32 = 128;
@@ -215,6 +216,28 @@ pub fn depth_test_enabled(descriptor: &DepthStencilStateDescriptor) -> bool {
     descriptor.depth_compare != CompareFunction::Always || descriptor.depth_write_enabled
 }
 
+pub fn disable_depth_stencil_test() -> DepthStencilStateDescriptor {
+    DepthStencilStateDescriptor {
+        format: TextureFormat::D32FloatS8Uint,
+        depth_write_enabled: false,
+        depth_compare: CompareFunction::Always,
+        stencil_front: StencilStateFaceDescriptor {
+            compare: CompareFunction::Always,
+            depth_fail_op: StencilOperation::Keep,
+            fail_op: StencilOperation::Keep,
+            pass_op: StencilOperation::Keep,
+        },
+        stencil_back: StencilStateFaceDescriptor {
+            compare: CompareFunction::Always,
+            depth_fail_op: StencilOperation::Keep,
+            fail_op: StencilOperation::Keep,
+            pass_op: StencilOperation::Keep,
+        },
+        stencil_read_mask: 0,
+        stencil_write_mask: 0,
+    }
+}
+
 pub fn depth_stencil_state_create_info(
     descriptor: DepthStencilStateDescriptor,
 ) -> vk::PipelineDepthStencilStateCreateInfo {
@@ -391,7 +414,7 @@ impl RenderPipelineInner {
             .build();
 
         let depth_stencil_state_create_info =
-            depth_stencil_state_create_info(descriptor.depth_stencil_state.unwrap_or_else(Default::default));
+            depth_stencil_state_create_info(descriptor.depth_stencil_state.unwrap_or_else(disable_depth_stencil_test));
 
         let rasterization_state_create_info = rasterization_state_create_info(&descriptor.rasterization_state);
 
