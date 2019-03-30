@@ -2,8 +2,8 @@ use ash::version::DeviceV1_0;
 use ash::vk;
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
-use crate::imp::{extent_3d, has_zero_or_one_bits, DeviceInner};
-use crate::imp::{TextureInner, TextureViewInner};
+use crate::imp::util;
+use crate::imp::{DeviceInner, TextureInner, TextureViewInner};
 use crate::{
     Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView, TextureViewDescriptor,
     TextureViewDimension,
@@ -224,7 +224,7 @@ pub fn image_layout(usage: TextureUsageFlags, format: TextureFormat) -> vk::Imag
         return vk::ImageLayout::UNDEFINED;
     }
 
-    if !has_zero_or_one_bits(usage.bits()) {
+    if !util::has_zero_or_one_bits(usage.bits()) {
         return vk::ImageLayout::GENERAL;
     }
 
@@ -304,7 +304,7 @@ impl TextureInner {
             flags,
             image_type: image_type(descriptor.dimension),
             format: image_format(descriptor.format),
-            extent: extent_3d(descriptor.size),
+            extent: util::extent_3d(descriptor.size),
             mip_levels: descriptor.mip_level_count,
             array_layers: descriptor.array_layer_count,
             samples: vk::SampleCountFlags::TYPE_1,

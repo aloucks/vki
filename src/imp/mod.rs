@@ -20,6 +20,7 @@ mod shader;
 mod surface;
 mod swapchain;
 mod texture;
+mod util;
 
 mod cookbook;
 mod polyfill;
@@ -28,7 +29,7 @@ pub use crate::imp::debug::validate;
 
 use crate::imp::device::DeviceState;
 use crate::{
-    BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions, Extent3D, Limits,
+    BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions, Limits,
     SamplerDescriptor, TextureDescriptor, TextureUsageFlags, TextureViewDescriptor,
 };
 
@@ -171,29 +172,3 @@ pub struct PipelineLayoutInner {
     device: Arc<DeviceInner>,
 }
 
-pub fn has_zero_or_one_bits(bits: u32) -> bool {
-    let bits = bits as i32;
-    bits & (bits - 1) == 0
-}
-
-pub fn extent_3d(extent: Extent3D) -> vk::Extent3D {
-    vk::Extent3D {
-        width: extent.width,
-        height: extent.height,
-        depth: extent.depth,
-    }
-}
-
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn test_has_zero_or_one_bits() {
-        use crate::TextureUsageFlags;
-        assert!(super::has_zero_or_one_bits(TextureUsageFlags::NONE.bits()));
-        assert!(super::has_zero_or_one_bits(TextureUsageFlags::TRANSFER_SRC.bits()));
-        assert!(!super::has_zero_or_one_bits(
-            (TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST).bits()
-        ));
-    }
-}
