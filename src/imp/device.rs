@@ -7,17 +7,17 @@ use vk_mem::{Allocator, AllocatorCreateInfo};
 use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
 use crate::imp::serial::{Serial, SerialQueue};
-use crate::imp::{swapchain, ShaderModuleInner};
+use crate::imp::{swapchain, ComputePipelineInner, ShaderModuleInner};
 use crate::imp::{texture, PipelineLayoutInner};
 use crate::imp::{
     AdapterInner, BindGroupInner, BindGroupLayoutInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SamplerInner,
     SurfaceInner, SwapchainInner, TextureInner,
 };
 use crate::{
-    BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor, Device,
-    DeviceDescriptor, Limits, PipelineLayout, PipelineLayoutDescriptor, Queue, Sampler, SamplerDescriptor,
-    ShaderModule, ShaderModuleDescriptor, Surface, Swapchain, SwapchainDescriptor, Texture, TextureDescriptor,
-    TextureFormat,
+    BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor,
+    ComputePipeline, ComputePipelineDescriptor, Device, DeviceDescriptor, Limits, PipelineLayout,
+    PipelineLayoutDescriptor, Queue, Sampler, SamplerDescriptor, ShaderModule, ShaderModuleDescriptor, Surface,
+    Swapchain, SwapchainDescriptor, Texture, TextureDescriptor, TextureFormat,
 };
 
 use std::fmt::{self, Debug};
@@ -126,6 +126,14 @@ impl Device {
     pub fn create_pipeline_layout(&self, descriptor: PipelineLayoutDescriptor) -> Result<PipelineLayout, vk::Result> {
         let pipeline_layout = PipelineLayoutInner::new(self.inner.clone(), descriptor)?;
         Ok(pipeline_layout.into())
+    }
+
+    pub fn create_compute_pipeline(
+        &self,
+        descriptor: ComputePipelineDescriptor,
+    ) -> Result<ComputePipeline, vk::Result> {
+        let compute_pipeline = ComputePipelineInner::new(self.inner.clone(), descriptor)?;
+        Ok(compute_pipeline.into())
     }
 }
 

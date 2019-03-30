@@ -1,5 +1,5 @@
-use ash::vk;
 use crate::Extent3D;
+use ash::vk;
 
 pub fn has_zero_or_one_bits(bits: u32) -> bool {
     let bits = bits as i32;

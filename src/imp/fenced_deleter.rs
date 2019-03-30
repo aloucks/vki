@@ -21,6 +21,7 @@ pub struct FencedDeleter {
     descriptor_pools: SerialQueue<vk::DescriptorPool>,
     shader_modules: SerialQueue<vk::ShaderModule>,
     pipeline_layouts: SerialQueue<vk::PipelineLayout>,
+    pipelines: SerialQueue<vk::Pipeline>,
 }
 
 impl FencedDeleter {
@@ -37,6 +38,7 @@ impl FencedDeleter {
         log::trace!(" descriptor_pools:       {}", self.descriptor_pools.len());
         log::trace!(" shader_modules:         {}", self.shader_modules.len());
         log::trace!(" pipeline_layouts:       {}", self.pipeline_layouts.len());
+        log::trace!(" pipelines:       {}", self.pipelines.len());
 
         for ((handle, surface), serial) in self.swapchains.drain_up_to(last_completed_serial) {
             log::debug!("destroy swapchain: {:?}, completed: {:?}", handle, serial);
@@ -106,6 +108,13 @@ impl FencedDeleter {
             log::trace!("destroy pipeline layout: {:?}, completed: {:?}", handle, serial);
             unsafe {
                 device.raw.destroy_pipeline_layout(handle, None);
+            }
+        }
+
+        for (handle, serial) in self.pipelines.drain_up_to(last_completed_serial) {
+            log::trace!("destroy pipeline: {:?}, completed: {:?}", handle, serial);
+            unsafe {
+                device.raw.destroy_pipeline(handle, None);
             }
         }
     }
@@ -192,5 +201,11 @@ impl DeleteWhenUnused<vk::ShaderModule> for FencedDeleter {
 impl DeleteWhenUnused<vk::PipelineLayout> for FencedDeleter {
     fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::PipelineLayout> {
         &mut self.pipeline_layouts
+    }
+}
+
+impl DeleteWhenUnused<vk::Pipeline> for FencedDeleter {
+    fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::Pipeline> {
+        &mut self.pipelines
     }
 }

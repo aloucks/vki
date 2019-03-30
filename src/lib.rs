@@ -528,7 +528,7 @@ pub struct ComputePipelineDescriptor<'a> {
 }
 
 pub struct ComputePipeline {
-    // TODO: inner: Arc<imp::ComputePipelineInner>
+    inner: Arc<imp::ComputePipelineInner>,
 }
 
 #[repr(u32)]

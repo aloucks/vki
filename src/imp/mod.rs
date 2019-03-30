@@ -172,3 +172,8 @@ pub struct PipelineLayoutInner {
     device: Arc<DeviceInner>,
 }
 
+#[derive(Debug)]
+pub struct ComputePipelineInner {
+    handle: vk::Pipeline,
+    device: Arc<DeviceInner>,
+}

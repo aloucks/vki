@@ -2,8 +2,9 @@
 
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BufferDescriptor, BufferUsageFlags, Extent3D, PipelineLayoutDescriptor, SamplerDescriptor,
-    ShaderStageFlags, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
+    BindingType, BufferDescriptor, BufferUsageFlags, ComputePipelineDescriptor, Extent3D, PipelineLayoutDescriptor,
+    PipelineStageDescriptor, SamplerDescriptor, ShaderModuleDescriptor, ShaderStageFlags, TextureDescriptor,
+    TextureDimension, TextureFormat, TextureUsageFlags,
 };
 
 pub mod support;
@@ -39,6 +40,54 @@ fn create_pipeline_layout() {
         };
 
         let _pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
+
+        Ok(instance)
+    });
+}
+
+#[test]
+fn create_compute_pipeline() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let shader_module_descriptor = ShaderModuleDescriptor {
+            code: include_bytes!("data/pipeline.comp.spv"),
+        };
+        let shader_module = device.create_shader_module(shader_module_descriptor)?;
+
+        let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
+            bindings: &[
+                BindGroupLayoutBinding {
+                    binding: 0,
+                    visibility: ShaderStageFlags::COMPUTE,
+                    binding_type: BindingType::UniformBuffer,
+                },
+                BindGroupLayoutBinding {
+                    binding: 1,
+                    visibility: ShaderStageFlags::COMPUTE,
+                    binding_type: BindingType::StorageBuffer,
+                },
+            ],
+        };
+        let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
+
+        let pipeline_layout_descriptor = PipelineLayoutDescriptor {
+            bind_group_layouts: &[bind_group_layout],
+        };
+
+        let pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
+
+        let pipeline_stage_descriptor = PipelineStageDescriptor {
+            entry_point: "main",
+            module: shader_module,
+        };
+
+        let compute_pipeline_descriptor = ComputePipelineDescriptor {
+            layout: pipeline_layout,
+            compute_stage: pipeline_stage_descriptor,
+        };
+
+        let _compute_pipeline = device.create_compute_pipeline(compute_pipeline_descriptor)?;
 
         Ok(instance)
     });
