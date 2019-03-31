@@ -120,15 +120,24 @@ impl FencedDeleter {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.swapchains.len() == 0
-            && self.semaphores.len() == 0
-            && self.buffers.len() == 0
-            && self.images.len() == 0
-            && self.samplers.len() == 0
-            && self.descriptor_set_layouts.len() == 0
-            && self.descriptor_pools.len() == 0
-            && self.shader_modules.len() == 0
-            && self.pipeline_layouts.len() == 0
+        self.swapchains.is_empty()
+            && self.semaphores.is_empty()
+            && self.buffers.is_empty()
+            && self.images.is_empty()
+            && self.samplers.is_empty()
+            && self.descriptor_set_layouts.is_empty()
+            && self.descriptor_pools.is_empty()
+            && self.shader_modules.is_empty()
+            && self.pipeline_layouts.is_empty()
+            && self.pipelines.is_empty()
+    }
+}
+
+impl Drop for FencedDeleter {
+    fn drop(&mut self) {
+        if !self.is_empty() {
+            log::error!("FencedDeleter dropped while objects are live")
+        }
     }
 }
 

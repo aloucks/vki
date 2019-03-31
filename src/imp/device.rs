@@ -6,8 +6,9 @@ use vk_mem::{Allocator, AllocatorCreateInfo};
 
 use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
+use crate::imp::renderpass::{RenderPassCache, RenderPassCacheQuery};
 use crate::imp::serial::{Serial, SerialQueue};
-use crate::imp::{swapchain, ComputePipelineInner, ShaderModuleInner};
+use crate::imp::{swapchain, ComputePipelineInner, RenderPipelineInner, ShaderModuleInner};
 use crate::imp::{texture, PipelineLayoutInner};
 use crate::imp::{
     AdapterInner, BindGroupInner, BindGroupLayoutInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SamplerInner,
@@ -16,8 +17,9 @@ use crate::imp::{
 use crate::{
     BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor,
     ComputePipeline, ComputePipelineDescriptor, Device, DeviceDescriptor, Limits, PipelineLayout,
-    PipelineLayoutDescriptor, Queue, Sampler, SamplerDescriptor, ShaderModule, ShaderModuleDescriptor, Surface,
-    Swapchain, SwapchainDescriptor, Texture, TextureDescriptor, TextureFormat,
+    PipelineLayoutDescriptor, Queue, RenderPipeline, RenderPipelineDescriptor, Sampler, SamplerDescriptor,
+    ShaderModule, ShaderModuleDescriptor, Surface, Swapchain, SwapchainDescriptor, Texture, TextureDescriptor,
+    TextureFormat,
 };
 
 use std::fmt::{self, Debug};
@@ -43,6 +45,8 @@ pub struct DeviceState {
     fenced_deleter: FencedDeleter,
 
     allocator: ManuallyDrop<Allocator>,
+
+    renderpass_cache: RenderPassCache,
 }
 
 #[derive(Copy, Clone, Debug, Default)]
@@ -135,6 +139,11 @@ impl Device {
         let compute_pipeline = ComputePipelineInner::new(self.inner.clone(), descriptor)?;
         Ok(compute_pipeline.into())
     }
+
+    pub fn create_render_pipeline(&self, descriptor: RenderPipelineDescriptor) -> Result<RenderPipeline, vk::Result> {
+        let render_pipeline = RenderPipelineInner::new(self.inner.clone(), descriptor)?;
+        Ok(render_pipeline.into())
+    }
 }
 
 impl DeviceInner {
@@ -195,6 +204,7 @@ impl DeviceInner {
                 pending_commands: None,
                 unused_commands: Vec::new(),
                 fenced_deleter: FencedDeleter::default(),
+                renderpass_cache: RenderPassCache::default(),
                 allocator: ManuallyDrop::new(allocator),
             };
 
@@ -301,6 +311,8 @@ impl Drop for DeviceInner {
             for semaphore in state.wait_semaphores.drain(..) {
                 self.raw.destroy_semaphore(semaphore, None);
             }
+
+            state.renderpass_cache.drain(&self);
 
             ManuallyDrop::drop(&mut state.allocator);
 
@@ -532,6 +544,14 @@ impl DeviceState {
 
     pub fn allocator(&mut self) -> &Allocator {
         &mut self.allocator
+    }
+
+    pub fn get_render_pass(
+        &mut self,
+        query: RenderPassCacheQuery,
+        device: &DeviceInner,
+    ) -> Result<vk::RenderPass, vk::Result> {
+        self.renderpass_cache.get_render_pass(query, device)
     }
 }
 

@@ -5,11 +5,12 @@ use std::ffi::CString;
 use std::sync::Arc;
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
+use crate::imp::renderpass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
 use crate::imp::sampler;
 use crate::imp::{ComputePipelineInner, DeviceInner, PipelineLayoutInner, RenderPipelineInner};
 use crate::{
     BlendFactor, BlendOperation, ColorStateDescriptor, ColorWriteFlags, CompareFunction, ComputePipeline,
-    ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, FrontFace, InputStepMode, PipelineLayout,
+    ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, FrontFace, InputStepMode, LoadOp, PipelineLayout,
     PipelineLayoutDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPipeline,
     RenderPipelineDescriptor, StencilOperation, StencilStateFaceDescriptor, TextureFormat, VertexAttributeDescriptor,
     VertexFormat, VertexInputDescriptor,
@@ -97,7 +98,9 @@ impl ComputePipelineInner {
             )
         };
 
-        Ok(ComputePipelineInner { handle, device })
+        let layout = descriptor.layout.inner.clone();
+
+        Ok(ComputePipelineInner { handle, layout })
     }
 }
 
@@ -109,7 +112,7 @@ impl Into<ComputePipeline> for ComputePipelineInner {
 
 impl Drop for ComputePipelineInner {
     fn drop(&mut self) {
-        let mut state = self.device.state.lock();
+        let mut state = self.layout.device.state.lock();
         let serial = state.get_next_pending_serial();
         state.get_fenced_deleter().delete_when_unused(self.handle, serial);
     }
@@ -321,8 +324,11 @@ pub fn color_blend_attachment_state(descriptor: &ColorStateDescriptor) -> vk::Pi
     }
 }
 
-pub fn vertex_format(_format: VertexFormat) -> vk::Format {
-    unimplemented!()
+pub fn vertex_format(format: VertexFormat) -> vk::Format {
+    match format {
+        VertexFormat::Float3 => vk::Format::R32G32B32_SFLOAT,
+        //_ => unimplemented!("TODO: VertexFormat conversion: {:?}", format)
+    }
 }
 
 pub fn input_rate(mode: InputStepMode) -> vk::VertexInputRate {
@@ -413,8 +419,11 @@ impl RenderPipelineInner {
             .rasterization_samples(vk::SampleCountFlags::TYPE_1)
             .build();
 
-        let depth_stencil_state_create_info =
-            depth_stencil_state_create_info(descriptor.depth_stencil_state.unwrap_or_else(disable_depth_stencil_test));
+        let depth_stencil_state_create_info = depth_stencil_state_create_info(
+            descriptor
+                .depth_stencil_state
+                .unwrap_or_else(disable_depth_stencil_test),
+        );
 
         let rasterization_state_create_info = rasterization_state_create_info(&descriptor.rasterization_state);
 
@@ -466,8 +475,24 @@ impl RenderPipelineInner {
             .dynamic_states(dynamic_states)
             .build();
 
-        // TODO: Implement RenderPass!
-        let render_pass = vk::RenderPass::null();
+        let mut query = RenderPassCacheQuery::new();
+
+        for color_state_info in descriptor.color_states.iter() {
+            query.add_color(ColorInfo {
+                load_op: LoadOp::Load,
+                format: color_state_info.format,
+            });
+        }
+
+        if let Some(ref depth_stencil_state) = descriptor.depth_stencil_state {
+            query.set_depth_stencil(DepthStencilInfo {
+                format: depth_stencil_state.format,
+                depth_load_op: LoadOp::Load,
+                stencil_load_op: LoadOp::Load,
+            });
+        }
+
+        let render_pass = { device.state.lock().get_render_pass(query, &device)? };
 
         let create_info = vk::GraphicsPipelineCreateInfo::builder()
             .layout(descriptor.layout.inner.handle)
@@ -500,7 +525,9 @@ impl RenderPipelineInner {
             )
         };
 
-        Ok(RenderPipelineInner { handle, device })
+        let layout = descriptor.layout.inner.clone();
+
+        Ok(RenderPipelineInner { handle, layout })
     }
 }
 
@@ -512,7 +539,7 @@ impl Into<RenderPipeline> for RenderPipelineInner {
 
 impl Drop for RenderPipelineInner {
     fn drop(&mut self) {
-        let mut state = self.device.state.lock();
+        let mut state = self.layout.device.state.lock();
         let serial = state.get_next_pending_serial();
         state.get_fenced_deleter().delete_when_unused(self.handle, serial);
         // TODO: What about the render pass?

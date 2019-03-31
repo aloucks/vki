@@ -145,7 +145,7 @@ where
     let mut errors = ERRORS.lock();
     let errors = errors.remove(&instance.inner.raw.handle());
     if let Some(errors) = errors {
-        println!("len: {}", errors.len());
+        println!("error count: {}", errors.len());
         panic!("{:?}", ValidationErrors(errors));
     }
 }

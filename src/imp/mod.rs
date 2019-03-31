@@ -14,6 +14,7 @@ mod fenced_deleter;
 mod instance;
 mod pipeline;
 mod queue;
+mod renderpass;
 mod sampler;
 mod serial;
 mod shader;
@@ -175,11 +176,11 @@ pub struct PipelineLayoutInner {
 #[derive(Debug)]
 pub struct ComputePipelineInner {
     handle: vk::Pipeline,
-    device: Arc<DeviceInner>,
+    layout: Arc<PipelineLayoutInner>,
 }
 
 #[derive(Debug)]
 pub struct RenderPipelineInner {
     handle: vk::Pipeline,
-    device: Arc<DeviceInner>,
+    layout: Arc<PipelineLayoutInner>,
 }

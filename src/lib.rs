@@ -608,3 +608,16 @@ pub struct RenderPipelineDescriptor<'a> {
 pub struct RenderPipeline {
     inner: Arc<imp::RenderPipelineInner>,
 }
+
+#[repr(u32)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum LoadOp {
+    Clear,
+    Load,
+}
+
+#[repr(u32)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum StoreOp {
+    Store,
+}

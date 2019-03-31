@@ -102,7 +102,7 @@ impl InstanceInner {
             let init_debug_report = debug::TEST_VALIDATION_HOOK.load(Ordering::Acquire);
             let debug_report_callback = if init_debug_report {
                 let debug_report_create_info = vk::DebugReportCallbackCreateInfoEXT::builder()
-                    .flags(vk::DebugReportFlagsEXT::ERROR)
+                    .flags(vk::DebugReportFlagsEXT::ERROR | vk::DebugReportFlagsEXT::WARNING | vk::DebugReportFlagsEXT::PERFORMANCE_WARNING)
                     .user_data(mem::transmute(raw.handle()))
                     .pfn_callback(Some(debug::debug_report_callback_test));
                 Some(debug_report.create_debug_report_callback(&debug_report_create_info, None)?)
