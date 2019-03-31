@@ -14,7 +14,7 @@ mod fenced_deleter;
 mod instance;
 mod pipeline;
 mod queue;
-mod renderpass;
+mod render_pass;
 mod sampler;
 mod serial;
 mod shader;

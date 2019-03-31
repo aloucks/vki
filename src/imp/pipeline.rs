@@ -5,7 +5,7 @@ use std::ffi::CString;
 use std::sync::Arc;
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
-use crate::imp::renderpass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
+use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
 use crate::imp::sampler;
 use crate::imp::{ComputePipelineInner, DeviceInner, PipelineLayoutInner, RenderPipelineInner};
 use crate::{
@@ -326,8 +326,39 @@ pub fn color_blend_attachment_state(descriptor: &ColorStateDescriptor) -> vk::Pi
 
 pub fn vertex_format(format: VertexFormat) -> vk::Format {
     match format {
+        VertexFormat::UChar2 => vk::Format::R8G8_UINT,
+        VertexFormat::UChar4 => vk::Format::R8G8B8A8_UINT,
+        VertexFormat::Char2 => vk::Format::R8G8_SINT,
+        VertexFormat::Char4 => vk::Format::R8G8B8A8_SINT,
+        VertexFormat::UChar2Norm => vk::Format::R8G8_UNORM,
+        VertexFormat::UChar4Norm => vk::Format::R8G8B8A8_UNORM,
+        VertexFormat::Char2Norm => vk::Format::R8G8_SNORM,
+        VertexFormat::Char4Norm => vk::Format::R8G8B8A8_SNORM,
+
+        VertexFormat::UShort2 => vk::Format::R16G16_UINT,
+        VertexFormat::UShort4 => vk::Format::R16G16B16A16_UINT,
+        VertexFormat::Short2 => vk::Format::R16G16_SINT,
+        VertexFormat::Short4 => vk::Format::R16G16B16A16_SINT,
+        VertexFormat::UShort2Norm => vk::Format::R16G16_UNORM,
+        VertexFormat::UShort4Norm => vk::Format::R16G16B16A16_UNORM,
+        VertexFormat::Short2Norm => vk::Format::R16G16_SNORM,
+        VertexFormat::Short4Norm => vk::Format::R16G16B16A16_SNORM,
+
+        VertexFormat::Half2 => vk::Format::R16G16_SFLOAT,
+        VertexFormat::Half4 => vk::Format::R16G16B16A16_SFLOAT,
+        VertexFormat::Float => vk::Format::R32_SFLOAT,
+        VertexFormat::Float2 => vk::Format::R32G32_SFLOAT,
         VertexFormat::Float3 => vk::Format::R32G32B32_SFLOAT,
-        //_ => unimplemented!("TODO: VertexFormat conversion: {:?}", format)
+        VertexFormat::Float4 => vk::Format::R32G32B32A32_SFLOAT,
+
+        VertexFormat::UInt => vk::Format::R32_UINT,
+        VertexFormat::UInt2 => vk::Format::R32G32_UINT,
+        VertexFormat::UInt3 => vk::Format::R32G32B32_UINT,
+        VertexFormat::UInt4 => vk::Format::R32G32B32A32_UINT,
+        VertexFormat::Int => vk::Format::R32_SINT,
+        VertexFormat::Int2 => vk::Format::R32G32_SINT,
+        VertexFormat::Int3 => vk::Format::R32G32B32_SINT,
+        VertexFormat::Int4 => vk::Format::R32G32B32A32_SINT,
     }
 }
 

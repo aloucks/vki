@@ -153,15 +153,24 @@ pub struct Color {
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum TextureFormat {
-    R8G8B8A8Unorm,
-    R8G8Unorm,
+    // 8-bit formats
     R8Unorm,
-    R8G8B8A8Uint,
-    R8G8Uint,
+    R8UnormSRGB,
+    R8Snorm,
     R8Uint,
+    R8Sint,
+
+    // TODO: Update 16-bit formats
+    R8G8Unorm,
+    R8G8Uint,
+
+    // TODO: Update 32-bit formats
+    R8G8B8A8Unorm,
+    R8G8B8A8Uint,
     B8G8R8A8Unorm,
     B8G8R8A8UnormSRGB,
 
+    D32Float,
     D32FloatS8Uint,
 }
 
@@ -568,8 +577,39 @@ pub enum InputStepMode {
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum VertexFormat {
-    // TODO
+    UChar2,
+    UChar4,
+    Char2,
+    Char4,
+    UChar2Norm,
+    UChar4Norm,
+    Char2Norm,
+    Char4Norm,
+
+    UShort2,
+    UShort4,
+    Short2,
+    Short4,
+    UShort2Norm,
+    UShort4Norm,
+    Short2Norm,
+    Short4Norm,
+
+    Half2,
+    Half4,
+    Float,
+    Float2,
     Float3,
+    Float4,
+
+    UInt,
+    UInt2,
+    UInt3,
+    UInt4,
+    Int,
+    Int2,
+    Int3,
+    Int4,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]

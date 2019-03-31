@@ -6,7 +6,7 @@ use vk_mem::{Allocator, AllocatorCreateInfo};
 
 use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
-use crate::imp::renderpass::{RenderPassCache, RenderPassCacheQuery};
+use crate::imp::render_pass::{RenderPassCache, RenderPassCacheQuery};
 use crate::imp::serial::{Serial, SerialQueue};
 use crate::imp::{swapchain, ComputePipelineInner, RenderPipelineInner, ShaderModuleInner};
 use crate::imp::{texture, PipelineLayoutInner};
