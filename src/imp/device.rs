@@ -148,7 +148,11 @@ impl Device {
 
 impl DeviceInner {
     pub fn new(adapter: Arc<AdapterInner>, descriptor: DeviceDescriptor) -> Result<DeviceInner, vk::Result> {
-        let extension_names = [c_str!("VK_KHR_swapchain")];
+        let extension_names = if descriptor.surface_support.is_some() {
+            vec![c_str!("VK_KHR_swapchain")]
+        } else {
+            vec![]
+        };
 
         let surface = descriptor.surface_support.map(|v| v.inner.as_ref());
         let queue_flags = vk::QueueFlags::COMPUTE | vk::QueueFlags::GRAPHICS | vk::QueueFlags::TRANSFER;
