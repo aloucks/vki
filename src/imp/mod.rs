@@ -8,6 +8,7 @@ use std::sync::Arc;
 mod adapter;
 mod binding;
 mod buffer;
+mod command_encoder;
 mod debug;
 mod device;
 mod fenced_deleter;
@@ -28,7 +29,6 @@ mod polyfill;
 
 pub use crate::imp::debug::validate;
 
-use crate::imp::device::DeviceState;
 use crate::{
     BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions, Limits,
     SamplerDescriptor, TextureDescriptor, TextureUsageFlags, TextureViewDescriptor,
@@ -71,7 +71,7 @@ pub struct DeviceInner {
 
     queue: ReentrantMutex<QueueInner>,
 
-    state: Mutex<DeviceState>,
+    state: Mutex<device::DeviceState>,
 }
 
 /// Device extension functions
@@ -119,6 +119,12 @@ pub struct TextureViewInner {
     handle: vk::ImageView,
     texture: Arc<TextureInner>,
     descriptor: TextureViewDescriptor,
+}
+
+impl PartialEq for TextureViewInner {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.handle.eq(&rhs.handle)
+    }
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
@@ -183,4 +189,9 @@ pub struct ComputePipelineInner {
 pub struct RenderPipelineInner {
     handle: vk::Pipeline,
     layout: Arc<PipelineLayoutInner>,
+}
+
+pub struct CommandEncoderInner {
+    state: command_encoder::CommandEncoderState,
+    device: Arc<DeviceInner>,
 }

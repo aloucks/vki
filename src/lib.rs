@@ -236,7 +236,7 @@ pub struct TextureViewDescriptor {
     pub array_layer_count: u32,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct TextureView {
     inner: Arc<imp::TextureViewInner>,
 }
@@ -660,4 +660,42 @@ pub enum LoadOp {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum StoreOp {
     Store,
+}
+
+pub struct CommandEncoder {
+    inner: imp::CommandEncoderInner,
+}
+
+pub struct ComputePassEncoder<'a> {
+    top_level_encoder: &'a mut imp::CommandEncoderInner,
+}
+
+pub struct RenderPassEncoder<'a> {
+    top_level_encoder: &'a mut imp::CommandEncoderInner,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct RenderPassColorAttachmentDescriptor {
+    pub attachment: TextureView,
+    pub resolve_target: Option<TextureView>,
+    pub load_op: LoadOp,
+    pub store_op: StoreOp,
+    pub clear_color: Color,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct RenderPassDepthStencilAttachmentDescriptor {
+    pub attachment: TextureView,
+    pub depth_load_op: LoadOp,
+    pub depth_store_op: StoreOp,
+    pub clear_depth: f32,
+    pub stencil_load_op: LoadOp,
+    pub stencil_store_op: StoreOp,
+    pub clear_stencil: u32,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct RenderPassDescriptor<'a> {
+    pub color_attachments: &'a [RenderPassColorAttachmentDescriptor],
+    pub depth_stencil_attachment: Option<&'a RenderPassDepthStencilAttachmentDescriptor>,
 }
