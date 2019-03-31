@@ -55,38 +55,49 @@ impl Instance {
 impl InstanceInner {
     #[rustfmt::skip]
     fn new() -> Result<InstanceInner, InitError> {
+        let init_debug_report = debug::TEST_VALIDATION_HOOK.load(Ordering::Acquire);
+
         unsafe {
             let entry_guard: RwLockReadGuard<Result<ash::Entry, InitError>> = ENTRY.read();
             let entry: &ash::Entry = entry_guard.as_ref()?;
 
+            let mut extension_names = vec![];
+
             for p in entry.enumerate_instance_extension_properties()?.iter() {
+                let mut include_extension = false;
                 let name = CStr::from_ptr(p.extension_name.as_ptr());
-                log::debug!("found instance extension: {}", name.to_string_lossy());
+                let name_cow = name.to_string_lossy();
+                log::trace!("found instance extension: {}", name_cow);
+                if name_cow.contains("surface") {
+                    include_extension = true;
+                }
+                if name_cow == "VK_EXT_debug_report" && init_debug_report {
+                    include_extension = true;
+                }
+                if include_extension {
+                    log::debug!("requesting extension support: {}", name_cow);
+                    extension_names.push(name.to_owned());
+                }
             }
 
             for p in entry.enumerate_instance_layer_properties()?.iter() {
                 let name = CStr::from_ptr(p.layer_name.as_ptr());
-                log::debug!("found instance layer: {}", name.to_string_lossy());
+                log::trace!("found instance layer: {}", name.to_string_lossy());
             }
 
             let app_info = vk::ApplicationInfo::builder()
                 .api_version(ash::vk_make_version!(1, 0, 0));
-
-            let extension_names = [
-                c_str!("VK_KHR_surface"),
-                #[cfg(windows)]
-                c_str!("VK_KHR_win32_surface"),
-                c_str!("VK_EXT_debug_report"),
-            ];
 
             let layer_names = [
                 #[cfg(debug_assertions)]
                 c_str!("VK_LAYER_LUNARG_standard_validation")
             ];
 
+            let extension_names_ptrs: Vec<_> = extension_names.iter().map(|name| name.as_ptr()).collect();
+
             let create_info = vk::InstanceCreateInfo::builder()
                 .application_info(&app_info)
-                .enabled_extension_names(&extension_names)
+                .enabled_extension_names(&extension_names_ptrs)
                 .enabled_layer_names(&layer_names);
 
             let raw = entry.create_instance(&create_info, None)?;
@@ -98,8 +109,6 @@ impl InstanceInner {
 
             let debug_utils = ext::DebugUtils::new(entry, &raw);
             let debug_report = ext::DebugReport::new(entry, &raw);
-
-            let init_debug_report = debug::TEST_VALIDATION_HOOK.load(Ordering::Acquire);
             let debug_report_callback = if init_debug_report {
                 let debug_report_create_info = vk::DebugReportCallbackCreateInfoEXT::builder()
                     .flags(vk::DebugReportFlagsEXT::ERROR | vk::DebugReportFlagsEXT::WARNING | vk::DebugReportFlagsEXT::PERFORMANCE_WARNING)

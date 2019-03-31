@@ -75,7 +75,7 @@ pub fn color_attachment_reference(attachment: u32) -> vk::AttachmentReference {
     }
 }
 
-pub fn color_attachment_description(color_info: &ColorInfo) -> vk::AttachmentDescription {
+pub fn color_attachment_description(color_info: ColorInfo) -> vk::AttachmentDescription {
     vk::AttachmentDescription {
         flags: vk::AttachmentDescriptionFlags::empty(),
         format: texture::image_format(color_info.format),
@@ -106,7 +106,6 @@ pub fn depth_stencil_attachment_description(depth_stencil_info: &DepthStencilInf
         stencil_store_op: vk::AttachmentStoreOp::STORE,
         initial_layout: vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         final_layout: vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
-        ..Default::default()
     }
 }
 
@@ -131,7 +130,7 @@ impl RenderPassCache {
         let mut attachment_descriptions = query
             .color
             .iter()
-            .map(|color_info| color_attachment_description(&color_info))
+            .map(|color_info| color_attachment_description(*color_info))
             .collect::<SmallVec<[vk::AttachmentDescription; MAX_COLOR_ATTACHMENTS + 1]>>();
 
         let color_attachments = query
