@@ -195,7 +195,7 @@ impl BufferInner {
         })
     }
 
-    pub fn transition_usage(
+    pub fn transition_usage_now(
         &self,
         command_buffer: vk::CommandBuffer,
         usage: BufferUsageFlags,

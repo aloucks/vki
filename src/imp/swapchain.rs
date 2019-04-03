@@ -135,7 +135,7 @@ impl SwapchainInner {
             let mut state = device.state.lock();
             let command_buffer = state.get_pending_command_buffer(&device)?;
             for texture in textures.iter() {
-                texture.transition_usage(command_buffer, texture.descriptor.usage)?;
+                texture.transition_usage_now(command_buffer, texture.descriptor.usage)?;
             }
             drop(state);
 

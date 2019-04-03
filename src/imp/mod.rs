@@ -1,5 +1,5 @@
 use ash::extensions::{ext, khr};
-use ash::vk;
+use ash::vk::{self, Handle};
 use parking_lot::{Mutex, ReentrantMutex};
 use vk_mem::{Allocation, AllocationInfo};
 
@@ -8,11 +8,14 @@ use std::sync::Arc;
 mod adapter;
 mod binding;
 mod buffer;
+mod command;
+mod command_buffer;
 mod command_encoder;
 mod debug;
 mod device;
 mod fenced_deleter;
 mod instance;
+mod pass_resource_usage;
 mod pipeline;
 mod queue;
 mod render_pass;
@@ -33,6 +36,7 @@ use crate::{
     BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions, Limits,
     SamplerDescriptor, TextureDescriptor, TextureUsageFlags, TextureViewDescriptor,
 };
+use std::hash::{Hash, Hasher};
 
 pub struct InstanceInner {
     raw: ash::Instance,
@@ -114,6 +118,20 @@ pub struct TextureInner {
     allocation_info: Option<AllocationInfo>,
 }
 
+impl PartialEq for TextureInner {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.handle.eq(&rhs.handle)
+    }
+}
+
+impl Eq for TextureInner {}
+
+impl Hash for TextureInner {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write_u64(self.handle.as_raw())
+    }
+}
+
 #[derive(Debug)]
 pub struct TextureViewInner {
     handle: vk::ImageView,
@@ -143,6 +161,20 @@ pub struct BufferInner {
     allocation_info: AllocationInfo,
     last_usage: Mutex<BufferUsageFlags>,
     buffer_state: Mutex<BufferState>,
+}
+
+impl PartialEq for BufferInner {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.handle.eq(&rhs.handle)
+    }
+}
+
+impl Eq for BufferInner {}
+
+impl Hash for BufferInner {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write_u64(self.handle.as_raw())
+    }
 }
 
 #[derive(Debug)]
@@ -193,5 +225,10 @@ pub struct RenderPipelineInner {
 
 pub struct CommandEncoderInner {
     state: command_encoder::CommandEncoderState,
+    device: Arc<DeviceInner>,
+}
+
+pub struct CommandBufferInner {
+    state: command_buffer::CommandBufferState,
     device: Arc<DeviceInner>,
 }

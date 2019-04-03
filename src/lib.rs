@@ -391,6 +391,32 @@ pub enum BindingResource {
     Buffer(Buffer, Range<u64>),
 }
 
+impl BindingResource {
+    pub fn as_sampler(&self) -> Option<&Sampler> {
+        if let BindingResource::Sampler(ref sampler) = self {
+            Some(sampler)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_texture_view(&self) -> Option<&TextureView> {
+        if let BindingResource::TextureView(ref texture_view) = self {
+            Some(texture_view)
+        } else {
+            None
+        }
+    }
+
+    pub fn as_buffer(&self) -> Option<(&Buffer, &Range<u64>)> {
+        if let BindingResource::Buffer(ref buffer, range) = self {
+            Some((buffer, range))
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct BindGroupBinding {
     pub binding: u32,
@@ -699,3 +725,9 @@ pub struct RenderPassDescriptor<'a> {
     pub color_attachments: &'a [RenderPassColorAttachmentDescriptor],
     pub depth_stencil_attachment: Option<&'a RenderPassDepthStencilAttachmentDescriptor>,
 }
+
+pub struct CommandBuffer {
+    inner: imp::CommandBufferInner,
+}
+
+pub struct CommandEncoderDescriptor {}

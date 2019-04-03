@@ -1,32 +1,18 @@
-use lazy_static::lazy_static;
-use libc;
-use parking_lot::Mutex;
-
-use crate::imp::{
-    BindGroupInner, BufferInner, CommandEncoderInner, ComputePipelineInner, DeviceInner, RenderPipelineInner,
-    TextureInner,
-};
+use ash::vk;
 
 use crate::{
-    BindGroup, Buffer, BufferUsageFlags, Color, CommandEncoder, ComputePassEncoder, Extent3D, Origin3D,
-    RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor,
-    RenderPassEncoder, ShaderStageFlags, TextureUsageFlags,
+    BindGroup, BindingType, Buffer, BufferUsageFlags, CommandBuffer, CommandEncoder, ComputePassEncoder,
+    RenderPassDescriptor, RenderPassEncoder, TextureUsageFlags,
 };
 
-use std::collections::HashSet;
-use std::mem;
 use std::sync::Arc;
 
-struct PassResourceUsage {
-    buffers: Vec<(Arc<BufferInner>, BufferUsageFlags)>,
-    textures: Vec<(Arc<TextureInner>, TextureUsageFlags)>,
-}
+use crate::imp::command::{BufferCopy, Command};
+use crate::imp::command_buffer::CommandBufferState;
+use crate::imp::pass_resource_usage::{CommandBufferResourceUsage, PassResourceUsageTracker};
+use crate::imp::{CommandBufferInner, CommandEncoderInner, DeviceInner};
 
-struct CommandBufferResourceUsage {
-    per_pass: Vec<PassResourceUsage>,
-    top_level_buffers: HashSet<Arc<BufferInner>>,
-    top_level_textures: HashSet<Arc<TextureInner>>,
-}
+use crate::error::EncoderError;
 
 //struct RenderPassColorAttachmentInfo {
 //    view: Arc<TextureViewInner>,
@@ -46,201 +32,19 @@ struct CommandBufferResourceUsage {
 //    clear_stencil: u32,
 //}
 
-struct BufferCopy {
-    buffer: Arc<BufferInner>,
-    offset_bytes: u32,
-    row_pitch_bytes: u32,
-    image_height_texels: u32,
-}
-
-struct TextureCopy {
-    texture: Arc<TextureInner>,
-    level: u32,
-    slice: u32,
-    origin_texels: Origin3D,
-}
-
-#[repr(align(32))]
-struct PushConstantsData([u8; 128]);
-
-enum Command {
-    BeginComputePass,
-    BeginRenderPass {
-        color_attachments: Vec<RenderPassColorAttachmentDescriptor>,
-        depth_stencil_attachment: Option<RenderPassDepthStencilAttachmentDescriptor>,
-        //
-        width: u32,
-        height: u32,
-        sample_count: u32,
-    },
-    CopyBufferToBuffer {
-        source: BufferCopy,
-        destination: BufferCopy,
-        size_bytes: u32,
-    },
-    CopyBufferToTexture {
-        source: BufferCopy,
-        destination: TextureCopy,
-        copy_size_texels: Extent3D,
-    },
-    CopyTextureToBuffer {
-        source: TextureCopy,
-        destination: BufferCopy,
-        copy_size_texels: Extent3D,
-    },
-    CopyTextureToTexture {
-        source: TextureCopy,
-        destination: TextureCopy,
-        copy_size_texels: Extent3D,
-    },
-    Dispatch {
-        x: u32,
-        y: u32,
-        z: u32,
-    },
-    Draw {
-        // TODO: Draw
-    },
-    DrawIndexed {
-        // TODO: DrawIndexed
-    },
-    EndComputePass,
-    EndRenderPass,
-    InsertDebugMarker {
-        // TODO: InsertDebugMarker
-    },
-    PopDebugGroup,
-    PushDebugGroup {
-        // TODO: PushDebugGroup
-    },
-    SetComputePipeline {
-        pipeline: Arc<ComputePipelineInner>,
-    },
-    SetRenderPipeline {
-        pipeline: Arc<RenderPipelineInner>,
-    },
-    SetPushConstants {
-        // TODO: SetPushConstants; use a pool for the boxed push constants data
-        stages: ShaderStageFlags,
-        offset_bytes: u32, // bytes?
-        count: u32,        // bytes?
-        data: Box<PushConstantsData>,
-    },
-    SetStencilReference {
-        reference: u32,
-    },
-    SetScissorRect {
-        x: u32,
-        y: u32,
-        width: u32,
-        height: u32,
-    },
-    SetBlendColor {
-        color: Color,
-    },
-    SetBindGroup {
-        index: u32,
-        group: Arc<BindGroupInner>,
-        dynamic_offsets: Vec<u64>,
-    },
-    SetIndexBuffer {
-        buffer: Arc<BufferInner>,
-        offset: u32,
-    },
-    SetVertexBuffers {
-        start_slot: u32,
-        count: u32,
-    },
-}
-
-lazy_static! {
-    static ref DYNAMIC_OFFSETS: Mutex<Vec<Vec<u64>>> = {
-        let dynamic_offsets = Mutex::new(Vec::new());
-        extern "C" fn deallocate() {
-            DYNAMIC_OFFSETS.lock().clear();
-        }
-        unsafe {
-            libc::atexit(deallocate);
-        }
-        dynamic_offsets
-    };
-}
-
-fn alloc_dynamic_offsets() -> Vec<u64> {
-    if let Some(dynamic_offsets) = DYNAMIC_OFFSETS.lock().pop() {
-        dynamic_offsets
-    } else {
-        Vec::new()
-    }
-}
-
-impl Drop for Command {
-    fn drop(&mut self) {
-        if let Command::SetBindGroup {
-            ref mut dynamic_offsets,
-            ..
-        } = self
-        {
-            if dynamic_offsets.capacity() > 0 {
-                let mut temp = Vec::new();
-                mem::swap(&mut temp, dynamic_offsets);
-                unsafe {
-                    temp.set_len(0);
-                }
-                DYNAMIC_OFFSETS.lock().push(temp);
-            }
-        }
-    }
-}
-
-#[test]
-fn command_size() {
-    // The command size can balloon if if embed SmallVec or fixed sized arrays. This just
-    // raises awareness..
-    assert_eq!(80, std::mem::size_of::<Command>());
-}
-
-#[test]
-fn push_constants_alignment() {
-    assert_eq!(32, std::mem::align_of::<PushConstantsData>());
-}
-
-// TODO: Dawn uses block allocation. We'll use a simple global pool and maybe switch to block allocation later.
-
-lazy_static! {
-    static ref COMMANDS: Mutex<Vec<Vec<Command>>> = {
-        let commands = Mutex::new(Vec::new());
-        extern "C" fn deallocate() {
-            COMMANDS.lock().clear();
-        }
-        unsafe {
-            libc::atexit(deallocate);
-        }
-        commands
-    };
-}
-
 pub struct CommandEncoderState {
-    commands: Vec<Command>,
-    device: Arc<DeviceInner>,
-}
-
-impl Drop for CommandEncoderState {
-    fn drop(&mut self) {
-        let mut temp = Vec::new();
-        mem::swap(&mut temp, &mut self.commands);
-        temp.clear();
-        COMMANDS.lock().push(temp);
-    }
+    pub commands: Vec<Command>,
+    pub resource_usages: CommandBufferResourceUsage,
 }
 
 impl CommandEncoderState {
-    pub fn new(device: Arc<DeviceInner>) -> CommandEncoderState {
-        let commands = match COMMANDS.lock().pop() {
-            Some(commands) => commands,
-            None => Vec::new(),
-        };
-        CommandEncoderState { commands, device }
+    pub fn new() -> CommandEncoderState {
+        let commands = Vec::new();
+        let resource_usages = CommandBufferResourceUsage::default();
+        CommandEncoderState {
+            commands,
+            resource_usages,
+        }
     }
 
     fn push(&mut self, command: Command) {
@@ -249,24 +53,37 @@ impl CommandEncoderState {
 }
 
 impl CommandEncoderInner {
+    pub fn new(device: Arc<DeviceInner>) -> Result<CommandEncoderInner, vk::Result> {
+        let state = CommandEncoderState::new();
+        Ok(CommandEncoderInner { device, state })
+    }
+
     fn push(&mut self, command: Command) {
         self.state.push(command)
     }
 
-    fn set_bind_group(&mut self, index: u32, bind_group: &BindGroup, dynamic_offsets: Option<&[u64]>) {
-        let dynamic_offsets = match dynamic_offsets {
-            Some(dynamic_offsets) => {
-                let mut buffer = alloc_dynamic_offsets();
-                buffer.extend_from_slice(dynamic_offsets);
-                buffer
-            }
-            None => Vec::new(),
-        };
+    fn set_bind_group(&mut self, index: u32, bind_group: &BindGroup, dynamic_offsets: Option<&[u32]>) {
+        let dynamic_offsets = dynamic_offsets.map(|v| v.to_vec());
         self.push(Command::SetBindGroup {
             index,
             dynamic_offsets,
-            group: bind_group.inner.clone(),
+            bind_group: bind_group.inner.clone(),
         });
+    }
+}
+
+impl Into<CommandBufferState> for CommandEncoderState {
+    fn into(self) -> CommandBufferState {
+        CommandBufferState {
+            commands: self.commands,
+            resource_usages: self.resource_usages,
+        }
+    }
+}
+
+impl Into<CommandEncoder> for CommandEncoderInner {
+    fn into(self) -> CommandEncoder {
+        CommandEncoder { inner: self }
     }
 }
 
@@ -275,14 +92,14 @@ impl CommandEncoder {
         self.inner.push(command)
     }
 
-    pub fn begin_compute_pass(&mut self) -> ComputePassEncoder {
+    pub fn begin_compute_pass<'a>(&'a mut self) -> ComputePassEncoder<'a> {
         self.push(Command::BeginComputePass);
         ComputePassEncoder {
             top_level_encoder: &mut self.inner,
         }
     }
 
-    pub fn begin_render_pass(&mut self, descriptor: RenderPassDescriptor) -> RenderPassEncoder {
+    pub fn begin_render_pass<'a>(&'a mut self, descriptor: RenderPassDescriptor) -> RenderPassEncoder<'a> {
         self.inner.state.push(Command::BeginRenderPass {
             color_attachments: descriptor.color_attachments.to_vec(),
             depth_stencil_attachment: descriptor.depth_stencil_attachment.cloned(),
@@ -321,6 +138,138 @@ impl CommandEncoder {
             },
             size_bytes: size_bytes as u32,
         });
+        let top_level_buffers = &mut self.inner.state.resource_usages.top_level_buffers;
+        top_level_buffers.insert(src.inner.clone());
+        top_level_buffers.insert(dst.inner.clone());
+    }
+
+    fn validate_render_pass(&mut self, mut command_index: usize) -> Result<usize, EncoderError> {
+        let begin_render_pass_command_index = command_index;
+        let mut usage_tracker = PassResourceUsageTracker::default();
+        //let mut state_tracker = .. ;
+        while let Some(command) = self.inner.state.commands.get(command_index) {
+            match command {
+                Command::BeginRenderPass {
+                    color_attachments,
+                    depth_stencil_attachment,
+                    ..
+                } => {
+                    debug_assert_eq!(begin_render_pass_command_index, command_index);
+                    for info in color_attachments.iter() {
+                        let texture = Arc::clone(&info.attachment.inner.texture);
+                        usage_tracker.texture_used_as(texture, TextureUsageFlags::OUTPUT_ATTACHMENT);
+
+                        if let Some(ref resolve_target) = info.resolve_target {
+                            let texture = Arc::clone(&resolve_target.inner.texture);
+                            usage_tracker.texture_used_as(texture, TextureUsageFlags::OUTPUT_ATTACHMENT);
+                        }
+                    }
+
+                    if let Some(ref info) = depth_stencil_attachment {
+                        let texture = Arc::clone(&info.attachment.inner.texture);
+                        usage_tracker.texture_used_as(texture, TextureUsageFlags::OUTPUT_ATTACHMENT);
+                    }
+                }
+                Command::SetRenderPipeline { .. } => {
+                    // state.set_render_pipeline
+                }
+                Command::SetBindGroup { bind_group, .. } => {
+                    // state.set_bind_group
+                    for (index, layout_binding) in bind_group.layout.bindings.iter().enumerate() {
+                        match layout_binding.binding_type {
+                            BindingType::UniformBuffer => {
+                                let (buffer, _) = bind_group.bindings[index]
+                                    .resource
+                                    .as_buffer()
+                                    .expect("BindingResource::Buffer");
+                                usage_tracker.buffer_used_as(buffer.inner.clone(), BufferUsageFlags::UNIFORM);
+                            }
+                            BindingType::StorageBuffer => {
+                                let (buffer, _) = bind_group.bindings[index]
+                                    .resource
+                                    .as_buffer()
+                                    .expect("BindingResource::Buffer");
+                                usage_tracker.buffer_used_as(buffer.inner.clone(), BufferUsageFlags::STORAGE);
+                            }
+                            BindingType::SampledTexture => {
+                                let texture_view = bind_group.bindings[index]
+                                    .resource
+                                    .as_texture_view()
+                                    .expect("BindingResource::TextureView");
+                                usage_tracker
+                                    .texture_used_as(texture_view.inner.texture.clone(), TextureUsageFlags::SAMPLED);
+                            }
+                            _ => {}
+                        }
+                    }
+                }
+                Command::SetIndexBuffer { buffer, .. } => {
+                    // state.set_index_buffer
+                    usage_tracker.buffer_used_as(Arc::clone(buffer), BufferUsageFlags::INDEX);
+                }
+                Command::SetVertexBuffers { buffers, .. } => {
+                    // state.set_vertex_buffers
+                    for buffer in buffers.iter() {
+                        usage_tracker.buffer_used_as(Arc::clone(buffer), BufferUsageFlags::VERTEX);
+                    }
+                }
+                Command::EndRenderPass => {
+                    self.inner
+                        .state
+                        .resource_usages
+                        .per_pass
+                        .push(usage_tracker.acquire_resource_usage());
+                    return Ok(command_index);
+                }
+                _ => {}
+            }
+            command_index += 1;
+        }
+        unreachable!()
+    }
+
+    fn validate_compute_pass(&mut self, mut command_index: usize) -> Result<usize, EncoderError> {
+        let mut usage_tracker = PassResourceUsageTracker::default();
+        let begin_compute_pass_command_index = command_index;
+        while let Some(command) = self.inner.state.commands.get(command_index) {
+            match command {
+                Command::BeginComputePass => {
+                    debug_assert_eq!(begin_compute_pass_command_index, command_index);
+                }
+                Command::EndComputePass => {
+                    self.inner
+                        .state
+                        .resource_usages
+                        .per_pass
+                        .push(usage_tracker.acquire_resource_usage());
+                    return Ok(command_index);
+                }
+                _ => {}
+            }
+            command_index += 1;
+        }
+        unreachable!()
+    }
+
+    pub fn finish(mut self) -> Result<CommandBuffer, EncoderError> {
+        let mut command_index = 0;
+        while let Some(command) = self.inner.state.commands.get(command_index) {
+            match command {
+                Command::BeginComputePass => {
+                    self.validate_compute_pass(command_index)?;
+                }
+                Command::BeginRenderPass { .. } => {
+                    self.validate_render_pass(command_index)?;
+                }
+                _ => {}
+            }
+            command_index += 1;
+        }
+        let command_buffer = CommandBufferInner {
+            state: self.inner.state.into(),
+            device: self.inner.device,
+        };
+        Ok(CommandBuffer { inner: command_buffer })
     }
 }
 
@@ -335,7 +284,7 @@ impl<'a> ComputePassEncoder<'a> {
         /* drop */
     }
 
-    pub fn set_bind_group(&mut self, index: u32, bind_group: &BindGroup, dynamic_offsets: Option<&[u64]>) {
+    pub fn set_bind_group(&mut self, index: u32, bind_group: &BindGroup, dynamic_offsets: Option<&[u32]>) {
         self.top_level_encoder
             .set_bind_group(index, bind_group, dynamic_offsets);
     }
@@ -347,7 +296,7 @@ impl<'a> ComputePassEncoder<'a> {
 
 impl<'a> Drop for RenderPassEncoder<'a> {
     fn drop(&mut self) {
-        self.top_level_encoder.push(Command::EndComputePass)
+        self.top_level_encoder.push(Command::EndRenderPass)
     }
 }
 
@@ -356,7 +305,7 @@ impl<'a> RenderPassEncoder<'a> {
         /* drop */
     }
 
-    pub fn set_bind_group(&mut self, index: u32, bind_group: &BindGroup, dynamic_offsets: Option<&[u64]>) {
+    pub fn set_bind_group(&mut self, index: u32, bind_group: &BindGroup, dynamic_offsets: Option<&[u32]>) {
         self.top_level_encoder
             .set_bind_group(index, bind_group, dynamic_offsets);
     }

@@ -8,7 +8,7 @@ use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
 use crate::imp::render_pass::{RenderPassCache, RenderPassCacheQuery};
 use crate::imp::serial::{Serial, SerialQueue};
-use crate::imp::{swapchain, ComputePipelineInner, RenderPipelineInner, ShaderModuleInner};
+use crate::imp::{swapchain, CommandEncoderInner, ComputePipelineInner, RenderPipelineInner, ShaderModuleInner};
 use crate::imp::{texture, PipelineLayoutInner};
 use crate::imp::{
     AdapterInner, BindGroupInner, BindGroupLayoutInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SamplerInner,
@@ -16,7 +16,7 @@ use crate::imp::{
 };
 use crate::{
     BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor,
-    ComputePipeline, ComputePipelineDescriptor, Device, DeviceDescriptor, Limits, PipelineLayout,
+    CommandEncoder, ComputePipeline, ComputePipelineDescriptor, Device, DeviceDescriptor, Limits, PipelineLayout,
     PipelineLayoutDescriptor, Queue, RenderPipeline, RenderPipelineDescriptor, Sampler, SamplerDescriptor,
     ShaderModule, ShaderModuleDescriptor, Surface, Swapchain, SwapchainDescriptor, Texture, TextureDescriptor,
     TextureFormat,
@@ -143,6 +143,11 @@ impl Device {
     pub fn create_render_pipeline(&self, descriptor: RenderPipelineDescriptor) -> Result<RenderPipeline, vk::Result> {
         let render_pipeline = RenderPipelineInner::new(self.inner.clone(), descriptor)?;
         Ok(render_pipeline.into())
+    }
+
+    pub fn create_command_encoder(&self) -> Result<CommandEncoder, vk::Result> {
+        let command_encoder = CommandEncoderInner::new(self.inner.clone())?;
+        Ok(command_encoder.into())
     }
 }
 

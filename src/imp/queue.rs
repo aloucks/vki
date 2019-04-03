@@ -9,7 +9,7 @@ impl<'a> Queue<'a> {
             let mut state = frame.swapchain.device.state.lock();
             let command_buffer = state.get_pending_command_buffer(&device)?;
             let texture = &frame.swapchain.textures[frame.image_index as usize];
-            texture.transition_usage(command_buffer, texture.descriptor.usage)?;
+            texture.transition_usage_now(command_buffer, texture.descriptor.usage)?;
             state.submit_pending_commands(&frame.swapchain.device, *self.inner)?;
 
             // these should always be empty after pending commands were submitted

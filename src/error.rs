@@ -3,7 +3,7 @@ use ash::vk;
 use std::error::Error;
 use std::fmt::{self, Display};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum InitError {
     Library(String),
     VkResult(vk::Result),
@@ -67,3 +67,14 @@ impl Display for SurfaceError {
 }
 
 impl std::error::Error for SurfaceError {}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct EncoderError(pub String);
+
+impl Display for EncoderError {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "{:?}", self)
+    }
+}
+
+impl Error for EncoderError {}
