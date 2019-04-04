@@ -6,13 +6,15 @@ use crate::{
     ShaderStageFlags,
 };
 
+#[derive(Debug)]
 pub struct BufferCopy {
     pub buffer: Arc<BufferInner>,
-    pub offset_bytes: u32,
-    pub row_pitch_bytes: u32,
-    pub image_height_texels: u32,
+    pub offset: u32,
+    pub row_pitch: u32,
+    pub image_height: u32,
 }
 
+#[derive(Debug)]
 pub struct TextureCopy {
     pub texture: Arc<TextureInner>,
     pub level: u32,
@@ -20,6 +22,7 @@ pub struct TextureCopy {
     pub origin_texels: Origin3D,
 }
 
+#[derive(Debug)]
 pub enum Command {
     BeginComputePass,
     BeginRenderPass {
@@ -56,10 +59,17 @@ pub enum Command {
         z: u32,
     },
     Draw {
-        // TODO: Draw
+        vertex_count: u32,
+        instance_count: u32,
+        first_vertex: u32,
+        first_instance: u32,
     },
     DrawIndexed {
-        // TODO: DrawIndexed
+        index_count: u32,
+        instance_count: u32,
+        first_index: u32,
+        base_vertex: u32,
+        first_instance: u32,
     },
     EndComputePass,
     EndRenderPass,

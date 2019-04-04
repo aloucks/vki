@@ -4,6 +4,7 @@ use crate::imp::command::Command;
 use crate::imp::pass_resource_usage::CommandBufferResourceUsage;
 use crate::imp::CommandBufferInner;
 
+#[derive(Debug)]
 pub struct CommandBufferState {
     pub commands: Vec<Command>,
     pub resource_usages: CommandBufferResourceUsage,

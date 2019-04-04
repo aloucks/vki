@@ -49,6 +49,7 @@ fn create_command_encoder() {
         render_pass.end_pass();
 
         let _command_buffer = command_encoder.finish()?;
+        //eprintln!("{:#?}", _command_buffer);
 
         Ok(instance)
     });

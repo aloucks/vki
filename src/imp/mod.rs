@@ -1,4 +1,5 @@
 use ash::extensions::{ext, khr};
+use ash::version::InstanceV1_0;
 use ash::vk::{self, Handle};
 use parking_lot::{Mutex, ReentrantMutex};
 use vk_mem::{Allocation, AllocationInfo};
@@ -36,12 +37,45 @@ use crate::{
     BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions, Limits,
     SamplerDescriptor, TextureDescriptor, TextureUsageFlags, TextureViewDescriptor,
 };
+
 use std::hash::{Hash, Hasher};
+
+macro_rules! handle_traits {
+    ($Name:ident) => {
+        impl PartialEq for $Name {
+            fn eq(&self, rhs: &Self) -> bool {
+                self.handle.eq(&rhs.handle)
+            }
+        }
+
+        impl Eq for $Name {}
+
+        impl Hash for $Name {
+            fn hash<H: Hasher>(&self, state: &mut H) {
+                state.write_u64(self.handle.as_raw())
+            }
+        }
+    };
+}
 
 pub struct InstanceInner {
     raw: ash::Instance,
     raw_ext: InstanceExt,
     debug_report_callback: Option<vk::DebugReportCallbackEXT>,
+}
+
+impl PartialEq for InstanceInner {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.raw.handle().eq(&rhs.raw.handle())
+    }
+}
+
+impl Eq for InstanceInner {}
+
+impl Hash for InstanceInner {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write_u64(self.raw.handle().as_raw())
+    }
 }
 
 /// Instance extension functions
@@ -65,6 +99,20 @@ pub struct AdapterInner {
     extensions: Extensions,
 }
 
+impl PartialEq for AdapterInner {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.physical_device.eq(&rhs.physical_device)
+    }
+}
+
+impl Eq for AdapterInner {}
+
+impl Hash for AdapterInner {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write_u64(self.physical_device.as_raw())
+    }
+}
+
 #[allow(dead_code)]
 pub struct DeviceInner {
     raw: ash::Device,
@@ -76,6 +124,20 @@ pub struct DeviceInner {
     queue: ReentrantMutex<QueueInner>,
 
     state: Mutex<device::DeviceState>,
+}
+
+impl PartialEq for DeviceInner {
+    fn eq(&self, rhs: &Self) -> bool {
+        self.raw.handle().eq(&rhs.raw.handle())
+    }
+}
+
+impl Eq for DeviceInner {}
+
+impl Hash for DeviceInner {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write_u64(self.raw.handle().as_raw())
+    }
 }
 
 /// Device extension functions
@@ -94,11 +156,15 @@ pub struct SwapchainInner {
     views: Vec<Arc<TextureViewInner>>,
 }
 
+handle_traits!(SwapchainInner);
+
 #[derive(Debug)]
 pub struct SurfaceInner {
     handle: vk::SurfaceKHR,
     instance: Arc<InstanceInner>,
 }
+
+handle_traits!(SurfaceInner);
 
 #[derive(Copy, Clone, Debug)]
 pub struct QueueInner {
@@ -118,19 +184,7 @@ pub struct TextureInner {
     allocation_info: Option<AllocationInfo>,
 }
 
-impl PartialEq for TextureInner {
-    fn eq(&self, rhs: &Self) -> bool {
-        self.handle.eq(&rhs.handle)
-    }
-}
-
-impl Eq for TextureInner {}
-
-impl Hash for TextureInner {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        state.write_u64(self.handle.as_raw())
-    }
-}
+handle_traits!(TextureInner);
 
 #[derive(Debug)]
 pub struct TextureViewInner {
@@ -139,11 +193,7 @@ pub struct TextureViewInner {
     descriptor: TextureViewDescriptor,
 }
 
-impl PartialEq for TextureViewInner {
-    fn eq(&self, rhs: &Self) -> bool {
-        self.handle.eq(&rhs.handle)
-    }
-}
+handle_traits!(TextureViewInner);
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum BufferState {
@@ -163,19 +213,7 @@ pub struct BufferInner {
     buffer_state: Mutex<BufferState>,
 }
 
-impl PartialEq for BufferInner {
-    fn eq(&self, rhs: &Self) -> bool {
-        self.handle.eq(&rhs.handle)
-    }
-}
-
-impl Eq for BufferInner {}
-
-impl Hash for BufferInner {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        state.write_u64(self.handle.as_raw())
-    }
-}
+handle_traits!(BufferInner);
 
 #[derive(Debug)]
 pub struct SamplerInner {
@@ -184,12 +222,16 @@ pub struct SamplerInner {
     descriptor: SamplerDescriptor,
 }
 
+handle_traits!(SamplerInner);
+
 #[derive(Debug)]
 pub struct BindGroupLayoutInner {
     handle: vk::DescriptorSetLayout,
     device: Arc<DeviceInner>,
     bindings: Vec<BindGroupLayoutBinding>,
 }
+
+handle_traits!(BindGroupLayoutInner);
 
 #[derive(Debug)]
 pub struct BindGroupInner {
@@ -200,10 +242,14 @@ pub struct BindGroupInner {
     bindings: Vec<BindGroupBinding>,
 }
 
+handle_traits!(BindGroupInner);
+
 pub struct ShaderModuleInner {
     handle: vk::ShaderModule,
     device: Arc<DeviceInner>,
 }
+
+handle_traits!(ShaderModuleInner);
 
 #[derive(Debug)]
 pub struct PipelineLayoutInner {
@@ -211,11 +257,15 @@ pub struct PipelineLayoutInner {
     device: Arc<DeviceInner>,
 }
 
+handle_traits!(PipelineLayoutInner);
+
 #[derive(Debug)]
 pub struct ComputePipelineInner {
     handle: vk::Pipeline,
     layout: Arc<PipelineLayoutInner>,
 }
+
+handle_traits!(ComputePipelineInner);
 
 #[derive(Debug)]
 pub struct RenderPipelineInner {
@@ -223,12 +273,28 @@ pub struct RenderPipelineInner {
     layout: Arc<PipelineLayoutInner>,
 }
 
+handle_traits!(RenderPipelineInner);
+
+#[derive(Debug)]
 pub struct CommandEncoderInner {
     state: command_encoder::CommandEncoderState,
     device: Arc<DeviceInner>,
 }
 
+#[derive(Debug)]
 pub struct CommandBufferInner {
     state: command_buffer::CommandBufferState,
     device: Arc<DeviceInner>,
+}
+
+#[derive(Debug)]
+pub struct ComputePassEncoderInner<'a> {
+    top_level_encoder: &'a mut CommandEncoderInner,
+    usage_tracker: pass_resource_usage::PassResourceUsageTracker,
+}
+
+#[derive(Debug)]
+pub struct RenderPassEncoderInner<'a> {
+    top_level_encoder: &'a mut CommandEncoderInner,
+    usage_tracker: pass_resource_usage::PassResourceUsageTracker,
 }

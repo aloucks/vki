@@ -5,8 +5,8 @@ use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::util;
 use crate::imp::{DeviceInner, TextureInner, TextureViewInner};
 use crate::{
-    Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView, TextureViewDescriptor,
-    TextureViewDimension,
+    Extent3D, Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView,
+    TextureViewDescriptor, TextureViewDimension,
 };
 
 use ash::vk::MemoryPropertyFlags;
@@ -515,6 +515,18 @@ impl TextureViewInner {
             handle: image_view,
             texture,
         })
+    }
+
+    /// Returns the sample count and the size of the texture,
+    /// adjusted by the base mipmap level.
+    pub fn get_sample_count_and_mipmap_size(&self) -> (u32, Extent3D) {
+        let base_mip_level = self.descriptor.base_mip_level;
+        let sample_count = self.texture.descriptor.sample_count;
+        let width = self.texture.descriptor.size.width >> base_mip_level;
+        let height = self.texture.descriptor.size.width >> base_mip_level;
+        let depth = self.texture.descriptor.size.depth >> base_mip_level;
+
+        (sample_count, Extent3D { width, height, depth })
     }
 }
 

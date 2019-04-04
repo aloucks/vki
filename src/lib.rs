@@ -688,16 +688,19 @@ pub enum StoreOp {
     Store,
 }
 
+#[derive(Debug)]
 pub struct CommandEncoder {
     inner: imp::CommandEncoderInner,
 }
 
+#[derive(Debug)]
 pub struct ComputePassEncoder<'a> {
-    top_level_encoder: &'a mut imp::CommandEncoderInner,
+    inner: imp::ComputePassEncoderInner<'a>,
 }
 
+#[derive(Debug)]
 pub struct RenderPassEncoder<'a> {
-    top_level_encoder: &'a mut imp::CommandEncoderInner,
+    inner: imp::RenderPassEncoderInner<'a>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -726,8 +729,25 @@ pub struct RenderPassDescriptor<'a> {
     pub depth_stencil_attachment: Option<&'a RenderPassDepthStencilAttachmentDescriptor>,
 }
 
+#[derive(Debug)]
 pub struct CommandBuffer {
     inner: imp::CommandBufferInner,
 }
 
 pub struct CommandEncoderDescriptor {}
+
+#[derive(Clone, Debug)]
+pub struct BufferCopyView<'a> {
+    pub buffer: &'a Buffer,
+    pub offset: u64,
+    pub row_pitch: u32,
+    pub image_height: u32,
+}
+
+#[derive(Clone, Debug)]
+pub struct TextureCopyView<'a> {
+    pub texture: &'a Texture,
+    pub mip_level: u32,
+    pub array_layer: u32,
+    pub origin: Origin3D,
+}
