@@ -201,7 +201,7 @@ impl BufferInner {
         usage: BufferUsageFlags,
     ) -> Result<(), vk::Result> {
         let mut last_usage = self.last_usage.lock();
-        let last_includes_target = (*last_usage & self.descriptor.usage) == usage;
+        let last_includes_target = (*last_usage & usage) == usage;
         let last_read_only = (*last_usage & read_only_buffer_usages()) == *last_usage;
 
         if last_includes_target && last_read_only {
