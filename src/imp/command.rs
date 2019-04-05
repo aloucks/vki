@@ -117,6 +117,7 @@ pub enum Command {
         start_slot: u32,
         count: u32,
         buffers: Vec<Arc<BufferInner>>,
+        offsets: Vec<u64>,
     },
 }
 

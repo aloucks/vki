@@ -19,6 +19,7 @@ mod imp;
 pub use crate::error::InitError;
 pub use crate::imp::validate;
 
+use std::borrow::Cow;
 use std::hash::{Hash, Hasher};
 use std::ops::Range;
 
@@ -438,7 +439,7 @@ pub struct PipelineLayoutDescriptor<'a> {
     pub bind_group_layouts: &'a [BindGroupLayout],
 }
 
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct PipelineLayout {
     inner: Arc<imp::PipelineLayoutInner>,
 }
@@ -545,24 +546,29 @@ pub struct DepthStencilStateDescriptor {
     pub stencil_write_mask: u32,
 }
 
-pub struct ShaderModuleDescriptor<'a> {
-    pub code: &'a [u8],
+#[derive(Clone, Debug, PartialEq)]
+pub struct ShaderModuleDescriptor {
+    pub code: Cow<'static, [u8]>,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct ShaderModule {
     inner: Arc<imp::ShaderModuleInner>,
 }
 
-pub struct PipelineStageDescriptor<'a> {
+#[derive(Clone, Debug, PartialEq)]
+pub struct PipelineStageDescriptor {
     pub module: ShaderModule,
-    pub entry_point: &'a str,
+    pub entry_point: Cow<'static, str>,
 }
 
-pub struct ComputePipelineDescriptor<'a> {
+#[derive(Clone, Debug, PartialEq)]
+pub struct ComputePipelineDescriptor {
     pub layout: PipelineLayout,
-    pub compute_stage: PipelineStageDescriptor<'a>,
+    pub compute_stage: PipelineStageDescriptor,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct ComputePipeline {
     inner: Arc<imp::ComputePipelineInner>,
 }
@@ -653,22 +659,23 @@ pub struct VertexInputDescriptor {
     pub step_mode: InputStepMode,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub struct InputStateDescriptor<'a> {
+#[derive(Clone, Debug, PartialEq)]
+pub struct InputStateDescriptor {
     pub index_format: IndexFormat,
-    pub attributes: &'a [VertexAttributeDescriptor],
-    pub inputs: &'a [VertexInputDescriptor],
+    pub attributes: Vec<VertexAttributeDescriptor>,
+    pub inputs: Vec<VertexInputDescriptor>,
 }
 
-pub struct RenderPipelineDescriptor<'a> {
+#[derive(Clone, Debug, PartialEq)]
+pub struct RenderPipelineDescriptor {
     pub layout: PipelineLayout,
-    pub vertex_stage: PipelineStageDescriptor<'a>,
-    pub fragment_stage: PipelineStageDescriptor<'a>,
+    pub vertex_stage: PipelineStageDescriptor,
+    pub fragment_stage: PipelineStageDescriptor,
     pub primitive_topology: PrimitiveTopology,
     pub rasterization_state: RasterizationStateDescriptor,
-    pub color_states: &'a [ColorStateDescriptor],
+    pub color_states: Vec<ColorStateDescriptor>,
     pub depth_stencil_state: Option<DepthStencilStateDescriptor>,
-    pub input_state: InputStateDescriptor<'a>,
+    pub input_state: InputStateDescriptor,
 }
 
 pub struct RenderPipeline {

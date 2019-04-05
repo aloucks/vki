@@ -5,13 +5,16 @@ use crate::imp::command::{BufferCopy, Command, TextureCopy};
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::pass_resource_usage::CommandBufferResourceUsage;
 use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
-use crate::imp::CommandBufferInner;
 use crate::imp::{render_pass, texture};
+use crate::imp::{CommandBufferInner, RenderPipelineInner};
 use crate::{
     BufferUsageFlags, Extent3D, IndexFormat, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, TextureUsageFlags,
 };
 use smallvec::SmallVec;
+use std::sync::Arc;
+
+pub const MAX_VERTEX_INPUTS: usize = 16;
 
 #[derive(Debug)]
 pub struct CommandBufferState {
@@ -191,7 +194,7 @@ impl CommandBufferInner {
         Ok(())
     }
 
-    fn record_begin_render_pass(
+    fn record_render_pass_begin(
         &self,
         command_buffer: vk::CommandBuffer,
         color_attachments: &[RenderPassColorAttachmentDescriptor],
@@ -282,26 +285,7 @@ impl CommandBufferInner {
         Ok(())
     }
 
-    fn record_render_pass(
-        &self,
-        command_buffer: vk::CommandBuffer,
-        command_index: usize,
-        color_attachments: &[RenderPassColorAttachmentDescriptor],
-        depth_stencil_attachment: &Option<RenderPassDepthStencilAttachmentDescriptor>,
-        width: u32,
-        height: u32,
-        sample_count: u32,
-    ) -> Result<usize, vk::Result> {
-
-        self.record_begin_render_pass(
-            command_buffer,
-            color_attachments,
-            depth_stencil_attachment,
-            width,
-            height,
-        )?;
-
-        // set dynamic state defaults
+    fn record_render_pass_dynamic_state_defaults(&self, command_buffer: vk::CommandBuffer, width: u32, height: u32) {
         unsafe {
             self.device.raw.cmd_set_line_width(command_buffer, 1.0);
             self.device.raw.cmd_set_depth_bounds(command_buffer, 0.0, 1.0);
@@ -332,8 +316,154 @@ impl CommandBufferInner {
                 }],
             );
         }
+    }
 
-        Ok(command_index)
+    fn record_render_pass(
+        &self,
+        command_buffer: vk::CommandBuffer,
+        mut command_index: usize,
+        color_attachments: &[RenderPassColorAttachmentDescriptor],
+        depth_stencil_attachment: &Option<RenderPassDepthStencilAttachmentDescriptor>,
+        width: u32,
+        height: u32,
+        sample_count: u32,
+    ) -> Result<usize, vk::Result> {
+        self.record_render_pass_begin(
+            command_buffer,
+            color_attachments,
+            depth_stencil_attachment,
+            width,
+            height,
+        )?;
+
+        self.record_render_pass_dynamic_state_defaults(command_buffer, width, height);
+
+        let mut last_pipeline: Option<&Arc<RenderPipelineInner>> = None;
+
+        while let Some(command) = self.state.commands.get(command_index) {
+            match command {
+                Command::EndRenderPass => {
+                    return Ok(command_index);
+                }
+                Command::Draw {
+                    vertex_count,
+                    instance_count,
+                    first_vertex,
+                    first_instance,
+                } => {
+                    // TODO: flush descriptor sets
+                    unsafe {
+                        self.device.raw.cmd_draw(
+                            command_buffer,
+                            *vertex_count,
+                            *instance_count,
+                            *first_vertex,
+                            *first_instance,
+                        );
+                    }
+                }
+                Command::DrawIndexed {
+                    index_count,
+                    instance_count,
+                    first_index,
+                    base_vertex,
+                    first_instance,
+                } => {
+                    // TODO: flush descriptor sets
+                    unsafe {
+                        let base_vertex = *base_vertex as i32;
+                        self.device.raw.cmd_draw_indexed(
+                            command_buffer,
+                            *index_count,
+                            *instance_count,
+                            *first_index,
+                            base_vertex,
+                            *first_instance,
+                        )
+                    }
+                }
+                Command::SetBindGroup {
+                    index,
+                    bind_group,
+                    dynamic_offsets,
+                } => {
+                    // TODO: track and bind descriptor sets
+
+                }
+                Command::SetBlendColor { color } => {
+                    let blend_constants = [color.r, color.g, color.b, color.a];
+                    unsafe {
+                        self.device
+                            .raw
+                            .cmd_set_blend_constants(command_buffer, &blend_constants);
+                    }
+                }
+                Command::SetIndexBuffer { buffer, offset } => {
+                    // TODO: set_index_buffer / set_pipeline error handling
+                    let pipeline = last_pipeline.expect("RenderPass: set_index_buffer called before set_pipeline");
+                    let index_type = index_type(pipeline.descriptor.input_state.index_format);
+                    let offset = *offset as u64;
+                    unsafe {
+                        self.device
+                            .raw
+                            .cmd_bind_index_buffer(command_buffer, buffer.handle, offset, index_type);
+                    }
+                }
+                Command::SetVertexBuffers {
+                    start_slot,
+                    count,
+                    buffers,
+                    offsets,
+                } => {
+                    let buffers = buffers
+                        .iter()
+                        .map(|buffer| buffer.handle)
+                        .collect::<SmallVec<[vk::Buffer; MAX_VERTEX_INPUTS]>>();
+                    unsafe {
+                        self.device
+                            .raw
+                            .cmd_bind_vertex_buffers(command_buffer, *start_slot, &*buffers, offsets);
+                    }
+                }
+                Command::SetRenderPipeline { pipeline } => {
+                    last_pipeline = Some(pipeline);
+                    let bind_point = vk::PipelineBindPoint::GRAPHICS;
+                    unsafe {
+                        self.device
+                            .raw
+                            .cmd_bind_pipeline(command_buffer, bind_point, pipeline.handle);
+                    }
+                    // TODO on_pipline_layout_change
+                }
+                Command::SetStencilReference { reference } => {
+                    let front_face = vk::StencilFaceFlags::STENCIL_FRONT_AND_BACK;
+                    unsafe {
+                        self.device
+                            .raw
+                            .cmd_set_stencil_reference(command_buffer, front_face, *reference);
+                    }
+                }
+                Command::SetScissorRect { x, y, width, height } => {
+                    let (x, y, width, height) = (*x as i32, *y as i32, *width, *height);
+                    unsafe {
+                        self.device.raw.cmd_set_scissor(
+                            command_buffer,
+                            0,
+                            &[vk::Rect2D {
+                                offset: vk::Offset2D { x, y },
+                                extent: vk::Extent2D { width, height },
+                            }],
+                        );
+                    }
+                }
+                _ => {
+                    // TODO: RenderPass debug commands
+                }
+            }
+            command_index += 1;
+        }
+
+        unreachable!()
     }
 
     fn record_compute_pass(

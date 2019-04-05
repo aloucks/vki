@@ -35,7 +35,8 @@ pub use crate::imp::debug::validate;
 
 use crate::{
     BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions, Limits,
-    SamplerDescriptor, TextureDescriptor, TextureUsageFlags, TextureViewDescriptor,
+    PipelineLayoutDescriptor, RenderPipelineDescriptor, SamplerDescriptor, TextureDescriptor, TextureUsageFlags,
+    TextureViewDescriptor,
 };
 
 use std::hash::{Hash, Hasher};
@@ -244,6 +245,7 @@ pub struct BindGroupInner {
 
 handle_traits!(BindGroupInner);
 
+#[derive(Debug)]
 pub struct ShaderModuleInner {
     handle: vk::ShaderModule,
     device: Arc<DeviceInner>,
@@ -271,6 +273,7 @@ handle_traits!(ComputePipelineInner);
 pub struct RenderPipelineInner {
     handle: vk::Pipeline,
     layout: Arc<PipelineLayoutInner>,
+    descriptor: RenderPipelineDescriptor,
 }
 
 handle_traits!(RenderPipelineInner);

@@ -410,6 +410,7 @@ impl<'a> RenderPassEncoder<'a> {
     }
 
     pub fn set_index_buffer(&mut self, buffer: &Buffer, offset: u32) {
+        // TODO: If the pipeline isn't set first, this will fail in the recording phase
         // state.set_index_buffer
         self.inner
             .usage_tracker
@@ -421,8 +422,11 @@ impl<'a> RenderPassEncoder<'a> {
         });
     }
 
-    pub fn set_vertex_buffers(&mut self, start_slot: u32, count: u32, buffers: &[Buffer]) {
+    pub fn set_vertex_buffers(&mut self, start_slot: u32, count: u32, buffers: &[Buffer], offsets: &[u64]) {
         // state.set_vertex_buffers
+
+        debug_assert_eq!(count as usize, buffers.len()); // TODO: remove count
+        debug_assert_eq!(buffers.len(), offsets.len());
 
         let mut buffers_vec = Vec::with_capacity(buffers.len());
 
@@ -437,6 +441,7 @@ impl<'a> RenderPassEncoder<'a> {
             buffers: buffers_vec,
             start_slot,
             count,
+            offsets: offsets.to_owned(),
         });
     }
 

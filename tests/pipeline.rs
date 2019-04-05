@@ -1,5 +1,6 @@
 #![allow(unused_imports)]
 
+use std::borrow::Cow;
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
     BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
@@ -67,7 +68,7 @@ fn create_compute_pipeline() {
         let (instance, _adapter, device) = support::init()?;
 
         let shader_module_descriptor = ShaderModuleDescriptor {
-            code: include_bytes!("data/pipeline.comp.spv"),
+            code: Cow::Borrowed(include_bytes!("data/pipeline.comp.spv")),
         };
         let shader_module = device.create_shader_module(shader_module_descriptor)?;
 
@@ -94,7 +95,7 @@ fn create_compute_pipeline() {
         let pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
 
         let pipeline_stage_descriptor = PipelineStageDescriptor {
-            entry_point: "main",
+            entry_point: Cow::Borrowed("main"),
             module: shader_module,
         };
 
@@ -115,11 +116,11 @@ fn create_render_pipeline() {
         let (instance, _adapter, device) = support::init()?;
 
         let vertex_shader_module = device.create_shader_module(ShaderModuleDescriptor {
-            code: include_bytes!("data/pipeline.vert.spv"),
+            code: Cow::Borrowed(include_bytes!("data/pipeline.vert.spv")),
         })?;
 
         let fragment_shader_module = device.create_shader_module(ShaderModuleDescriptor {
-            code: include_bytes!("data/pipeline.frag.spv"),
+            code: Cow::Borrowed(include_bytes!("data/pipeline.frag.spv")),
         })?;
 
         #[rustfmt::skip]
@@ -161,23 +162,23 @@ fn create_render_pipeline() {
             layout: pipeline_layout,
             primitive_topology: PrimitiveTopology::TriangleList,
             vertex_stage: PipelineStageDescriptor {
-                entry_point: "main",
+                entry_point: Cow::Borrowed("main"),
                 module: vertex_shader_module,
             },
             fragment_stage: PipelineStageDescriptor {
-                entry_point: "main",
+                entry_point: Cow::Borrowed("main"),
                 module: fragment_shader_module,
             },
             input_state: InputStateDescriptor {
                 index_format: IndexFormat::U16,
-                inputs: &[
+                inputs: vec![
                     VertexInputDescriptor {
                         input_slot: 0,
                         step_mode: InputStepMode::Vertex,
                         stride: std::mem::size_of::<Vertex>() as u64,
                     }
                 ],
-                attributes: &[
+                attributes: vec![
                     VertexAttributeDescriptor {
                         input_slot: 0,
                         format: VertexFormat::Float3,
@@ -192,7 +193,7 @@ fn create_render_pipeline() {
                     },
                 ],
             },
-            color_states: &[
+            color_states: vec![
                 ColorStateDescriptor {
                     format: TextureFormat::B8G8R8A8Unorm,
                     write_mask: ColorWriteFlags::ALL,

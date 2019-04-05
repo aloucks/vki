@@ -67,7 +67,7 @@ impl ComputePipelineInner {
     ) -> Result<ComputePipelineInner, vk::Result> {
         // TODO: inspect push constants
 
-        let entry_point = CString::new(descriptor.compute_stage.entry_point).map_err(|e| {
+        let entry_point = CString::new(&*descriptor.compute_stage.entry_point).map_err(|e| {
             log::error!("invalid entry point: {:?}", e);
             vk::Result::ERROR_VALIDATION_FAILED_EXT
         })?;
@@ -395,12 +395,12 @@ impl RenderPipelineInner {
     ) -> Result<RenderPipelineInner, vk::Result> {
         // TODO: inspect push constants
 
-        let vertex_entry_point = CString::new(descriptor.vertex_stage.entry_point).map_err(|e| {
+        let vertex_entry_point = CString::new(&*descriptor.vertex_stage.entry_point).map_err(|e| {
             log::error!("invalid vertex entry point: {:?}", e);
             vk::Result::ERROR_VALIDATION_FAILED_EXT
         })?;
 
-        let fragment_entry_point = CString::new(descriptor.fragment_stage.entry_point).map_err(|e| {
+        let fragment_entry_point = CString::new(&*descriptor.fragment_stage.entry_point).map_err(|e| {
             log::error!("invalid fragment entry point: {:?}", e);
             vk::Result::ERROR_VALIDATION_FAILED_EXT
         })?;
@@ -558,7 +558,11 @@ impl RenderPipelineInner {
 
         let layout = descriptor.layout.inner.clone();
 
-        Ok(RenderPipelineInner { handle, layout })
+        Ok(RenderPipelineInner {
+            handle,
+            layout,
+            descriptor,
+        })
     }
 }
 
