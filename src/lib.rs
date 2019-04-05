@@ -137,9 +137,9 @@ pub struct Extent3D {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Hash, PartialOrd, Ord)]
 pub struct Origin3D {
-    pub x: u32,
-    pub y: u32,
-    pub z: u32,
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Default)]

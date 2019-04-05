@@ -17,8 +17,8 @@ pub struct BufferCopy {
 #[derive(Debug)]
 pub struct TextureCopy {
     pub texture: Arc<TextureInner>,
-    pub level: u32,
-    pub slice: u32,
+    pub mip_level: u32,
+    pub array_layer: u32,
     pub origin_texels: Origin3D,
 }
 
@@ -34,24 +34,24 @@ pub enum Command {
         sample_count: u32,
     },
     CopyBufferToBuffer {
-        source: BufferCopy,
-        destination: BufferCopy,
+        src: BufferCopy,
+        dst: BufferCopy,
         size_bytes: u32,
     },
     CopyBufferToTexture {
-        source: BufferCopy,
-        destination: TextureCopy,
-        copy_size_texels: Extent3D,
+        src: BufferCopy,
+        dst: TextureCopy,
+        size_texels: Extent3D,
     },
     CopyTextureToBuffer {
-        source: TextureCopy,
-        destination: BufferCopy,
-        copy_size_texels: Extent3D,
+        src: TextureCopy,
+        dst: BufferCopy,
+        size_texels: Extent3D,
     },
     CopyTextureToTexture {
-        source: TextureCopy,
-        destination: TextureCopy,
-        copy_size_texels: Extent3D,
+        src: TextureCopy,
+        dst: TextureCopy,
+        size_texels: Extent3D,
     },
     Dispatch {
         x: u32,

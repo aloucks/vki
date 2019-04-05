@@ -14,6 +14,14 @@ pub fn extent_3d(extent: Extent3D) -> vk::Extent3D {
     }
 }
 
+pub fn offset_3d(extent: Extent3D) -> vk::Extent3D {
+    vk::Extent3D {
+        width: extent.width,
+        height: extent.height,
+        depth: extent.depth,
+    }
+}
+
 #[cfg(test)]
 mod tests {
 

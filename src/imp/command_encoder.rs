@@ -144,13 +144,13 @@ impl CommandEncoder {
     ) {
         // TODO: Fix inconsistency with offset and size types (u64 vs u32 vs usize)
         self.inner.push(Command::CopyBufferToBuffer {
-            source: BufferCopy {
+            src: BufferCopy {
                 buffer: src.inner.clone(),
                 offset: src_offset as u32,
                 image_height: 0,
                 row_pitch: 0,
             },
-            destination: BufferCopy {
+            dst: BufferCopy {
                 buffer: dst.inner.clone(),
                 offset: dst_offset as u32,
                 image_height: 0,
@@ -168,19 +168,19 @@ impl CommandEncoder {
     // TODO: row_pitch bytes vs texels
     pub fn copy_buffer_to_texture(&mut self, src: BufferCopyView, dst: TextureCopyView, copy_size: Extent3D) {
         self.inner.push(Command::CopyBufferToTexture {
-            source: BufferCopy {
+            src: BufferCopy {
                 buffer: Arc::clone(&src.buffer.inner),
                 row_pitch: src.row_pitch,
                 image_height: src.image_height,
                 offset: src.offset as u32,
             },
-            destination: TextureCopy {
+            dst: TextureCopy {
                 texture: Arc::clone(&dst.texture.inner),
-                level: dst.mip_level,
+                mip_level: dst.mip_level,
                 origin_texels: dst.origin,
-                slice: dst.array_layer, // TODO: slice ?
+                array_layer: dst.array_layer, // TODO: slice ?
             },
-            copy_size_texels: copy_size,
+            size_texels: copy_size,
         });
 
         let top_level_buffers = &mut self.inner.state.resource_usages.top_level_buffers;
@@ -193,19 +193,19 @@ impl CommandEncoder {
     // TODO: row_pitch bytes vs texels
     pub fn copy_texture_to_texture(&mut self, src: TextureCopyView, dst: TextureCopyView, copy_size: Extent3D) {
         self.inner.push(Command::CopyTextureToTexture {
-            source: TextureCopy {
+            src: TextureCopy {
                 texture: Arc::clone(&src.texture.inner),
-                level: src.mip_level,
+                mip_level: src.mip_level,
                 origin_texels: src.origin,
-                slice: src.array_layer, // TODO: slice ?
+                array_layer: src.array_layer, // TODO: slice ?
             },
-            destination: TextureCopy {
+            dst: TextureCopy {
                 texture: Arc::clone(&dst.texture.inner),
-                level: dst.mip_level,
+                mip_level: dst.mip_level,
                 origin_texels: dst.origin,
-                slice: dst.array_layer, // TODO: slice ?
+                array_layer: dst.array_layer, // TODO: slice ?
             },
-            copy_size_texels: copy_size,
+            size_texels: copy_size,
         });
 
         let top_level_textures = &mut self.inner.state.resource_usages.top_level_textures;

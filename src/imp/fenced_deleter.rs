@@ -22,6 +22,7 @@ pub struct FencedDeleter {
     shader_modules: SerialQueue<vk::ShaderModule>,
     pipeline_layouts: SerialQueue<vk::PipelineLayout>,
     pipelines: SerialQueue<vk::Pipeline>,
+    framebuffers: SerialQueue<vk::Framebuffer>,
 }
 
 impl FencedDeleter {
@@ -38,7 +39,8 @@ impl FencedDeleter {
         log::trace!(" descriptor_pools:       {}", self.descriptor_pools.len());
         log::trace!(" shader_modules:         {}", self.shader_modules.len());
         log::trace!(" pipeline_layouts:       {}", self.pipeline_layouts.len());
-        log::trace!(" pipelines:       {}", self.pipelines.len());
+        log::trace!(" pipelines:              {}", self.pipelines.len());
+        log::trace!(" framebuffers:           {}", self.framebuffers.len());
 
         for ((handle, surface), serial) in self.swapchains.drain_up_to(last_completed_serial) {
             log::debug!("destroy swapchain: {:?}, completed: {:?}", handle, serial);
@@ -117,6 +119,13 @@ impl FencedDeleter {
                 device.raw.destroy_pipeline(handle, None);
             }
         }
+
+        for (handle, serial) in self.framebuffers.drain_up_to(last_completed_serial) {
+            log::trace!("destroy pipeline: {:?}, completed: {:?}", handle, serial);
+            unsafe {
+                device.raw.destroy_framebuffer(handle, None);
+            }
+        }
     }
 
     pub fn is_empty(&self) -> bool {
@@ -130,6 +139,7 @@ impl FencedDeleter {
             && self.shader_modules.is_empty()
             && self.pipeline_layouts.is_empty()
             && self.pipelines.is_empty()
+            && self.framebuffers.is_empty()
     }
 }
 
@@ -216,5 +226,11 @@ impl DeleteWhenUnused<vk::PipelineLayout> for FencedDeleter {
 impl DeleteWhenUnused<vk::Pipeline> for FencedDeleter {
     fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::Pipeline> {
         &mut self.pipelines
+    }
+}
+
+impl DeleteWhenUnused<vk::Framebuffer> for FencedDeleter {
+    fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::Framebuffer> {
+        &mut self.framebuffers
     }
 }
