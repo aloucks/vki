@@ -1,6 +1,6 @@
 use ash::vk;
 
-use crate::{Queue, SwapchainImage};
+use crate::{Queue, SwapchainImage, CommandBuffer};
 
 impl<'a> Queue<'a> {
     pub fn present(self, frame: SwapchainImage) -> Result<(), vk::Result> {
@@ -10,7 +10,7 @@ impl<'a> Queue<'a> {
             let command_buffer = state.get_pending_command_buffer(&device)?;
             let texture = &frame.swapchain.textures[frame.image_index as usize];
             texture.transition_usage_now(command_buffer, texture.descriptor.usage)?;
-            state.submit_pending_commands(&frame.swapchain.device, *self.inner)?;
+            state.submit_pending_commands(&frame.swapchain.device, &*self.inner)?;
 
             // these should always be empty after pending commands were submitted
             debug_assert_eq!(0, state.get_wait_semaphores().len());
@@ -37,7 +37,16 @@ impl<'a> Queue<'a> {
         frame.swapchain.device.tick()
     }
 
-    pub fn submit(&self, _command_buffer: ()) {
-        unimplemented!()
+    pub fn submit(self, mut command_buffer: CommandBuffer) -> Result<(), vk::Result> {
+        let device = command_buffer.inner.device.clone();
+
+        device.tick()?;
+
+        let mut state = device.state.lock();
+        let vk_command_buffer = state.get_pending_command_buffer(&device)?;
+        command_buffer.inner.record_commands(vk_command_buffer, &mut state)?;
+        state.submit_pending_commands(&device, &self.inner)?;
+
+        Ok(())
     }
 }

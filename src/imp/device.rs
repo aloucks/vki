@@ -346,7 +346,7 @@ impl DeviceState {
         self.fenced_deleter
             .tick(self.last_completed_serial, device, &mut self.allocator);
         let queue = device.queue.lock();
-        self.submit_pending_commands(device, *queue)?;
+        self.submit_pending_commands(device, &*queue)?;
 
         Ok(())
     }
@@ -426,7 +426,7 @@ impl DeviceState {
         &mut self.fenced_deleter
     }
 
-    pub fn submit_pending_commands(&mut self, device: &DeviceInner, queue: QueueInner) -> Result<(), vk::Result> {
+    pub fn submit_pending_commands(&mut self, device: &DeviceInner, queue: &QueueInner) -> Result<(), vk::Result> {
         let pending_commands = match self.pending_commands.take() {
             None => {
                 // If there are no pending commands and everything in flight has resolved,

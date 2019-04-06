@@ -15,6 +15,7 @@ use crate::{
 };
 
 use std::sync::Arc;
+use crate::imp::device::DeviceState;
 
 pub const MAX_VERTEX_INPUTS: usize = 16;
 pub const MAX_BIND_GROUPS: usize = 4;
@@ -93,7 +94,7 @@ fn image_copy(src: &TextureCopy, dst: &TextureCopy, size_texels: Extent3D) -> vk
 }
 
 impl CommandBufferInner {
-    pub fn record_commands(&mut self, command_buffer: vk::CommandBuffer) -> Result<(), vk::Result> {
+    pub fn record_commands(&mut self, command_buffer: vk::CommandBuffer, state: &mut DeviceState) -> Result<(), vk::Result> {
         let mut pass = 0;
         let mut command_index = 0;
         while let Some(command) = self.state.commands.get(command_index) {
@@ -182,6 +183,7 @@ impl CommandBufferInner {
                         *width,
                         *height,
                         *sample_count,
+                        state,
                     )?;
                     pass += 1;
                 }
@@ -192,6 +194,8 @@ impl CommandBufferInner {
                 }
                 _ => {}
             }
+
+            command_index += 1;
         }
 
         Ok(())
@@ -204,6 +208,7 @@ impl CommandBufferInner {
         depth_stencil_attachment: &Option<RenderPassDepthStencilAttachmentDescriptor>,
         width: u32,
         height: u32,
+        state: &mut DeviceState,
     ) -> Result<(), vk::Result> {
         let mut query = RenderPassCacheQuery::default();
 
@@ -249,7 +254,7 @@ impl CommandBufferInner {
             attachments.push(depth_stencil_attachment.attachment.inner.handle);
         }
 
-        let mut state = self.device.state.lock();
+        //let mut state = self.device.state.lock();
 
         let render_pass = state.get_render_pass(query, &self.device)?;
         let create_info = vk::FramebufferCreateInfo {
@@ -265,7 +270,7 @@ impl CommandBufferInner {
         let serial = state.get_next_pending_serial();
         state.get_fenced_deleter().delete_when_unused(framebuffer, serial);
 
-        drop(state);
+        //drop(state);
 
         let begin_info = vk::RenderPassBeginInfo {
             render_pass,
@@ -330,6 +335,7 @@ impl CommandBufferInner {
         width: u32,
         height: u32,
         _sample_count: u32,
+        state: &mut DeviceState,
     ) -> Result<usize, vk::Result> {
         // TODO: Is sample_count needed? It looks like Dawn only uses it for validation
 
@@ -339,6 +345,7 @@ impl CommandBufferInner {
             depth_stencil_attachment,
             width,
             height,
+            state,
         )?;
 
         self.record_render_pass_dynamic_state_defaults(command_buffer, width, height);
@@ -498,7 +505,7 @@ impl CommandBufferInner {
     fn record_compute_pass(
         &mut self,
         command_buffer: vk::CommandBuffer,
-        command_index: usize,
+        mut command_index: usize,
     ) -> Result<usize, vk::Result> {
         let mut descriptor_sets = DescriptorSetTracker::default();
 
@@ -529,6 +536,8 @@ impl CommandBufferInner {
                 }
                 _ => {}
             }
+
+            command_index += 1;
         }
 
         unreachable!()
