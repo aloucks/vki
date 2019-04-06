@@ -1,10 +1,10 @@
 use vki::{DeviceDescriptor, Instance, RequestAdapterOptions, SwapchainDescriptor, TextureFormat, TextureUsageFlags};
+use vki::winit_surface_descriptor;
 
 use winit::dpi::LogicalSize;
 use winit::event::{Event, StartCause, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::platform::desktop::EventLoopExtDesktop;
-use winit::platform::windows::WindowExtWindows;
 
 use std::time::{Duration, Instant};
 
@@ -24,21 +24,24 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let instance = Instance::new()?;
     let adapter_options = RequestAdapterOptions::default();
     let adapter = instance.request_adaptor(adapter_options)?;
-    println!("{:?}", adapter);
+    println!("Adapter: {}", adapter.name());
 
-    let hwnd = window.get_hwnd();
-    let surface = instance.create_surface_win32(hwnd)?;
+    let surface_descriptor = winit_surface_descriptor!(&window);
+
+    let surface = instance.create_surface(&surface_descriptor)?;
 
     let device_desc = DeviceDescriptor::default().with_surface_support(&surface);
     let device = adapter.create_device(device_desc)?;
-    println!("{:?}", device);
 
     let formats = device.get_supported_swapchain_formats(&surface)?;
-    println!("{:#?}", formats);
+    println!("Supported swapchain formats: {:?}", formats);
+
+    let swapchain_format = TextureFormat::B8G8R8A8UnormSRGB;
+    assert!(formats.contains(&swapchain_format));
 
     let swapchain_desc = SwapchainDescriptor {
         surface: &surface,
-        format: TextureFormat::B8G8R8A8UnormSRGB,
+        format: swapchain_format,
         usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
     };
 
