@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Helper script for compiling test and example shaders
+
 set -e
 
 DIR=$(dirname ${BASH_SOURCE[0]})
@@ -17,7 +19,7 @@ for FILE in ${FILES}; do
         *".comp.spv")
             STAGE="comp";;
     esac
-    PATH_SPV=${DIR}/${NAME_SPV}
+    PATH_SPV=$(dirname ${FILE})/${NAME_SPV}
     GLSL_TIME=$(stat -c %Y ${FILE})
     if [[ ! -f ${PATH_SPV} || ${GLSL_TIME} > $(stat -c %Y ${PATH_SPV}) ]]; then
         echo "Compiling: ${FILE}"
