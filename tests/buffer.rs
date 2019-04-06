@@ -92,26 +92,28 @@ fn create_buffer_mapped() {
 
         let mut encoder = device.create_command_encoder()?;
 
+        let data: &[u32] = &[1, 2, 3, 4, 5];
+        let data_byte_size = std::mem::size_of::<u32>() * data.len();
+
         let write_buffer = device.create_buffer_mapped(BufferDescriptor {
             usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,
-            size: 1024,
+            size: data.len() as u64,
         })?;
 
         let read_buffer = device.create_buffer_mapped(BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
-            size: 1024,
+            size: data.len() as u64,
         })?;
 
-        let data: &[u32] = &[1, 2, 3, 4, 5];
-        let data_byte_size = std::mem::size_of::<u32>() * data.len();
-
         write_buffer.write(0, data)?;
+
         encoder.copy_buffer_to_buffer(write_buffer.buffer(), 0, read_buffer.buffer(), 0, data_byte_size as _);
 
         let fence = device.create_fence()?;
-        let queue = device.get_queue();
 
+        let queue = device.get_queue();
         queue.submit(encoder.finish()?)?;
+
         fence.wait(Duration::from_millis(1_000_000_000))?;
 
         let read: &[u32] = read_buffer.read(0, data.len())?;

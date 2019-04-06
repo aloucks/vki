@@ -305,9 +305,10 @@ impl Drop for DeviceInner {
             assert_eq!(0, state.fences_in_flight.len());
 
             // Increment the completed serial to account for any pending deletes
+            log::trace!("drop: setting last_completed_serial to last_submitted_serial and incrementing");
             state.last_completed_serial = state.last_submitted_serial;
             let serial = state.last_completed_serial.increment();
-            log::debug!("drop with last_completed_serial: {:?}", serial);
+            log::trace!("drop: last_completed_serial: {:?}", serial);
 
             // Work-around for a weird borrow issue with the mutex guard auto-deref
             {
@@ -453,6 +454,7 @@ impl DeviceState {
                 if self.last_submitted_serial == self.last_completed_serial {
                     self.last_submitted_serial.increment();
                     self.last_completed_serial.increment();
+                    log::trace!("all commands complete: incremented serials: {:?}", self.last_submitted_serial);
                 }
                 return Ok(());
             }
@@ -473,12 +475,13 @@ impl DeviceState {
             .wait_dst_stage_mask(&wait_dst_stage_masks)
             .command_buffers(&pending_command_buffers);
 
+        let serial = self.last_submitted_serial.increment();
+
         log::trace!("queue_submit: {:?}", self.last_submitted_serial);
         unsafe {
             device.raw.queue_submit(queue.handle, &[*submit_info], fence)?;
         }
 
-        let serial = self.last_submitted_serial.increment();
         self.fences_in_flight.enqueue(fence, serial);
         self.commands_in_flight.enqueue(pending_commands, serial);
 
