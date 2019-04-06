@@ -53,7 +53,7 @@ fn create_pipeline_layout() {
         let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
-            bind_group_layouts: &[bind_group_layout],
+            bind_group_layouts: vec![bind_group_layout],
         };
 
         let _pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
@@ -89,7 +89,7 @@ fn create_compute_pipeline() {
         let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
-            bind_group_layouts: &[bind_group_layout],
+            bind_group_layouts: vec![bind_group_layout],
         };
 
         let pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
@@ -135,7 +135,7 @@ fn create_render_pipeline() {
         })?;
 
         let pipeline_layout = device.create_pipeline_layout(PipelineLayoutDescriptor {
-            bind_group_layouts: &[bind_group_layout],
+            bind_group_layouts: vec![bind_group_layout],
         })?;
 
         #[repr(C)]

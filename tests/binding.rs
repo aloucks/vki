@@ -78,7 +78,7 @@ fn create_bind_group() {
 
         let bind_group_descriptor = BindGroupDescriptor {
             layout: bind_group_layout,
-            bindings: &[
+            bindings: vec![
                 BindGroupBinding {
                     binding: 0,
                     resource: BindingResource::Buffer(buffer, 0..buffer_descriptor.size),

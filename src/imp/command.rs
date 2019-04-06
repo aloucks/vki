@@ -115,9 +115,16 @@ pub enum Command {
     },
     SetVertexBuffers {
         start_slot: u32,
-        count: u32,
         buffers: Vec<Arc<BufferInner>>,
         offsets: Vec<u64>,
+    },
+    SetViewport {
+        x: f32,
+        y: f32,
+        width: f32,
+        height: f32,
+        min_depth: f32,
+        max_depth: f32,
     },
 }
 

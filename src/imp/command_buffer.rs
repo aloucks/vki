@@ -1,20 +1,23 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
+use smallvec::SmallVec;
 
 use crate::imp::command::{BufferCopy, Command, TextureCopy};
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::pass_resource_usage::CommandBufferResourceUsage;
 use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
-use crate::imp::{render_pass, texture};
+use crate::imp::{render_pass, texture, DeviceInner, PipelineLayoutInner};
 use crate::imp::{CommandBufferInner, RenderPipelineInner};
+
 use crate::{
     BufferUsageFlags, Extent3D, IndexFormat, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, TextureUsageFlags,
 };
-use smallvec::SmallVec;
+
 use std::sync::Arc;
 
 pub const MAX_VERTEX_INPUTS: usize = 16;
+pub const MAX_BIND_GROUPS: usize = 4;
 
 #[derive(Debug)]
 pub struct CommandBufferState {
@@ -35,7 +38,7 @@ fn buffer_image_copy(
     size_texels: Extent3D,
 ) -> vk::BufferImageCopy {
     vk::BufferImageCopy {
-        buffer_offset: buffer_copy.offset as _,
+        buffer_offset: buffer_copy.offset as vk::DeviceSize,
         buffer_row_length: buffer_copy.row_pitch, // TODO: row_pitch
         buffer_image_height: buffer_copy.image_height,
         image_subresource: vk::ImageSubresourceLayers {
@@ -101,9 +104,9 @@ impl CommandBufferInner {
                     dst.buffer
                         .transition_usage_now(command_buffer, BufferUsageFlags::TRANSFER_DST)?;
                     let region = vk::BufferCopy {
-                        size: *size_bytes as _,
-                        src_offset: src.offset as _,
-                        dst_offset: dst.offset as _,
+                        size: *size_bytes as vk::DeviceSize,
+                        src_offset: src.offset as vk::DeviceSize,
+                        dst_offset: dst.offset as vk::DeviceSize,
                     };
                     unsafe {
                         self.device.raw.cmd_copy_buffer(
@@ -326,8 +329,10 @@ impl CommandBufferInner {
         depth_stencil_attachment: &Option<RenderPassDepthStencilAttachmentDescriptor>,
         width: u32,
         height: u32,
-        sample_count: u32,
+        _sample_count: u32,
     ) -> Result<usize, vk::Result> {
+        // TODO: Is sample_count needed? It looks like Dawn only uses it for validation
+
         self.record_render_pass_begin(
             command_buffer,
             color_attachments,
@@ -340,18 +345,22 @@ impl CommandBufferInner {
 
         let mut last_pipeline: Option<&Arc<RenderPipelineInner>> = None;
 
+        let mut descriptor_sets = DescriptorSetTracker::default();
+
         while let Some(command) = self.state.commands.get(command_index) {
             match command {
-                Command::EndRenderPass => {
+                Command::EndRenderPass => unsafe {
+                    self.device.raw.cmd_end_render_pass(command_buffer);
                     return Ok(command_index);
-                }
+                },
                 Command::Draw {
                     vertex_count,
                     instance_count,
                     first_vertex,
                     first_instance,
                 } => {
-                    // TODO: flush descriptor sets
+                    let bind_point = vk::PipelineBindPoint::GRAPHICS;
+                    descriptor_sets.flush(&self.device, command_buffer, bind_point);
                     unsafe {
                         self.device.raw.cmd_draw(
                             command_buffer,
@@ -369,7 +378,8 @@ impl CommandBufferInner {
                     base_vertex,
                     first_instance,
                 } => {
-                    // TODO: flush descriptor sets
+                    let bind_point = vk::PipelineBindPoint::GRAPHICS;
+                    descriptor_sets.flush(&self.device, command_buffer, bind_point);
                     unsafe {
                         let base_vertex = *base_vertex as i32;
                         self.device.raw.cmd_draw_indexed(
@@ -387,8 +397,8 @@ impl CommandBufferInner {
                     bind_group,
                     dynamic_offsets,
                 } => {
-                    // TODO: track and bind descriptor sets
-
+                    let dynamic_offsets = dynamic_offsets.as_ref().map(Vec::as_slice);
+                    descriptor_sets.on_set_bind_group(*index, bind_group.handle, dynamic_offsets);
                 }
                 Command::SetBlendColor { color } => {
                     let blend_constants = [color.r, color.g, color.b, color.a];
@@ -411,7 +421,6 @@ impl CommandBufferInner {
                 }
                 Command::SetVertexBuffers {
                     start_slot,
-                    count,
                     buffers,
                     offsets,
                 } => {
@@ -433,7 +442,7 @@ impl CommandBufferInner {
                             .raw
                             .cmd_bind_pipeline(command_buffer, bind_point, pipeline.handle);
                     }
-                    // TODO on_pipline_layout_change
+                    descriptor_sets.on_pipeline_layout_change(&pipeline.layout);
                 }
                 Command::SetStencilReference { reference } => {
                     let front_face = vk::StencilFaceFlags::STENCIL_FRONT_AND_BACK;
@@ -456,6 +465,26 @@ impl CommandBufferInner {
                         );
                     }
                 }
+                Command::SetViewport {
+                    x,
+                    y,
+                    width,
+                    height,
+                    min_depth,
+                    max_depth,
+                } => {
+                    let viewport = vk::Viewport {
+                        x: *x,
+                        y: *y,
+                        width: *width,
+                        height: *height,
+                        min_depth: *min_depth,
+                        max_depth: *max_depth,
+                    };
+                    unsafe {
+                        self.device.raw.cmd_set_viewport(command_buffer, 0, &[viewport]);
+                    }
+                }
                 _ => {
                     // TODO: RenderPass debug commands
                 }
@@ -468,9 +497,136 @@ impl CommandBufferInner {
 
     fn record_compute_pass(
         &mut self,
-        _command_buffer: vk::CommandBuffer,
+        command_buffer: vk::CommandBuffer,
         command_index: usize,
     ) -> Result<usize, vk::Result> {
-        Ok(command_index)
+        let mut descriptor_sets = DescriptorSetTracker::default();
+
+        while let Some(command) = self.state.commands.get(command_index) {
+            match command {
+                Command::EndComputePass => {
+                    return Ok(command_index);
+                }
+                Command::Dispatch { x, y, z } => unsafe {
+                    self.device.raw.cmd_dispatch(command_buffer, *x, *y, *z);
+                },
+                Command::SetComputePipeline { pipeline } => {
+                    let bind_point = vk::PipelineBindPoint::GRAPHICS;
+                    unsafe {
+                        self.device
+                            .raw
+                            .cmd_bind_pipeline(command_buffer, bind_point, pipeline.handle);
+                    }
+                    descriptor_sets.on_pipeline_layout_change(&pipeline.layout);
+                }
+                Command::SetBindGroup {
+                    index,
+                    bind_group,
+                    dynamic_offsets,
+                } => {
+                    let dynamic_offsets = dynamic_offsets.as_ref().map(Vec::as_slice);
+                    descriptor_sets.on_set_bind_group(*index, bind_group.handle, dynamic_offsets);
+                }
+                _ => {}
+            }
+        }
+
+        unreachable!()
+    }
+}
+
+#[derive(Default)]
+struct DescriptorSetTracker<'a> {
+    current_layout: Option<Arc<PipelineLayoutInner>>,
+    sets: [vk::DescriptorSet; MAX_BIND_GROUPS],
+    dirty_sets: [bool; MAX_BIND_GROUPS],
+    dynamic_offsets: [Option<&'a [u32]>; MAX_BIND_GROUPS],
+}
+
+impl<'a> DescriptorSetTracker<'a> {
+    fn on_set_bind_group(&mut self, index: u32, set: vk::DescriptorSet, dynamic_offsets: Option<&'a [u32]>) {
+        let index = index as usize;
+        self.dirty_sets[index] = true;
+        self.sets[index] = set;
+        self.dynamic_offsets[index] = dynamic_offsets;
+    }
+
+    fn on_pipeline_layout_change(&mut self, layout: &Arc<PipelineLayoutInner>) {
+        let new_layout = Some(layout);
+
+        if self.current_layout.as_ref() == new_layout {
+            return;
+        }
+
+        // It's not clear to me what Dawn is doing here or if it's correct.. Rather than trying to
+        // emulate what it's doing or deep diving into figuring out exactly what's going on,
+        // we're going to attempt something simple and tackle this later if there is a problem.
+
+        // https://vulkan.lunarg.com/doc/view/1.0.33.0/linux/vkspec.chunked/ch13s02.html#descriptorsets-compatibility
+        //
+        // My interpretation:
+        //
+        // 1. When changing pipeline layouts, for **matching** descriptor sets 0..N, the bindings
+        //    are left undisturbed.
+        // 2. Once a non-matching binding is detected, it and all subsequent bindings are
+        //    disturbed.
+
+        let mut disturbed_index = None;
+
+        if self.current_layout.is_some() {
+            let current_layout = self.current_layout.as_ref().unwrap();
+            for (index, old_bind_group_layout) in current_layout.descriptor.bind_group_layouts.iter().enumerate() {
+                if let Some(new_bind_group_layout) = layout.descriptor.bind_group_layouts.get(index) {
+                    // The spec states identically defined sets are compatible, but we'll only consider them compatible
+                    // if they used the same DescriptorSetLayout, as this is cheaper to compare.
+                    if new_bind_group_layout.inner.handle != old_bind_group_layout.inner.handle {
+                        disturbed_index = Some(index);
+                        break;
+                    }
+                }
+            }
+        } else {
+            disturbed_index = Some(0);
+        }
+
+        if let Some(disturbed_index) = disturbed_index {
+            for i in disturbed_index..self.sets.len() {
+                self.sets[i] = vk::DescriptorSet::default();
+                self.dirty_sets[i] = false;
+                self.dynamic_offsets[i] = None;
+            }
+        }
+
+        self.current_layout = new_layout.cloned();
+    }
+
+    fn flush(&mut self, device: &DeviceInner, command_buffer: vk::CommandBuffer, bind_point: vk::PipelineBindPoint) {
+        match self.current_layout.as_ref().map(|layout| layout.handle) {
+            Some(pipeline_layout) => {
+                for (index, dirty) in self.dirty_sets.iter_mut().enumerate() {
+                    let dynamic_offsets = self.dynamic_offsets[index].unwrap_or(&[]);
+                    if *dirty {
+                        *dirty = false;
+                        let set = self.sets[index];
+                        if set == vk::DescriptorSet::default() {
+                            continue;
+                        }
+                        unsafe {
+                            device.raw.cmd_bind_descriptor_sets(
+                                command_buffer,
+                                bind_point,
+                                pipeline_layout,
+                                index as u32,
+                                &[set],
+                                dynamic_offsets,
+                            );
+                        }
+                    }
+                }
+            }
+            None => {
+                log::error!("attempt to flush bind groups without any pipeline set");
+            }
+        }
     }
 }

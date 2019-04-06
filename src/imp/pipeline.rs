@@ -42,7 +42,11 @@ impl PipelineLayoutInner {
 
         let handle = unsafe { device.raw.create_pipeline_layout(&create_info, None)? };
 
-        Ok(PipelineLayoutInner { handle, device })
+        Ok(PipelineLayoutInner {
+            handle,
+            device,
+            descriptor,
+        })
     }
 }
 

@@ -257,6 +257,7 @@ handle_traits!(ShaderModuleInner);
 pub struct PipelineLayoutInner {
     handle: vk::PipelineLayout,
     device: Arc<DeviceInner>,
+    descriptor: PipelineLayoutDescriptor,
 }
 
 handle_traits!(PipelineLayoutInner);

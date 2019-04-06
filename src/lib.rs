@@ -425,9 +425,9 @@ pub struct BindGroupBinding {
 }
 
 #[derive(Clone, Debug)]
-pub struct BindGroupDescriptor<'a> {
+pub struct BindGroupDescriptor {
     pub layout: BindGroupLayout,
-    pub bindings: &'a [BindGroupBinding],
+    pub bindings: Vec<BindGroupBinding>,
 }
 
 #[derive(Clone, Debug)]
@@ -435,8 +435,9 @@ pub struct BindGroup {
     inner: Arc<imp::BindGroupInner>,
 }
 
-pub struct PipelineLayoutDescriptor<'a> {
-    pub bind_group_layouts: &'a [BindGroupLayout],
+#[derive(Clone, Debug)]
+pub struct PipelineLayoutDescriptor {
+    pub bind_group_layouts: Vec<BindGroupLayout>,
 }
 
 #[derive(Clone, Debug, PartialEq)]

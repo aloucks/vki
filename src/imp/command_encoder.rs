@@ -422,10 +422,9 @@ impl<'a> RenderPassEncoder<'a> {
         });
     }
 
-    pub fn set_vertex_buffers(&mut self, start_slot: u32, count: u32, buffers: &[Buffer], offsets: &[u64]) {
+    pub fn set_vertex_buffers(&mut self, start_slot: u32, buffers: &[Buffer], offsets: &[u64]) {
         // state.set_vertex_buffers
 
-        debug_assert_eq!(count as usize, buffers.len()); // TODO: remove count
         debug_assert_eq!(buffers.len(), offsets.len());
 
         let mut buffers_vec = Vec::with_capacity(buffers.len());
@@ -440,7 +439,6 @@ impl<'a> RenderPassEncoder<'a> {
         self.inner.top_level_encoder.push(Command::SetVertexBuffers {
             buffers: buffers_vec,
             start_slot,
-            count,
             offsets: offsets.to_owned(),
         });
     }
@@ -462,9 +460,16 @@ impl<'a> RenderPassEncoder<'a> {
             .push(Command::SetStencilReference { reference });
     }
 
-    //    pub fn set_viewport(&mut self, x: f32, y: f32, width: f32, height: f32, max_depth: f32) {
-    //        self.inner.top_level_encoder.push(Command::SetViewport)
-    //    }
+    pub fn set_viewport(&mut self, x: f32, y: f32, width: f32, height: f32, min_depth: f32, max_depth: f32) {
+        self.inner.top_level_encoder.push(Command::SetViewport {
+            x,
+            y,
+            width,
+            height,
+            min_depth,
+            max_depth,
+        })
+    }
 
     pub fn set_scissor_rect(&mut self, x: u32, y: u32, width: u32, height: u32) {
         self.inner
