@@ -454,7 +454,10 @@ impl DeviceState {
                 if self.last_submitted_serial == self.last_completed_serial {
                     self.last_submitted_serial.increment();
                     self.last_completed_serial.increment();
-                    log::trace!("all commands complete: incremented serials: {:?}", self.last_submitted_serial);
+                    log::trace!(
+                        "all commands complete: incremented serials: {:?}",
+                        self.last_submitted_serial
+                    );
                 }
                 return Ok(());
             }

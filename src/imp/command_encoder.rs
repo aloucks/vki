@@ -1,6 +1,10 @@
 use ash::vk;
 
-use crate::{BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder, ComputePassEncoder, Extent3D, RenderPassDescriptor, RenderPassEncoder, RenderPipeline, TextureCopyView, TextureUsageFlags, ComputePipeline};
+use crate::{
+    BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder,
+    ComputePassEncoder, ComputePipeline, Extent3D, RenderPassDescriptor, RenderPassEncoder, RenderPipeline,
+    TextureCopyView, TextureUsageFlags,
+};
 
 use std::sync::Arc;
 

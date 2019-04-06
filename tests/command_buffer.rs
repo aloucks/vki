@@ -1,6 +1,10 @@
-use std::time::Duration;
-use vki::{BufferDescriptor, ShaderStageFlags, BufferUsageFlags, ComputePipelineDescriptor, PipelineStageDescriptor, ShaderModuleDescriptor, PipelineLayoutDescriptor, BindGroupLayoutDescriptor, BindGroupLayoutBinding, BindingType, BindGroupDescriptor, BindGroupBinding, BindingResource};
 use std::borrow::Cow;
+use std::time::Duration;
+use vki::{
+    BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
+    BindingType, BufferDescriptor, BufferUsageFlags, ComputePipelineDescriptor, PipelineLayoutDescriptor,
+    PipelineStageDescriptor, ShaderModuleDescriptor, ShaderStageFlags,
+};
 
 pub mod support;
 
@@ -10,7 +14,9 @@ fn copy_buffer_with_compute_shader() {
         let (instance, _adapter, device) = support::init()?;
 
         let compute_module = device.create_shader_module(ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("shaders/command_buffer.copy_buffer_with_compute_shader.comp.spv"))
+            code: Cow::Borrowed(include_bytes!(
+                "shaders/command_buffer.copy_buffer_with_compute_shader.comp.spv"
+            )),
         })?;
 
         let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
@@ -24,20 +30,18 @@ fn copy_buffer_with_compute_shader() {
                     binding: 1,
                     visibility: ShaderStageFlags::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
-                }
-            ]
+                },
+            ],
         })?;
 
         let pipeline_layout = device.create_pipeline_layout(PipelineLayoutDescriptor {
-            bind_group_layouts: vec![
-                bind_group_layout.clone()
-            ]
+            bind_group_layouts: vec![bind_group_layout.clone()],
         })?;
 
         let pipeline = device.create_compute_pipeline(ComputePipelineDescriptor {
             compute_stage: PipelineStageDescriptor {
                 entry_point: Cow::Borrowed("main"),
-                module: compute_module
+                module: compute_module,
             },
             layout: pipeline_layout,
         })?;
@@ -68,13 +72,13 @@ fn copy_buffer_with_compute_shader() {
             bindings: vec![
                 BindGroupBinding {
                     binding: 0,
-                    resource: BindingResource::Buffer(write_buffer.buffer(), 0..data_byte_size)
+                    resource: BindingResource::Buffer(write_buffer.buffer(), 0..data_byte_size),
                 },
                 BindGroupBinding {
                     binding: 1,
-                    resource: BindingResource::Buffer(read_buffer.buffer(), 0..data_byte_size)
-                }
-            ]
+                    resource: BindingResource::Buffer(read_buffer.buffer(), 0..data_byte_size),
+                },
+            ],
         })?;
 
         write_buffer.write(0, data)?;

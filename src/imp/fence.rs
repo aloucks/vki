@@ -1,10 +1,10 @@
+use crate::imp::serial::Serial;
 use crate::imp::{DeviceInner, FenceInner};
 use crate::Fence;
 use ash::vk;
 use parking_lot::Mutex;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
-use crate::imp::serial::Serial;
 
 // TODO: The GPUWeb definition of a Fence seems to be more akin to a Vulkan event, but this
 //       implementation doesn't match GPUWeb anyway. Also, MokenVK doesn't support events
@@ -31,9 +31,7 @@ impl Fence {
 
 impl FenceInner {
     pub fn new(device: Arc<DeviceInner>) -> Result<FenceInner, vk::Result> {
-        let serial = {
-            Mutex::new(get_serial_to_wait_for(&device))
-        };
+        let serial = { Mutex::new(get_serial_to_wait_for(&device)) };
         Ok(FenceInner { serial, device })
     }
 }

@@ -314,7 +314,12 @@ impl MappedBuffer {
             "buffer not write mapped"
         );
         debug_assert!(offset + data_size <= buffer_size, "write data exceeds buffer size");
-        log::trace!("map write data_size: {}, offset: {}, buffer_size: {}", data_size, offset, buffer_size);
+        log::trace!(
+            "map write data_size: {}, offset: {}, buffer_size: {}",
+            data_size,
+            offset,
+            buffer_size
+        );
         unsafe {
             ptr::copy_nonoverlapping(data.as_ptr() as *const u8, self.data, data_size);
             self.inner
@@ -339,7 +344,12 @@ impl MappedBuffer {
             "buffer not read mapped"
         );
         debug_assert!(offset + data_size <= buffer_size, "read data exceeds buffer size");
-        log::trace!("map read data_size: {}, offset: {}, buffer_size: {}", data_size, offset, buffer_size);
+        log::trace!(
+            "map read data_size: {}, offset: {}, buffer_size: {}",
+            data_size,
+            offset,
+            buffer_size
+        );
         unsafe {
             let data = slice::from_raw_parts(self.data as *const T, count);
             self.inner
