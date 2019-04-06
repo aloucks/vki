@@ -375,6 +375,7 @@ pub enum BindingType {
     Sampler,
     SampledTexture,
     StorageBuffer,
+    //StorageTexture, // TOOD: Not GpuWeb
     DynamicStorageBuffer,
 }
 

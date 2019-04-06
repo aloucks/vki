@@ -519,10 +519,12 @@ impl CommandBufferInner {
                     return Ok(command_index);
                 }
                 Command::Dispatch { x, y, z } => unsafe {
+                    let bind_point = vk::PipelineBindPoint::COMPUTE;
+                    descriptor_sets.flush(&self.device, command_buffer, bind_point);
                     self.device.raw.cmd_dispatch(command_buffer, *x, *y, *z);
                 },
                 Command::SetComputePipeline { pipeline } => {
-                    let bind_point = vk::PipelineBindPoint::GRAPHICS;
+                    let bind_point = vk::PipelineBindPoint::COMPUTE;
                     unsafe {
                         self.device
                             .raw

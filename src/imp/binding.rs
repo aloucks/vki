@@ -18,6 +18,7 @@ pub fn descriptor_type(binding_type: BindingType) -> vk::DescriptorType {
         BindingType::DynamicUniformBuffer => vk::DescriptorType::UNIFORM_BUFFER_DYNAMIC,
         BindingType::UniformBuffer => vk::DescriptorType::UNIFORM_BUFFER,
         BindingType::StorageBuffer => vk::DescriptorType::STORAGE_BUFFER,
+        //BindingType::StorageTexture => vk::DescriptorType::STORAGE_TEXEL_BUFFER,
     }
 }
 

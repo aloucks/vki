@@ -94,20 +94,21 @@ fn create_buffer_mapped() {
 
         let data: &[u32] = &[1, 2, 3, 4, 5];
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
+        let data_byte_size = data_byte_size as u64;
 
         let write_buffer = device.create_buffer_mapped(BufferDescriptor {
             usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,
-            size: data.len() as u64,
+            size: data_byte_size,
         })?;
 
         let read_buffer = device.create_buffer_mapped(BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
-            size: data.len() as u64,
+            size: data_byte_size,
         })?;
 
         write_buffer.write(0, data)?;
 
-        encoder.copy_buffer_to_buffer(write_buffer.buffer(), 0, read_buffer.buffer(), 0, data_byte_size as _);
+        encoder.copy_buffer_to_buffer(write_buffer.buffer(), 0, read_buffer.buffer(), 0, data_byte_size);
 
         let fence = device.create_fence()?;
 

@@ -1,10 +1,6 @@
 use ash::vk;
 
-use crate::{
-    BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder,
-    ComputePassEncoder, Extent3D, RenderPassDescriptor, RenderPassEncoder, RenderPipeline, TextureCopyView,
-    TextureUsageFlags,
-};
+use crate::{BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder, ComputePassEncoder, Extent3D, RenderPassDescriptor, RenderPassEncoder, RenderPipeline, TextureCopyView, TextureUsageFlags, ComputePipeline};
 
 use std::sync::Arc;
 
@@ -308,6 +304,13 @@ impl<'a> ComputePassEncoder<'a> {
         /* drop */
     }
 
+    pub fn set_pipeline(&mut self, pipeline: &ComputePipeline) {
+        // state.set_render_pipeline
+        self.inner.top_level_encoder.push(Command::SetComputePipeline {
+            pipeline: Arc::clone(&pipeline.inner),
+        })
+    }
+
     pub fn set_bind_group(&mut self, index: u32, bind_group: &BindGroup, dynamic_offsets: Option<&[u32]>) {
         let usage_tracker = &mut self.inner.usage_tracker;
         self.inner
@@ -443,7 +446,7 @@ impl<'a> RenderPassEncoder<'a> {
         });
     }
 
-    pub fn set_render_pipeline(&mut self, pipeline: &RenderPipeline) {
+    pub fn set_pipeline(&mut self, pipeline: &RenderPipeline) {
         // state.set_render_pipeline
         self.inner.top_level_encoder.push(Command::SetRenderPipeline {
             pipeline: Arc::clone(&pipeline.inner),
