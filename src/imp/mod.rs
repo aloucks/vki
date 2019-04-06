@@ -14,6 +14,7 @@ mod command_buffer;
 mod command_encoder;
 mod debug;
 mod device;
+mod fence;
 mod fenced_deleter;
 mod instance;
 mod pass_resource_usage;
@@ -198,9 +199,8 @@ handle_traits!(TextureViewInner);
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub enum BufferState {
-    Mapped,
+    Mapped(*mut u8),
     Unmapped,
-    Destroyed,
 }
 
 #[derive(Debug)]
@@ -301,4 +301,11 @@ pub struct ComputePassEncoderInner<'a> {
 pub struct RenderPassEncoderInner<'a> {
     top_level_encoder: &'a mut CommandEncoderInner,
     usage_tracker: pass_resource_usage::PassResourceUsageTracker,
+}
+
+#[derive(Debug)]
+pub struct FenceInner {
+    //    handle: vk::Fence,
+    device: Arc<DeviceInner>,
+    serial: Mutex<serial::Serial>,
 }

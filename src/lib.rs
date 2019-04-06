@@ -268,6 +268,16 @@ pub struct Buffer {
     inner: Arc<imp::BufferInner>,
 }
 
+pub struct MappedBuffer {
+    inner: Arc<imp::BufferInner>,
+    data: *mut u8,
+}
+
+#[derive(Debug)]
+pub struct Fence {
+    inner: imp::FenceInner,
+}
+
 #[derive(Clone, Debug)]
 pub struct Texture {
     inner: Arc<imp::TextureInner>,

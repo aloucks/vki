@@ -14,8 +14,8 @@ use crate::{
     RenderPassDepthStencilAttachmentDescriptor, TextureUsageFlags,
 };
 
-use std::sync::Arc;
 use crate::imp::device::DeviceState;
+use std::sync::Arc;
 
 pub const MAX_VERTEX_INPUTS: usize = 16;
 pub const MAX_BIND_GROUPS: usize = 4;
@@ -94,7 +94,11 @@ fn image_copy(src: &TextureCopy, dst: &TextureCopy, size_texels: Extent3D) -> vk
 }
 
 impl CommandBufferInner {
-    pub fn record_commands(&mut self, command_buffer: vk::CommandBuffer, state: &mut DeviceState) -> Result<(), vk::Result> {
+    pub fn record_commands(
+        &mut self,
+        command_buffer: vk::CommandBuffer,
+        state: &mut DeviceState,
+    ) -> Result<(), vk::Result> {
         let mut pass = 0;
         let mut command_index = 0;
         while let Some(command) = self.state.commands.get(command_index) {

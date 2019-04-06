@@ -8,18 +8,18 @@ use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
 use crate::imp::render_pass::{RenderPassCache, RenderPassCacheQuery};
 use crate::imp::serial::{Serial, SerialQueue};
-use crate::imp::{swapchain, CommandEncoderInner, ComputePipelineInner, RenderPipelineInner, ShaderModuleInner};
-use crate::imp::{texture, PipelineLayoutInner};
 use crate::imp::{
-    AdapterInner, BindGroupInner, BindGroupLayoutInner, BufferInner, DeviceExt, DeviceInner, QueueInner, SamplerInner,
-    SurfaceInner, SwapchainInner, TextureInner,
+    swapchain, AdapterInner, BindGroupInner, BindGroupLayoutInner, BufferInner, CommandEncoderInner,
+    ComputePipelineInner, DeviceExt, DeviceInner, FenceInner, QueueInner, RenderPipelineInner, SamplerInner,
+    ShaderModuleInner, SurfaceInner, SwapchainInner, TextureInner,
 };
+use crate::imp::{texture, PipelineLayoutInner};
 use crate::{
     BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor,
-    CommandEncoder, ComputePipeline, ComputePipelineDescriptor, Device, DeviceDescriptor, Limits, PipelineLayout,
-    PipelineLayoutDescriptor, Queue, RenderPipeline, RenderPipelineDescriptor, Sampler, SamplerDescriptor,
-    ShaderModule, ShaderModuleDescriptor, Surface, Swapchain, SwapchainDescriptor, Texture, TextureDescriptor,
-    TextureFormat,
+    CommandEncoder, ComputePipeline, ComputePipelineDescriptor, Device, DeviceDescriptor, Fence, Limits, MappedBuffer,
+    PipelineLayout, PipelineLayoutDescriptor, Queue, RenderPipeline, RenderPipelineDescriptor, Sampler,
+    SamplerDescriptor, ShaderModule, ShaderModuleDescriptor, Surface, Swapchain, SwapchainDescriptor, Texture,
+    TextureDescriptor, TextureFormat,
 };
 
 use std::fmt::{self, Debug};
@@ -99,6 +99,15 @@ impl Device {
         Ok(buffer.into())
     }
 
+    pub fn create_buffer_mapped(&self, descriptor: BufferDescriptor) -> Result<MappedBuffer, vk::Result> {
+        let buffer = BufferInner::new(self.inner.clone(), descriptor)?;
+        let data = buffer.get_mapped_ptr()?;
+        Ok(MappedBuffer {
+            inner: Arc::new(buffer),
+            data,
+        })
+    }
+
     pub fn create_texture(&self, descriptor: TextureDescriptor) -> Result<Texture, vk::Result> {
         let texture = TextureInner::new(self.inner.clone(), descriptor)?;
         Ok(texture.into())
@@ -148,6 +157,11 @@ impl Device {
     pub fn create_command_encoder(&self) -> Result<CommandEncoder, vk::Result> {
         let command_encoder = CommandEncoderInner::new(self.inner.clone())?;
         Ok(command_encoder.into())
+    }
+
+    pub fn create_fence(&self) -> Result<Fence, vk::Result> {
+        let fence = FenceInner::new(self.inner.clone())?;
+        Ok(fence.into())
     }
 }
 
@@ -209,7 +223,7 @@ impl DeviceInner {
                 wait_semaphores: Vec::default(),
                 unused_fences: Vec::default(),
                 last_completed_serial: Serial::zero(),
-                last_submitted_serial: Serial::zero(),
+                last_submitted_serial: Serial::one(),
                 pending_commands: None,
                 unused_commands: Vec::new(),
                 fenced_deleter: FencedDeleter::default(),
@@ -291,7 +305,9 @@ impl Drop for DeviceInner {
             assert_eq!(0, state.fences_in_flight.len());
 
             // Increment the completed serial to account for any pending deletes
+            state.last_completed_serial = state.last_submitted_serial;
             let serial = state.last_completed_serial.increment();
+            log::debug!("drop with last_completed_serial: {:?}", serial);
 
             // Work-around for a weird borrow issue with the mutex guard auto-deref
             {
@@ -335,6 +351,8 @@ impl Drop for DeviceInner {
 
 impl DeviceState {
     fn tick(&mut self, device: &DeviceInner) -> Result<(), vk::Result> {
+        log::trace!("device.tick; last_submitted_serial: {:?}", self.last_submitted_serial);
+        log::trace!("device.tick; last_completed_serial: {:?}", self.last_completed_serial);
         log::trace!("device.tick; unused_commands.len: {}", self.unused_commands.len());
         log::trace!("device.tick; commands_in_flight.len: {}", self.commands_in_flight.len());
         log::trace!("device.tick; fences_in_flight.len: {}", self.fences_in_flight.len());
@@ -455,6 +473,7 @@ impl DeviceState {
             .wait_dst_stage_mask(&wait_dst_stage_masks)
             .command_buffers(&pending_command_buffers);
 
+        log::trace!("queue_submit: {:?}", self.last_submitted_serial);
         unsafe {
             device.raw.queue_submit(queue.handle, &[*submit_info], fence)?;
         }

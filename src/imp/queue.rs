@@ -1,6 +1,6 @@
 use ash::vk;
 
-use crate::{Queue, SwapchainImage, CommandBuffer};
+use crate::{CommandBuffer, Queue, SwapchainImage};
 
 impl<'a> Queue<'a> {
     pub fn present(self, frame: SwapchainImage) -> Result<(), vk::Result> {

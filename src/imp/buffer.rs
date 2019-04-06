@@ -5,7 +5,7 @@ use ash::vk::{DependencyFlags, MemoryPropertyFlags};
 use vk_mem::{AllocationCreateFlags, AllocationCreateInfo, MemoryUsage};
 
 use crate::imp::{BufferInner, BufferState, DeviceInner};
-use crate::{Buffer, BufferDescriptor, BufferUsageFlags};
+use crate::{Buffer, BufferDescriptor, BufferUsageFlags, MappedBuffer};
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use parking_lot::Mutex;
@@ -250,6 +250,38 @@ impl BufferInner {
 
         Ok(())
     }
+
+    pub fn get_mapped_ptr(&self) -> Result<*mut u8, vk::Result> {
+        let mut buffer_state = self.buffer_state.lock();
+        match *buffer_state {
+            BufferState::Mapped(ptr) => Ok(ptr),
+            BufferState::Unmapped => {
+                let mut state = self.device.state.lock();
+                let ptr = state.allocator_mut().map_memory(&self.allocation).map_err(|e| {
+                    log::error!("failed to map buffer: {:?}", e);
+                    vk::Result::ERROR_VALIDATION_FAILED_EXT // TODO
+                })?;
+                *buffer_state = BufferState::Mapped(ptr);
+                Ok(ptr)
+            }
+        }
+    }
+
+    fn unmap(&self) -> Result<(), vk::Result> {
+        let mut buffer_state = self.buffer_state.lock();
+        match *buffer_state {
+            BufferState::Mapped(_) => {
+                let mut state = self.device.state.lock();
+                state.allocator_mut().unmap_memory(&self.allocation).map_err(|e| {
+                    log::error!("failed to unmap buffer: {:?}", e);
+                    vk::Result::ERROR_VALIDATION_FAILED_EXT // TODO
+                })?;
+                *buffer_state = BufferState::Unmapped;
+                Ok(())
+            }
+            BufferState::Unmapped => Ok(()),
+        }
+    }
 }
 
 impl Into<Buffer> for BufferInner {
@@ -260,10 +292,71 @@ impl Into<Buffer> for BufferInner {
 
 impl Drop for BufferInner {
     fn drop(&mut self) {
+        self.unmap()
+            .map_err(|e| log::warn!("failed to unmap_memory: {:?}", e))
+            .ok();
         let mut state = self.device.state.lock();
         let serial = state.get_next_pending_serial();
         state
             .get_fenced_deleter()
             .delete_when_unused((self.handle, self.allocation.clone()), serial);
+    }
+}
+
+impl MappedBuffer {
+    pub fn write<T: Copy>(&self, offset: usize, data: &[T]) -> Result<(), vk::Result> {
+        use std::{mem, ptr};
+        let count = data.len();
+        let data_size = mem::size_of::<T>() * count;
+        let buffer_size = self.inner.allocation_info.get_size();
+        debug_assert!(
+            self.inner.descriptor.usage.contains(BufferUsageFlags::MAP_WRITE),
+            "buffer not write mapped"
+        );
+        debug_assert!(offset + data_size <= buffer_size, "write data exceeds buffer size");
+        unsafe {
+            ptr::copy_nonoverlapping(data.as_ptr() as *const u8, self.data, data_size);
+            self.inner
+                .device
+                .state
+                .lock()
+                .allocator_mut()
+                .flush_allocation(&self.inner.allocation, offset, data_size)
+                .map_err(|e| {
+                    log::error!("failed to flush allocation: {:?}", e);
+                    vk::Result::ERROR_VALIDATION_FAILED_EXT // TODO
+                })
+        }
+    }
+
+    pub fn read<T: Copy>(&self, offset: usize, count: usize) -> Result<&[T], vk::Result> {
+        use std::{mem, slice};
+        let data_size = mem::size_of::<T>() * count;
+        let buffer_size = self.inner.allocation_info.get_size();
+        debug_assert!(
+            self.inner.descriptor.usage.contains(BufferUsageFlags::MAP_READ),
+            "buffer not read mapped"
+        );
+        debug_assert!(offset + data_size <= buffer_size, "read data exceeds buffer size");
+        unsafe {
+            let data = slice::from_raw_parts(self.data as *const T, count);
+            self.inner
+                .device
+                .state
+                .lock()
+                .allocator_mut()
+                .invalidate_allocation(&self.inner.allocation, offset, data_size)
+                .map_err(|e| {
+                    log::error!("failed to invalidate allocation: {:?}", e);
+                    vk::Result::ERROR_VALIDATION_FAILED_EXT // TODO
+                })?;
+            Ok(data)
+        }
+    }
+
+    pub fn buffer(&self) -> Buffer {
+        Buffer {
+            inner: self.inner.clone(),
+        }
     }
 }

@@ -1,3 +1,4 @@
+use std::time::Duration;
 use vki::{BufferDescriptor, BufferUsageFlags};
 
 pub mod support;
@@ -79,6 +80,42 @@ fn create_buffer_read_storage() {
         let _buffer = device.create_buffer(descriptor)?;
 
         drop(_buffer);
+
+        Ok(instance)
+    });
+}
+
+#[test]
+fn create_buffer_mapped() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let mut encoder = device.create_command_encoder()?;
+
+        let write_buffer = device.create_buffer_mapped(BufferDescriptor {
+            usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,
+            size: 1024,
+        })?;
+
+        let read_buffer = device.create_buffer_mapped(BufferDescriptor {
+            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
+            size: 1024,
+        })?;
+
+        let data: &[u32] = &[1, 2, 3, 4, 5];
+        let data_byte_size = std::mem::size_of::<u32>() * data.len();
+
+        write_buffer.write(0, data)?;
+        encoder.copy_buffer_to_buffer(write_buffer.buffer(), 0, read_buffer.buffer(), 0, data_byte_size as _);
+
+        let fence = device.create_fence()?;
+        let queue = device.get_queue();
+
+        queue.submit(encoder.finish()?)?;
+        fence.wait(Duration::from_millis(1_000_000_000))?;
+
+        let read: &[u32] = read_buffer.read(0, data.len())?;
+        assert_eq!(data, read);
 
         Ok(instance)
     });

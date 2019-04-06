@@ -121,7 +121,7 @@ impl FencedDeleter {
         }
 
         for (handle, serial) in self.framebuffers.drain_up_to(last_completed_serial) {
-            log::trace!("destroy pipeline: {:?}, completed: {:?}", handle, serial);
+            log::trace!("destroy framebuffers: {:?}, completed: {:?}", handle, serial);
             unsafe {
                 device.raw.destroy_framebuffer(handle, None);
             }
