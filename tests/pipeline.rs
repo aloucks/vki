@@ -68,7 +68,7 @@ fn create_compute_pipeline() {
         let (instance, _adapter, device) = support::init()?;
 
         let shader_module_descriptor = ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("data/pipeline.comp.spv")),
+            code: Cow::Borrowed(include_bytes!("shaders/pipeline.comp.spv")),
         };
         let shader_module = device.create_shader_module(shader_module_descriptor)?;
 
@@ -116,11 +116,11 @@ fn create_render_pipeline() {
         let (instance, _adapter, device) = support::init()?;
 
         let vertex_shader_module = device.create_shader_module(ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("data/pipeline.vert.spv")),
+            code: Cow::Borrowed(include_bytes!("shaders/pipeline.vert.spv")),
         })?;
 
         let fragment_shader_module = device.create_shader_module(ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("data/pipeline.frag.spv")),
+            code: Cow::Borrowed(include_bytes!("shaders/pipeline.frag.spv")),
         })?;
 
         #[rustfmt::skip]
