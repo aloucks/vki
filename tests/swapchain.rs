@@ -27,6 +27,27 @@ fn create_swapchain() {
 }
 
 #[test]
+fn recreate_swapchain_without_old() {
+    vki::validate(|| {
+        support::init_environment();
+        let (_event_loop, window) = support::headless_window()?;
+        let instance = Instance::new()?;
+        let adapter = instance.request_adaptor(RequestAdapterOptions::default())?;
+        let surface_descriptor = winit_surface_descriptor!(window);
+        let surface = instance.create_surface(&surface_descriptor)?;
+        let device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
+        let swapchain_descriptor = support::swapchain_descriptor(&surface);
+
+        let swapchain = device.create_swapchain(swapchain_descriptor, None)?;
+        drop(swapchain);
+
+        let _swapchain = device.create_swapchain(swapchain_descriptor, None)?;
+
+        Ok(instance)
+    });
+}
+
+#[test]
 fn acquire_next_image() {
     vki::validate(|| {
         let (_event_loop, window) = support::headless_window()?;

@@ -95,6 +95,7 @@ impl SwapchainInner {
             };
 
             let swapchain = device.raw_ext.swapchain.create_swapchain(&create_info, None)?;
+            log::debug!("created swapchain: {:?}", swapchain);
 
             let images = device.raw_ext.swapchain.get_swapchain_images(swapchain)?;
 
@@ -199,11 +200,10 @@ impl Into<Swapchain> for SwapchainInner {
 
 impl Drop for SwapchainInner {
     fn drop(&mut self) {
-        let mut state = self.device.state.lock();
-        let next_pending_serial = state.get_next_pending_serial();
-        state
-            .get_fenced_deleter()
-            .delete_when_unused((self.handle, self.surface.clone()), next_pending_serial);
+        unsafe {
+            log::debug!("destroy swapchain: {:?}", self.handle);
+            self.device.raw_ext.swapchain.destroy_swapchain(self.handle, None);
+        }
     }
 }
 
