@@ -1,6 +1,6 @@
 use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
-use crate::imp::{texture, TextureViewInner};
+use crate::imp::{texture, SurfaceInner, TextureViewInner};
 use crate::imp::{DeviceInner, InstanceInner, SwapchainInner, TextureInner};
 use crate::{
     Extent3D, Swapchain, SwapchainDescriptor, SwapchainImage, Texture, TextureDescriptor, TextureDimension,
@@ -67,7 +67,7 @@ impl SwapchainInner {
             let surface_image_extent = surface_image_extent(&surface_caps, dimensions);
             let surface_present_mode = surface_present_mode(instance, physical_device, surface_handle)?;
 
-            surface_format_check(&instance, physical_device, surface_handle, surface_format)?;
+            surface_format_check(&descriptor.surface.inner, physical_device, surface_format)?;
             surface_image_usage_check(&surface_caps, surface_image_usage)?;
             surface_image_transform_check(&surface_caps, surface_image_transform)?;
 
@@ -306,29 +306,20 @@ pub fn surface_image_transform_check(
     }
 }
 
-/// Recipe: _Selecting a format of swapchain images_ (page `101`)
-pub fn surface_format_check(
-    instance: &InstanceInner,
+
+fn surface_format_check(
+    surface: &SurfaceInner,
     physical_device: vk::PhysicalDevice,
-    surface: vk::SurfaceKHR,
     requested_format: vk::SurfaceFormatKHR,
 ) -> Result<(), SurfaceError> {
-    let supported_formats = unsafe {
-        instance
-            .raw_ext
-            .surface
-            .get_physical_device_surface_formats(physical_device, surface)?
-    };
-    let valid_formats = [requested_format.format, vk::Format::UNDEFINED];
-    for format in supported_formats.iter().cloned() {
-        if valid_formats.contains(&format.format) && requested_format.color_space == format.color_space {
-            log::debug!(
-                "selected format: {}, color_space: {}",
-                requested_format.format,
-                requested_format.color_space
-            );
-            return Ok(());
-        }
+    if surface.is_supported_format(physical_device, requested_format)? {
+        log::debug!(
+            "selected format: {}, color_space: {}",
+            requested_format.format,
+            requested_format.color_space
+        );
+        Ok(())
+    } else {
+        Err(SurfaceError::UnsupportedFormat(requested_format))
     }
-    Err(SurfaceError::UnsupportedFormat(requested_format))
 }

@@ -40,6 +40,7 @@ use crate::{
     TextureViewDescriptor,
 };
 
+use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 
 macro_rules! handle_traits {
@@ -164,6 +165,7 @@ handle_traits!(SwapchainInner);
 pub struct SurfaceInner {
     handle: vk::SurfaceKHR,
     instance: Arc<InstanceInner>,
+    supported_formats: Mutex<HashMap<vk::PhysicalDevice, Vec<vk::SurfaceFormatKHR>>>,
 }
 
 handle_traits!(SurfaceInner);
