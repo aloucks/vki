@@ -238,7 +238,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     let mut encoder = device.create_command_encoder()?;
                     let mut render_pass = encoder.begin_render_pass(RenderPassDescriptor {
                         color_attachments: &[RenderPassColorAttachmentDescriptor {
-                            attachment: frame.view.clone(),
+                            attachment: &frame.view,
                             clear_color: Color {
                                 r: 0.1,
                                 g: 0.1,

@@ -33,7 +33,7 @@ fn create_command_encoder() {
 
         let render_pass = command_encoder.begin_render_pass(RenderPassDescriptor {
             color_attachments: &[RenderPassColorAttachmentDescriptor {
-                attachment: texture_view,
+                attachment: &texture_view,
                 resolve_target: None,
                 load_op: LoadOp::Clear,
                 store_op: StoreOp::Store,
@@ -82,7 +82,7 @@ fn submit_command_buffer() {
 
         let render_pass = command_encoder.begin_render_pass(RenderPassDescriptor {
             color_attachments: &[RenderPassColorAttachmentDescriptor {
-                attachment: texture_view,
+                attachment: &texture_view,
                 resolve_target: None,
                 load_op: LoadOp::Clear,
                 store_op: StoreOp::Store,

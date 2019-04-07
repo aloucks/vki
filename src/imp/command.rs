@@ -1,10 +1,8 @@
 use std::sync::Arc;
 
+use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::{BindGroupInner, BufferInner, ComputePipelineInner, RenderPipelineInner, TextureInner};
-use crate::{
-    Color, Extent3D, Origin3D, RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor,
-    ShaderStageFlags,
-};
+use crate::{Color, Extent3D, Origin3D, ShaderStageFlags};
 
 #[derive(Debug)]
 pub struct BufferCopy {
@@ -26,8 +24,8 @@ pub struct TextureCopy {
 pub enum Command {
     BeginComputePass,
     BeginRenderPass {
-        color_attachments: Vec<RenderPassColorAttachmentDescriptor>,
-        depth_stencil_attachment: Option<RenderPassDepthStencilAttachmentDescriptor>,
+        color_attachments: Vec<RenderPassColorAttachmentInfo>,
+        depth_stencil_attachment: Option<RenderPassDepthStencilAttachmentInfo>,
         //
         width: u32,
         height: u32,

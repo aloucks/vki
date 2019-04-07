@@ -22,6 +22,7 @@ pub struct FencedDeleter {
     pipeline_layouts: SerialQueue<vk::PipelineLayout>,
     pipelines: SerialQueue<vk::Pipeline>,
     framebuffers: SerialQueue<vk::Framebuffer>,
+    surface_keepalive: SerialQueue<Arc<SurfaceInner>>,
 }
 
 impl FencedDeleter {
@@ -39,6 +40,10 @@ impl FencedDeleter {
         log::trace!(" pipeline_layouts:       {}", self.pipeline_layouts.len());
         log::trace!(" pipelines:              {}", self.pipelines.len());
         log::trace!(" framebuffers:           {}", self.framebuffers.len());
+
+        for surface in self.surface_keepalive.drain_up_to(last_completed_serial) {
+            drop(surface);
+        }
 
         for (handle, serial) in self.semaphores.drain_up_to(last_completed_serial) {
             log::trace!("destroy semaphore: {:?}, completed: {:?}", handle, serial);
@@ -118,8 +123,12 @@ impl FencedDeleter {
         }
     }
 
+    pub fn surface_keepalive(&mut self, surface: Arc<SurfaceInner>, until_completed_serial: Serial) {
+        self.surface_keepalive.enqueue(surface, until_completed_serial);
+    }
+
     pub fn is_empty(&self) -> bool {
-            self.semaphores.is_empty()
+        self.semaphores.is_empty()
             && self.buffers.is_empty()
             && self.images.is_empty()
             && self.samplers.is_empty()

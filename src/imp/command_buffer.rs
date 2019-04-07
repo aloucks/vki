@@ -9,11 +9,9 @@ use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery}
 use crate::imp::{render_pass, texture, DeviceInner, PipelineLayoutInner};
 use crate::imp::{CommandBufferInner, RenderPipelineInner};
 
-use crate::{
-    BufferUsageFlags, Extent3D, IndexFormat, RenderPassColorAttachmentDescriptor,
-    RenderPassDepthStencilAttachmentDescriptor, TextureUsageFlags,
-};
+use crate::{BufferUsageFlags, Extent3D, IndexFormat, TextureUsageFlags};
 
+use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::device::DeviceState;
 use std::sync::Arc;
 
@@ -208,8 +206,8 @@ impl CommandBufferInner {
     fn record_render_pass_begin(
         &self,
         command_buffer: vk::CommandBuffer,
-        color_attachments: &[RenderPassColorAttachmentDescriptor],
-        depth_stencil_attachment: &Option<RenderPassDepthStencilAttachmentDescriptor>,
+        color_attachments: &[RenderPassColorAttachmentInfo],
+        depth_stencil_attachment: &Option<RenderPassDepthStencilAttachmentInfo>,
         width: u32,
         height: u32,
         state: &mut DeviceState,
@@ -218,14 +216,14 @@ impl CommandBufferInner {
 
         for color_attachment in color_attachments.iter() {
             query.add_color(ColorInfo {
-                format: color_attachment.attachment.inner.texture.descriptor.format,
+                format: color_attachment.view.texture.descriptor.format,
                 load_op: color_attachment.load_op,
             });
         }
 
         if let Some(depth_stencil_attachment) = depth_stencil_attachment {
             query.set_depth_stencil(DepthStencilInfo {
-                format: depth_stencil_attachment.attachment.inner.texture.descriptor.format,
+                format: depth_stencil_attachment.view.texture.descriptor.format,
                 stencil_load_op: depth_stencil_attachment.stencil_load_op,
                 depth_load_op: depth_stencil_attachment.depth_load_op,
             })
@@ -245,7 +243,7 @@ impl CommandBufferInner {
                     ],
                 },
             });
-            attachments.push(color_attachment.attachment.inner.handle);
+            attachments.push(color_attachment.view.handle);
         }
 
         if let Some(depth_stencil_attachment) = depth_stencil_attachment {
@@ -255,7 +253,7 @@ impl CommandBufferInner {
                     stencil: depth_stencil_attachment.clear_stencil,
                 },
             });
-            attachments.push(depth_stencil_attachment.attachment.inner.handle);
+            attachments.push(depth_stencil_attachment.view.handle);
         }
 
         //let mut state = self.device.state.lock();
@@ -336,8 +334,8 @@ impl CommandBufferInner {
         &self,
         command_buffer: vk::CommandBuffer,
         mut command_index: usize,
-        color_attachments: &[RenderPassColorAttachmentDescriptor],
-        depth_stencil_attachment: &Option<RenderPassDepthStencilAttachmentDescriptor>,
+        color_attachments: &[RenderPassColorAttachmentInfo],
+        depth_stencil_attachment: &Option<RenderPassDepthStencilAttachmentInfo>,
         width: u32,
         height: u32,
         _sample_count: u32,

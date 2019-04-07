@@ -204,6 +204,11 @@ impl Drop for SwapchainInner {
             log::debug!("destroy swapchain: {:?}", self.handle);
             self.device.raw_ext.swapchain.destroy_swapchain(self.handle, None);
         }
+        let mut state = self.device.state.lock();
+        let next_pending_serial = state.get_next_pending_serial();
+        state
+            .get_fenced_deleter()
+            .surface_keepalive(self.surface.clone(), next_pending_serial);
     }
 }
 

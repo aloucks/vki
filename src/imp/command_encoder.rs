@@ -2,7 +2,8 @@ use ash::vk;
 
 use crate::{
     BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder,
-    ComputePassEncoder, ComputePipeline, Extent3D, RenderPassDescriptor, RenderPassEncoder, RenderPipeline,
+    ComputePassEncoder, ComputePipeline, Extent3D, LoadOp, RenderPassColorAttachmentDescriptor,
+    RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPassEncoder, RenderPipeline, StoreOp,
     TextureCopyView, TextureUsageFlags,
 };
 
@@ -13,27 +14,56 @@ use crate::imp::command_buffer::CommandBufferState;
 use crate::imp::pass_resource_usage::{CommandBufferResourceUsage, PassResourceUsageTracker};
 use crate::imp::{
     CommandBufferInner, CommandEncoderInner, ComputePassEncoderInner, DeviceInner, RenderPassEncoderInner,
+    TextureViewInner,
 };
 
 use crate::error::EncoderError;
 
-//struct RenderPassColorAttachmentInfo {
-//    view: Arc<TextureViewInner>,
-//    resolve_target: Arc<TextureViewInner>,
-//    load_op: LoadOp,
-//    store_op: StoreOp,
-//    clear_color: Color,
-//}
-//
-//struct RenderPassDepthStencilAttachmentInfo {
-//    view: Arc<TextureViewInner>,
-//    depth_load_op: LoadOp,
-//    depth_store_op: StoreOp,
-//    stencil_load_op: LoadOp,
-//    stencil_store_op: StoreOp,
-//    clear_depth: f32,
-//    clear_stencil: u32,
-//}
+#[derive(Debug, Clone)]
+pub struct RenderPassColorAttachmentInfo {
+    pub view: Arc<TextureViewInner>,
+    pub resolve_target: Option<Arc<TextureViewInner>>,
+    pub load_op: LoadOp,
+    pub store_op: StoreOp,
+    pub clear_color: Color,
+}
+
+impl<'a> From<&RenderPassColorAttachmentDescriptor<'a>> for RenderPassColorAttachmentInfo {
+    fn from(descriptor: &RenderPassColorAttachmentDescriptor<'a>) -> RenderPassColorAttachmentInfo {
+        RenderPassColorAttachmentInfo {
+            view: Arc::clone(&descriptor.attachment.inner),
+            resolve_target: descriptor.resolve_target.map(|v| Arc::clone(&v.inner)),
+            load_op: descriptor.load_op,
+            store_op: descriptor.store_op,
+            clear_color: descriptor.clear_color,
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct RenderPassDepthStencilAttachmentInfo {
+    pub view: Arc<TextureViewInner>,
+    pub depth_load_op: LoadOp,
+    pub depth_store_op: StoreOp,
+    pub clear_depth: f32,
+    pub stencil_load_op: LoadOp,
+    pub stencil_store_op: StoreOp,
+    pub clear_stencil: u32,
+}
+
+impl<'a> From<RenderPassDepthStencilAttachmentDescriptor<'a>> for RenderPassDepthStencilAttachmentInfo {
+    fn from(descriptor: RenderPassDepthStencilAttachmentDescriptor<'a>) -> RenderPassDepthStencilAttachmentInfo {
+        RenderPassDepthStencilAttachmentInfo {
+            view: Arc::clone(&descriptor.attachment.inner),
+            depth_load_op: descriptor.depth_load_op,
+            depth_store_op: descriptor.depth_store_op,
+            clear_depth: descriptor.clear_depth,
+            stencil_load_op: descriptor.stencil_load_op,
+            stencil_store_op: descriptor.stencil_store_op,
+            clear_stencil: descriptor.clear_stencil,
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct CommandEncoderState {
@@ -393,8 +423,8 @@ impl<'a> RenderPassEncoder<'a> {
         let (sample_count, width, height) = sample_count_width_height_max;
 
         top_level_encoder.push(Command::BeginRenderPass {
-            color_attachments: descriptor.color_attachments.to_vec(),
-            depth_stencil_attachment: descriptor.depth_stencil_attachment.cloned(),
+            color_attachments: descriptor.color_attachments.iter().map(|v| v.into()).collect(),
+            depth_stencil_attachment: descriptor.depth_stencil_attachment.map(|v| v.into()),
             sample_count,
             width,
             height,

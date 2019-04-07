@@ -722,18 +722,18 @@ pub struct RenderPassEncoder<'a> {
     inner: imp::RenderPassEncoderInner<'a>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct RenderPassColorAttachmentDescriptor {
-    pub attachment: TextureView,
-    pub resolve_target: Option<TextureView>,
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct RenderPassColorAttachmentDescriptor<'a> {
+    pub attachment: &'a TextureView,
+    pub resolve_target: Option<&'a TextureView>,
     pub load_op: LoadOp,
     pub store_op: StoreOp,
     pub clear_color: Color,
 }
 
-#[derive(Clone, Debug, PartialEq)]
-pub struct RenderPassDepthStencilAttachmentDescriptor {
-    pub attachment: TextureView,
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct RenderPassDepthStencilAttachmentDescriptor<'a> {
+    pub attachment: &'a TextureView,
     pub depth_load_op: LoadOp,
     pub depth_store_op: StoreOp,
     pub clear_depth: f32,
@@ -742,10 +742,10 @@ pub struct RenderPassDepthStencilAttachmentDescriptor {
     pub clear_stencil: u32,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct RenderPassDescriptor<'a> {
-    pub color_attachments: &'a [RenderPassColorAttachmentDescriptor],
-    pub depth_stencil_attachment: Option<&'a RenderPassDepthStencilAttachmentDescriptor>,
+    pub color_attachments: &'a [RenderPassColorAttachmentDescriptor<'a>],
+    pub depth_stencil_attachment: Option<RenderPassDepthStencilAttachmentDescriptor<'a>>,
 }
 
 #[derive(Debug)]
