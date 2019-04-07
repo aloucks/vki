@@ -94,6 +94,15 @@ impl SwapchainInner {
                 p_next: std::ptr::null(),
             };
 
+            // TODO: Attempting to create a new swapchain for a surface will fail unless:
+            //       1) No swapchain has ever been created for this surface
+            //       2) The previous swapchain was dropped (and will be purged here)
+            //       2) The previous swapchain was passed in as `old_swapchain`
+            if old_swapchain.is_none() {
+                let mut state = device.state.lock();
+                state.get_fenced_deleter().purge_swapchains(&device);
+            }
+
             let swapchain = device.raw_ext.swapchain.create_swapchain(&create_info, None)?;
             log::debug!("created swapchain: {:?}", swapchain);
 
@@ -200,15 +209,11 @@ impl Into<Swapchain> for SwapchainInner {
 
 impl Drop for SwapchainInner {
     fn drop(&mut self) {
-        unsafe {
-            log::debug!("destroy swapchain: {:?}", self.handle);
-            self.device.raw_ext.swapchain.destroy_swapchain(self.handle, None);
-        }
         let mut state = self.device.state.lock();
         let next_pending_serial = state.get_next_pending_serial();
         state
             .get_fenced_deleter()
-            .surface_keepalive(self.surface.clone(), next_pending_serial);
+            .delete_when_unused((self.handle, self.surface.clone()), next_pending_serial);
     }
 }
 
@@ -305,7 +310,6 @@ pub fn surface_image_transform_check(
         Err(SurfaceError::UnsupportedImageTransformFlags(transform_flags))
     }
 }
-
 
 fn surface_format_check(
     surface: &SurfaceInner,

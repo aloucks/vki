@@ -31,6 +31,20 @@ impl SurfaceInner {
         physical_device: vk::PhysicalDevice,
         requested_format: vk::SurfaceFormatKHR,
     ) -> Result<bool, vk::Result> {
+        let supported_formats = self.get_physical_device_surface_formats(physical_device)?;
+        let valid_formats = [requested_format.format, vk::Format::UNDEFINED];
+        for format in supported_formats.iter().cloned() {
+            if valid_formats.contains(&format.format) && requested_format.color_space == format.color_space {
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
+    pub fn get_physical_device_surface_formats(
+        &self,
+        physical_device: vk::PhysicalDevice,
+    ) -> Result<Vec<vk::SurfaceFormatKHR>, vk::Result> {
         // Querying the supported formats is slow and causes swapchain re-creation to stutter,
         // so we cache these after initial lookup
         let mut supported_formats_guard = self.supported_formats.lock();
@@ -42,14 +56,7 @@ impl SurfaceInner {
                     .get_physical_device_surface_formats(physical_device, self.handle)
             }?);
         }
-        let supported_formats = &supported_formats_guard[&physical_device];
-        let valid_formats = [requested_format.format, vk::Format::UNDEFINED];
-        for format in supported_formats.iter().cloned() {
-            if valid_formats.contains(&format.format) && requested_format.color_space == format.color_space {
-                return Ok(true);
-            }
-        }
-        Ok(false)
+        Ok(supported_formats_guard[&physical_device].clone())
     }
 }
 

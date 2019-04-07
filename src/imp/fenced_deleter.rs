@@ -11,6 +11,7 @@ use std::sync::Arc;
 
 #[derive(Default, Debug)]
 pub struct FencedDeleter {
+    swapchains: SerialQueue<(vk::SwapchainKHR, Arc<SurfaceInner>)>,
     semaphores: SerialQueue<vk::Semaphore>,
     buffers: SerialQueue<(vk::Buffer, Allocation)>,
     images: SerialQueue<(vk::Image, Allocation)>,
@@ -26,10 +27,19 @@ pub struct FencedDeleter {
 }
 
 impl FencedDeleter {
+    pub unsafe fn purge_swapchains(&mut self, device: &DeviceInner) {
+        for ((handle, surface), serial) in self.swapchains.drain(..) {
+            log::debug!("destroy swapchain (purged): {:?}, completed: {:?}", handle, serial);
+            device.raw_ext.swapchain.destroy_swapchain(handle, None);
+            drop(surface); // assert that the surface lives longer than the swapchain
+        }
+    }
+
     #[allow(clippy::cyclomatic_complexity)]
     pub fn tick(&mut self, last_completed_serial: Serial, device: &DeviceInner, allocator: &mut Allocator) {
         log::trace!("last_completed_serial:   {:?}", last_completed_serial);
 
+        log::trace!(" swapchains:             {}", self.swapchains.len());
         log::trace!(" semaphores:             {}", self.semaphores.len());
         log::trace!(" buffers:                {}", self.buffers.len());
         log::trace!(" images:                 {}", self.images.len());
@@ -41,8 +51,12 @@ impl FencedDeleter {
         log::trace!(" pipelines:              {}", self.pipelines.len());
         log::trace!(" framebuffers:           {}", self.framebuffers.len());
 
-        for surface in self.surface_keepalive.drain_up_to(last_completed_serial) {
-            drop(surface);
+        for ((handle, surface), serial) in self.swapchains.drain_up_to(last_completed_serial) {
+            log::debug!("destroy swapchain: {:?}, completed: {:?}", handle, serial);
+            unsafe {
+                device.raw_ext.swapchain.destroy_swapchain(handle, None);
+            }
+            drop(surface); // the surface must kept alive at least as long as the swapchain
         }
 
         for (handle, serial) in self.semaphores.drain_up_to(last_completed_serial) {
@@ -123,12 +137,9 @@ impl FencedDeleter {
         }
     }
 
-    pub fn surface_keepalive(&mut self, surface: Arc<SurfaceInner>, until_completed_serial: Serial) {
-        self.surface_keepalive.enqueue(surface, until_completed_serial);
-    }
-
     pub fn is_empty(&self) -> bool {
-        self.semaphores.is_empty()
+        self.swapchains.is_empty()
+            && self.semaphores.is_empty()
             && self.buffers.is_empty()
             && self.images.is_empty()
             && self.samplers.is_empty()
@@ -158,6 +169,12 @@ pub trait DeleteWhenUnused<T: Debug> {
             after_completed_serial
         );
         self.get_serial_queue().enqueue(resource, after_completed_serial);
+    }
+}
+
+impl DeleteWhenUnused<(vk::SwapchainKHR, Arc<SurfaceInner>)> for FencedDeleter {
+    fn get_serial_queue(&mut self) -> &mut SerialQueue<(vk::SwapchainKHR, Arc<SurfaceInner>)> {
+        &mut self.swapchains
     }
 }
 

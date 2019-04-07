@@ -39,6 +39,11 @@ fn recreate_swapchain_without_old() {
         let swapchain_descriptor = support::swapchain_descriptor(&surface);
 
         let swapchain = device.create_swapchain(swapchain_descriptor, None)?;
+
+        // TODO: This test explicitly invalidates the previous swapchain, There currently
+        //       isn't any way to have that previous swapchain *implicitly* invalidated,
+        //       when passing `None` as "old_swapchain". Without this drop, the re-creation
+        //       below may fail (horribly with a segmentation fault).
         drop(swapchain);
 
         let _swapchain = device.create_swapchain(swapchain_descriptor, None)?;

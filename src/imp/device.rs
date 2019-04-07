@@ -69,21 +69,15 @@ impl Device {
     }
 
     pub fn get_supported_swapchain_formats(&self, surface: &Surface) -> Result<Vec<TextureFormat>, vk::Result> {
-        let surface_handle = surface.inner.handle;
         let physical_device = self.inner.adapter.physical_device;
-        let formats = unsafe {
-            self.inner
-                .adapter
-                .instance
-                .raw_ext
-                .surface
-                .get_physical_device_surface_formats(physical_device, surface_handle)?
-                .iter()
-                .cloned()
-                .filter(|format| format.color_space == swapchain::COLOR_SPACE)
-                .map(|format| texture::texture_format(format.format))
-                .collect()
-        };
+        let formats = surface
+            .inner
+            .get_physical_device_surface_formats(physical_device)?
+            .iter()
+            .cloned()
+            .filter(|format| format.color_space == swapchain::COLOR_SPACE)
+            .map(|format| texture::texture_format(format.format))
+            .collect();
 
         Ok(formats)
     }
