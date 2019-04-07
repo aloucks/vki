@@ -518,6 +518,14 @@ pub struct BlendDescriptor {
     pub operation: BlendOperation,
 }
 
+impl BlendDescriptor {
+    pub const REPLACE: BlendDescriptor = BlendDescriptor {
+        src_factor: BlendFactor::One,
+        dst_factor: BlendFactor::Zero,
+        operation: BlendOperation::Add,
+    };
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct ColorStateDescriptor {
     pub format: TextureFormat,
@@ -545,6 +553,15 @@ pub struct StencilStateFaceDescriptor {
     pub fail_op: StencilOperation,
     pub depth_fail_op: StencilOperation,
     pub pass_op: StencilOperation,
+}
+
+impl StencilStateFaceDescriptor {
+    pub const IGNORE: StencilStateFaceDescriptor = StencilStateFaceDescriptor {
+        compare: CompareFunction::Always,
+        fail_op: StencilOperation::Keep,
+        depth_fail_op: StencilOperation::Keep,
+        pass_op: StencilOperation::Keep,
+    };
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -690,6 +707,7 @@ pub struct RenderPipelineDescriptor {
     pub input_state: InputStateDescriptor,
 }
 
+#[derive(Clone, Debug)]
 pub struct RenderPipeline {
     inner: Arc<imp::RenderPipelineInner>,
 }
