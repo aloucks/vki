@@ -408,8 +408,22 @@ impl TextureInner {
         let old_layout = image_layout(*last_usage, format);
         let new_layout = image_layout(usage, format);
 
-        log::trace!("usage: {:?}, last_usage: {:?}, src_stage_mask: {}, src_access_mask: {}, old_layout: {}", usage, *last_usage, src_stage_mask, src_access_mask, old_layout);
-        log::trace!("usage: {:?}, last_usage: {:?}, dst_stage_mask: {}, dst_access_mask: {}, new_layout: {}", usage, *last_usage, dst_stage_mask, dst_access_mask, new_layout);
+        log::trace!(
+            "usage: {:?}, last_usage: {:?}, src_stage_mask: {}, src_access_mask: {}, old_layout: {}",
+            usage,
+            *last_usage,
+            src_stage_mask,
+            src_access_mask,
+            old_layout
+        );
+        log::trace!(
+            "usage: {:?}, last_usage: {:?}, dst_stage_mask: {}, dst_access_mask: {}, new_layout: {}",
+            usage,
+            *last_usage,
+            dst_stage_mask,
+            dst_access_mask,
+            new_layout
+        );
 
         let image = self.handle;
 

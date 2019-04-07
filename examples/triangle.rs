@@ -1,12 +1,11 @@
 use vki::winit_surface_descriptor;
 use vki::{
     BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags, Color, ColorStateDescriptor,
-    ColorWriteFlags, CompareFunction, CullMode, DepthStencilStateDescriptor, DeviceDescriptor, FrontFace, IndexFormat,
-    InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
-    PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
-    RenderPipelineDescriptor, RequestAdapterOptions, ShaderModuleDescriptor, StencilOperation,
-    StencilStateFaceDescriptor, StoreOp, SwapchainDescriptor, TextureFormat, TextureUsageFlags,
-    VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
+    ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, Instance,
+    LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
+    RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, RequestAdapterOptions,
+    ShaderModuleDescriptor, StoreOp, SwapchainDescriptor, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor,
+    VertexFormat, VertexInputDescriptor,
 };
 
 use winit::dpi::LogicalSize;
@@ -89,19 +88,11 @@ fn main() -> Result<(), Box<std::error::Error>> {
         color: [f32; 3],
     }
 
+    #[rustfmt::skip]
     let vertices = &[
-        Vertex {
-            position: [-0.5, -0.5, 0.0],
-            color: [1.0, 0.0, 0.0],
-        },
-        Vertex {
-            position: [0.5, -0.5, 0.0],
-            color: [0.0, 1.0, 0.0],
-        },
-        Vertex {
-            position: [0.0, 0.5, 0.0],
-            color: [0.0, 0.0, 1.0],
-        },
+        Vertex { position: [-0.5, -0.5, 0.0], color: [1.0, 0.0, 0.0] },
+        Vertex { position: [ 0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
+        Vertex { position: [ 0.0,  0.5, 0.0], color: [0.0, 0.0, 1.0] },
     ];
 
     let vertices_size_bytes = (std::mem::size_of::<Vertex>() * vertices.len()) as u64;
@@ -241,7 +232,6 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
                     *control_flow = ControlFlow::WaitUntil(last_frame_time + Duration::from_millis(16));
                     last_frame_time = frame_time;
-
                 }
                 _ => {}
             }
