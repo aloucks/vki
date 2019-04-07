@@ -26,19 +26,19 @@ pub fn writable_buffer_usages() -> BufferUsageFlags {
 pub fn memory_usage(usage: BufferUsageFlags) -> MemoryUsage {
     assert_ne!(usage, BufferUsageFlags::NONE, "BufferUsageFlags may not be NONE");
 
-    if usage.contains(BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC) {
+    if usage.intersects(BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC) {
         return MemoryUsage::CpuOnly;
     }
 
-    if usage.contains(BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST) {
+    if usage.intersects(BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST) {
         return MemoryUsage::CpuOnly;
     }
 
-    if usage.contains(BufferUsageFlags::MAP_WRITE) {
+    if usage.intersects(BufferUsageFlags::MAP_WRITE) {
         return MemoryUsage::CpuToGpu;
     }
 
-    if usage.contains(BufferUsageFlags::MAP_READ) {
+    if usage.intersects(BufferUsageFlags::MAP_READ) {
         return MemoryUsage::GpuToCpu;
     }
 
@@ -48,27 +48,27 @@ pub fn memory_usage(usage: BufferUsageFlags) -> MemoryUsage {
 pub fn usage_flags(usage: BufferUsageFlags) -> vk::BufferUsageFlags {
     let mut flags = vk::BufferUsageFlags::empty();
 
-    if usage.contains(BufferUsageFlags::TRANSFER_SRC) {
+    if usage.intersects(BufferUsageFlags::TRANSFER_SRC) {
         flags |= vk::BufferUsageFlags::TRANSFER_SRC;
     }
 
-    if usage.contains(BufferUsageFlags::TRANSFER_DST) {
+    if usage.intersects(BufferUsageFlags::TRANSFER_DST) {
         flags |= vk::BufferUsageFlags::TRANSFER_DST;
     }
 
-    if usage.contains(BufferUsageFlags::INDEX) {
+    if usage.intersects(BufferUsageFlags::INDEX) {
         flags |= vk::BufferUsageFlags::INDEX_BUFFER;
     }
 
-    if usage.contains(BufferUsageFlags::VERTEX) {
+    if usage.intersects(BufferUsageFlags::VERTEX) {
         flags |= vk::BufferUsageFlags::VERTEX_BUFFER;
     }
 
-    if usage.contains(BufferUsageFlags::UNIFORM) {
+    if usage.intersects(BufferUsageFlags::UNIFORM) {
         flags |= vk::BufferUsageFlags::UNIFORM_BUFFER;
     }
 
-    if usage.contains(BufferUsageFlags::STORAGE) {
+    if usage.intersects(BufferUsageFlags::STORAGE) {
         flags |= vk::BufferUsageFlags::STORAGE_BUFFER;
     }
 
@@ -78,19 +78,19 @@ pub fn usage_flags(usage: BufferUsageFlags) -> vk::BufferUsageFlags {
 pub fn pipeline_stage(usage: BufferUsageFlags) -> vk::PipelineStageFlags {
     let mut flags = vk::PipelineStageFlags::empty();
 
-    if usage.contains(BufferUsageFlags::MAP_READ | BufferUsageFlags::MAP_WRITE) {
+    if usage.intersects(BufferUsageFlags::MAP_READ | BufferUsageFlags::MAP_WRITE) {
         flags |= vk::PipelineStageFlags::HOST;
     }
 
-    if usage.contains(BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::TRANSFER_DST) {
+    if usage.intersects(BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::TRANSFER_DST) {
         flags |= vk::PipelineStageFlags::TRANSFER;
     }
 
-    if usage.contains(BufferUsageFlags::INDEX | BufferUsageFlags::VERTEX) {
+    if usage.intersects(BufferUsageFlags::INDEX | BufferUsageFlags::VERTEX) {
         flags |= vk::PipelineStageFlags::VERTEX_INPUT;
     }
 
-    if usage.contains(BufferUsageFlags::UNIFORM | BufferUsageFlags::STORAGE) {
+    if usage.intersects(BufferUsageFlags::UNIFORM | BufferUsageFlags::STORAGE) {
         flags |= vk::PipelineStageFlags::VERTEX_SHADER
             | vk::PipelineStageFlags::FRAGMENT_SHADER
             | vk::PipelineStageFlags::COMPUTE_SHADER;
@@ -102,35 +102,35 @@ pub fn pipeline_stage(usage: BufferUsageFlags) -> vk::PipelineStageFlags {
 pub fn access_flags(usage: BufferUsageFlags) -> vk::AccessFlags {
     let mut flags = vk::AccessFlags::empty();
 
-    if usage.contains(BufferUsageFlags::MAP_READ) {
+    if usage.intersects(BufferUsageFlags::MAP_READ) {
         flags |= vk::AccessFlags::HOST_READ
     }
 
-    if usage.contains(BufferUsageFlags::MAP_WRITE) {
+    if usage.intersects(BufferUsageFlags::MAP_WRITE) {
         flags |= vk::AccessFlags::HOST_WRITE
     }
 
-    if usage.contains(BufferUsageFlags::TRANSFER_SRC) {
+    if usage.intersects(BufferUsageFlags::TRANSFER_SRC) {
         flags |= vk::AccessFlags::TRANSFER_READ
     }
 
-    if usage.contains(BufferUsageFlags::TRANSFER_DST) {
+    if usage.intersects(BufferUsageFlags::TRANSFER_DST) {
         flags |= vk::AccessFlags::TRANSFER_WRITE
     }
 
-    if usage.contains(BufferUsageFlags::INDEX) {
+    if usage.intersects(BufferUsageFlags::INDEX) {
         flags |= vk::AccessFlags::INDEX_READ
     }
 
-    if usage.contains(BufferUsageFlags::VERTEX) {
+    if usage.intersects(BufferUsageFlags::VERTEX) {
         flags |= vk::AccessFlags::VERTEX_ATTRIBUTE_READ
     }
 
-    if usage.contains(BufferUsageFlags::UNIFORM) {
+    if usage.intersects(BufferUsageFlags::UNIFORM) {
         flags |= vk::AccessFlags::UNIFORM_READ
     }
 
-    if usage.contains(BufferUsageFlags::STORAGE) {
+    if usage.intersects(BufferUsageFlags::STORAGE) {
         flags |= vk::AccessFlags::SHADER_READ | vk::AccessFlags::SHADER_WRITE
     }
 
@@ -219,6 +219,10 @@ impl BufferInner {
 
         let src_access_mask = access_flags(*last_usage);
         let dst_access_mask = access_flags(usage);
+
+        log::trace!("usage: {:?}, last_usage: {:?}, src_stage_mask: {}, src_access_mask: {}", usage, *last_usage, src_stage_mask, src_access_mask);
+        log::trace!("usage: {:?}, last_usage: {:?}, dst_stage_mask: {}, dst_access_mask: {}", usage, *last_usage, dst_stage_mask, dst_access_mask);
+
 
         let buffer_memory_barrier = vk::BufferMemoryBarrier {
             src_access_mask,
@@ -310,7 +314,7 @@ impl MappedBuffer {
         let data_size = mem::size_of::<T>() * count;
         let buffer_size = self.inner.allocation_info.get_size();
         debug_assert!(
-            self.inner.descriptor.usage.contains(BufferUsageFlags::MAP_WRITE),
+            self.inner.descriptor.usage.intersects(BufferUsageFlags::MAP_WRITE),
             "buffer not write mapped"
         );
         debug_assert!(offset + data_size <= buffer_size, "write data exceeds buffer size");
@@ -340,7 +344,7 @@ impl MappedBuffer {
         let data_size = mem::size_of::<T>() * count;
         let buffer_size = self.inner.allocation_info.get_size();
         debug_assert!(
-            self.inner.descriptor.usage.contains(BufferUsageFlags::MAP_READ),
+            self.inner.descriptor.usage.intersects(BufferUsageFlags::MAP_READ),
             "buffer not read mapped"
         );
         debug_assert!(offset + data_size <= buffer_size, "read data exceeds buffer size");

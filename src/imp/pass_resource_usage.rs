@@ -48,7 +48,7 @@ impl PassResourceUsageTracker {
             .buffer_usages
             .entry(buffer.clone())
             .or_insert(BufferUsageFlags::NONE);
-        if usage == BufferUsageFlags::STORAGE && existing_usage.contains(BufferUsageFlags::STORAGE) {
+        if usage == BufferUsageFlags::STORAGE && existing_usage.intersects(BufferUsageFlags::STORAGE) {
             self.storage_used_multiple_times = true;
         }
         existing_usage.insert(usage);
@@ -59,7 +59,7 @@ impl PassResourceUsageTracker {
             .texture_usages
             .entry(texture.clone())
             .or_insert(TextureUsageFlags::NONE);
-        if usage == TextureUsageFlags::STORAGE && existing_usage.contains(TextureUsageFlags::STORAGE) {
+        if usage == TextureUsageFlags::STORAGE && existing_usage.intersects(TextureUsageFlags::STORAGE) {
             self.storage_used_multiple_times = true;
         }
         existing_usage.insert(usage);

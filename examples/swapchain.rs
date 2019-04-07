@@ -1,5 +1,5 @@
-use vki::{DeviceDescriptor, Instance, RequestAdapterOptions, SwapchainDescriptor, TextureFormat, TextureUsageFlags};
 use vki::winit_surface_descriptor;
+use vki::{DeviceDescriptor, Instance, RequestAdapterOptions, SwapchainDescriptor, TextureFormat, TextureUsageFlags};
 
 use winit::dpi::LogicalSize;
 use winit::event::{Event, StartCause, WindowEvent};

@@ -66,23 +66,23 @@ pub fn image_view_type(descriptor: &TextureViewDescriptor) -> vk::ImageViewType 
 pub fn image_usage(usage: TextureUsageFlags, format: TextureFormat) -> vk::ImageUsageFlags {
     let mut flags = vk::ImageUsageFlags::empty();
 
-    if usage.contains(TextureUsageFlags::TRANSFER_SRC) {
+    if usage.intersects(TextureUsageFlags::TRANSFER_SRC) {
         flags |= vk::ImageUsageFlags::TRANSFER_SRC;
     }
 
-    if usage.contains(TextureUsageFlags::TRANSFER_DST) {
+    if usage.intersects(TextureUsageFlags::TRANSFER_DST) {
         flags |= vk::ImageUsageFlags::TRANSFER_DST;
     }
 
-    if usage.contains(TextureUsageFlags::SAMPLED) {
+    if usage.intersects(TextureUsageFlags::SAMPLED) {
         flags |= vk::ImageUsageFlags::SAMPLED;
     }
 
-    if usage.contains(TextureUsageFlags::STORAGE) {
+    if usage.intersects(TextureUsageFlags::STORAGE) {
         flags |= vk::ImageUsageFlags::STORAGE;
     }
 
-    if usage.contains(TextureUsageFlags::OUTPUT_ATTACHMENT) {
+    if usage.intersects(TextureUsageFlags::OUTPUT_ATTACHMENT) {
         if is_depth_or_stencil(format) {
             flags |= vk::ImageUsageFlags::DEPTH_STENCIL_ATTACHMENT;
         } else {
@@ -178,17 +178,17 @@ pub fn pipeline_stage(usage: TextureUsageFlags, format: TextureFormat) -> vk::Pi
         return vk::PipelineStageFlags::TOP_OF_PIPE;
     }
 
-    if usage.contains(TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST) {
+    if usage.intersects(TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST) {
         flags |= vk::PipelineStageFlags::TRANSFER;
     }
 
-    if usage.contains(TextureUsageFlags::SAMPLED | TextureUsageFlags::STORAGE) {
+    if usage.intersects(TextureUsageFlags::SAMPLED | TextureUsageFlags::STORAGE) {
         flags |= vk::PipelineStageFlags::VERTEX_SHADER
             | vk::PipelineStageFlags::FRAGMENT_SHADER
             | vk::PipelineStageFlags::COMPUTE_SHADER;
     }
 
-    if usage.contains(TextureUsageFlags::OUTPUT_ATTACHMENT) {
+    if usage.intersects(TextureUsageFlags::OUTPUT_ATTACHMENT) {
         if is_depth_or_stencil(format) {
             flags |= vk::PipelineStageFlags::EARLY_FRAGMENT_TESTS | vk::PipelineStageFlags::LATE_FRAGMENT_TESTS;
         // TODO: Depth write? FRAGMENT_SHADER stage ?
@@ -197,7 +197,7 @@ pub fn pipeline_stage(usage: TextureUsageFlags, format: TextureFormat) -> vk::Pi
         }
     }
 
-    if usage.contains(TextureUsageFlags::PRESENT) {
+    if usage.intersects(TextureUsageFlags::PRESENT) {
         // Dawn uses BOTTOM_OF_PIPE but notes that TOP_OF_PIPE has potential to block less
         flags |= vk::PipelineStageFlags::BOTTOM_OF_PIPE
     }
@@ -205,26 +205,27 @@ pub fn pipeline_stage(usage: TextureUsageFlags, format: TextureFormat) -> vk::Pi
     flags
 }
 
+/// https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#synchronization-access-types-supported
 pub fn access_flags(usage: TextureUsageFlags, format: TextureFormat) -> vk::AccessFlags {
     let mut flags = vk::AccessFlags::empty();
 
-    if usage.contains(TextureUsageFlags::TRANSFER_SRC) {
+    if usage.intersects(TextureUsageFlags::TRANSFER_SRC) {
         flags |= vk::AccessFlags::TRANSFER_READ;
     }
 
-    if usage.contains(TextureUsageFlags::TRANSFER_DST) {
+    if usage.intersects(TextureUsageFlags::TRANSFER_DST) {
         flags |= vk::AccessFlags::TRANSFER_WRITE;
     }
 
-    if usage.contains(TextureUsageFlags::SAMPLED) {
+    if usage.intersects(TextureUsageFlags::SAMPLED) {
         flags |= vk::AccessFlags::SHADER_READ;
     }
 
-    if usage.contains(TextureUsageFlags::STORAGE) {
+    if usage.intersects(TextureUsageFlags::STORAGE) {
         flags |= vk::AccessFlags::SHADER_READ | vk::AccessFlags::SHADER_WRITE;
     }
 
-    if usage.contains(TextureUsageFlags::OUTPUT_ATTACHMENT) {
+    if usage.intersects(TextureUsageFlags::OUTPUT_ATTACHMENT) {
         if is_depth_or_stencil(format) {
             flags |= vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_READ | vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_WRITE;
         } else {
@@ -232,7 +233,7 @@ pub fn access_flags(usage: TextureUsageFlags, format: TextureFormat) -> vk::Acce
         }
     }
 
-    if usage.contains(TextureUsageFlags::PRESENT) {
+    if usage.intersects(TextureUsageFlags::PRESENT) {
         flags |= vk::AccessFlags::empty();
     }
 
@@ -407,6 +408,9 @@ impl TextureInner {
         let old_layout = image_layout(*last_usage, format);
         let new_layout = image_layout(usage, format);
 
+        log::trace!("usage: {:?}, last_usage: {:?}, src_stage_mask: {}, src_access_mask: {}, old_layout: {}", usage, *last_usage, src_stage_mask, src_access_mask, old_layout);
+        log::trace!("usage: {:?}, last_usage: {:?}, dst_stage_mask: {}, dst_access_mask: {}, new_layout: {}", usage, *last_usage, dst_stage_mask, dst_access_mask, new_layout);
+
         let image = self.handle;
 
         let aspect_mask = aspect_mask(format);
@@ -523,7 +527,7 @@ impl TextureViewInner {
         let base_mip_level = self.descriptor.base_mip_level;
         let sample_count = self.texture.descriptor.sample_count;
         let width = self.texture.descriptor.size.width >> base_mip_level;
-        let height = self.texture.descriptor.size.width >> base_mip_level;
+        let height = self.texture.descriptor.size.height >> base_mip_level;
         let depth = self.texture.descriptor.size.depth >> base_mip_level;
 
         (sample_count, Extent3D { width, height, depth })

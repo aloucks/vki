@@ -24,13 +24,13 @@ pub fn descriptor_type(binding_type: BindingType) -> vk::DescriptorType {
 
 pub fn shader_stage_flags(visibility: ShaderStageFlags) -> vk::ShaderStageFlags {
     let mut flags = vk::ShaderStageFlags::empty();
-    if visibility.contains(ShaderStageFlags::VERTEX) {
+    if visibility.intersects(ShaderStageFlags::VERTEX) {
         flags |= vk::ShaderStageFlags::VERTEX;
     }
-    if visibility.contains(ShaderStageFlags::FRAGMENT) {
+    if visibility.intersects(ShaderStageFlags::FRAGMENT) {
         flags |= vk::ShaderStageFlags::FRAGMENT;
     }
-    if visibility.contains(ShaderStageFlags::COMPUTE) {
+    if visibility.intersects(ShaderStageFlags::COMPUTE) {
         flags |= vk::ShaderStageFlags::COMPUTE;
     }
     flags

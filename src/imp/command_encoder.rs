@@ -379,6 +379,9 @@ impl<'a> RenderPassEncoder<'a> {
         let sample_count_width_height_min = sample_count_width_height_iter.clone().min().unwrap_or((0, 0, 0));
         let sample_count_width_height_max = sample_count_width_height_iter.clone().max().unwrap_or((0, 0, 0));
 
+        log::trace!("sample_count_width_height_min: {:?}", sample_count_width_height_min);
+        log::trace!("sample_count_width_height_max: {:?}", sample_count_width_height_max);
+
         if sample_count_width_height_min != sample_count_width_height_max {
             // TODO: Handle invalid attachments
             panic!(
@@ -432,7 +435,7 @@ impl<'a> RenderPassEncoder<'a> {
     pub fn set_vertex_buffers(&mut self, start_slot: u32, buffers: &[Buffer], offsets: &[u64]) {
         // state.set_vertex_buffers
 
-        debug_assert_eq!(buffers.len(), offsets.len());
+        debug_assert_eq!(buffers.len(), offsets.len(), "buffers.len() != offsets.len()");
 
         let mut buffers_vec = Vec::with_capacity(buffers.len());
 

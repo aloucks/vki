@@ -163,19 +163,19 @@ pub fn blend_operation(operation: BlendOperation) -> vk::BlendOp {
 pub fn color_write_mask(color: ColorWriteFlags) -> vk::ColorComponentFlags {
     let mut flags = vk::ColorComponentFlags::empty();
 
-    if color.contains(ColorWriteFlags::RED) {
+    if color.intersects(ColorWriteFlags::RED) {
         flags |= vk::ColorComponentFlags::R;
     }
 
-    if color.contains(ColorWriteFlags::GREEN) {
+    if color.intersects(ColorWriteFlags::GREEN) {
         flags |= vk::ColorComponentFlags::G;
     }
 
-    if color.contains(ColorWriteFlags::BLUE) {
+    if color.intersects(ColorWriteFlags::BLUE) {
         flags |= vk::ColorComponentFlags::B;
     }
 
-    if color.contains(ColorWriteFlags::ALPHA) {
+    if color.intersects(ColorWriteFlags::ALPHA) {
         flags |= vk::ColorComponentFlags::A;
     }
 

@@ -270,6 +270,7 @@ impl CommandBufferInner {
             layers: 1,
             ..Default::default()
         };
+        log::trace!("framebuffer: width: {}, height: {}", width, height);
         let framebuffer = unsafe { self.device.raw.create_framebuffer(&create_info, None)? };
         let serial = state.get_next_pending_serial();
         state.get_fenced_deleter().delete_when_unused(framebuffer, serial);
