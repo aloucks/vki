@@ -1,11 +1,11 @@
-use vki::winit_surface_descriptor;
 use vki::{
-    BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags, Color, ColorStateDescriptor,
-    ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, Instance,
-    LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
-    RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, RequestAdapterOptions,
-    ShaderModuleDescriptor, StoreOp, SwapchainDescriptor, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor,
-    VertexFormat, VertexInputDescriptor,
+    BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
+    BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags, Color,
+    ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStateDescriptor,
+    InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
+    RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
+    RequestAdapterOptions, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor, TextureFormat,
+    TextureUsageFlags, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
 };
 
 use winit::dpi::LogicalSize;
@@ -46,7 +46,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let adapter = instance.request_adaptor(adapter_options)?;
     println!("Adapter: {}", adapter.name());
 
-    let surface_descriptor = winit_surface_descriptor!(&window);
+    let surface_descriptor = vki::winit_surface_descriptor!(&window);
 
     let surface = instance.create_surface(&surface_descriptor)?;
 
@@ -77,8 +77,41 @@ fn main() -> Result<(), Box<std::error::Error>> {
         code: Cow::Borrowed(include_bytes!("shaders/triangle.frag.spv")),
     })?;
 
+    let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
+        bindings: &[BindGroupLayoutBinding {
+            binding: 0,
+            visibility: ShaderStageFlags::VERTEX,
+            binding_type: BindingType::UniformBuffer,
+        }],
+    })?;
+
     let pipeline_layout = device.create_pipeline_layout(PipelineLayoutDescriptor {
-        bind_group_layouts: vec![],
+        bind_group_layouts: vec![bind_group_layout.clone()],
+    })?;
+
+    #[rustfmt::skip]
+    let clip: [[f32; 4]; 4] = [
+        [1.0,  0.0, 0.0, 0.0],
+        [0.0, -1.0, 0.0, 0.0],
+        [0.0,  0.0, 0.5, 0.0],
+        [0.0,  0.0, 0.5, 1.0],
+    ];
+
+    let clip_size_bytes = (std::mem::size_of::<[f32; 4]>() * clip.len()) as u64;
+
+    let uniform_buffer = device.create_buffer_mapped(BufferDescriptor {
+        size: clip_size_bytes,
+        usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::UNIFORM,
+    })?;
+
+    uniform_buffer.write(0, &clip)?;
+
+    let bind_group = device.create_bind_group(BindGroupDescriptor {
+        layout: bind_group_layout.clone(),
+        bindings: vec![BindGroupBinding {
+            binding: 0,
+            resource: BindingResource::Buffer(uniform_buffer.buffer(), 0..clip_size_bytes),
+        }],
     })?;
 
     #[repr(C)]
@@ -221,6 +254,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
                     render_pass.set_pipeline(&pipeline);
                     render_pass.set_vertex_buffers(0, &[vertex_buffer.clone()], &[0]);
+                    render_pass.set_bind_group(0, &bind_group, None);
                     render_pass.draw(3, 1, 0, 1);
                     render_pass.end_pass();
 

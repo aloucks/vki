@@ -5,7 +5,11 @@ layout(location = 1) in vec3 inColor;
 
 layout(location = 0) out vec3 outColor;
 
+layout(set = 0, binding = 0) uniform MVP {
+    mat4 clip;
+};
+
 void main() {
     outColor = inColor;
-    gl_Position = vec4(inPosition, 1.0);
+    gl_Position = clip * vec4(inPosition, 1.0);
 }

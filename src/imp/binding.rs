@@ -202,7 +202,6 @@ impl BindGroupInner {
 
 impl Drop for BindGroupInner {
     fn drop(&mut self) {
-        println!("drop: descriptor_pool: {:?}", self.descriptor_pool);
         // TODO: VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT
         // if self.descriptor_set != vk::DescriptorSet::default() {
         //     unsafe {
