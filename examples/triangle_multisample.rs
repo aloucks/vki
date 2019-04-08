@@ -1,11 +1,12 @@
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
     BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags, Color,
-    ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStateDescriptor,
-    InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
-    RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
-    RequestAdapterOptions, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor, TextureFormat,
-    TextureUsageFlags, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
+    ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, Extent3D, FrontFace, IndexFormat,
+    InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
+    PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
+    RenderPipelineDescriptor, RequestAdapterOptions, ShaderModuleDescriptor, ShaderStageFlags, StoreOp,
+    SwapchainDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
+    VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
 };
 
 use winit::dpi::LogicalSize;
@@ -29,15 +30,17 @@ macro_rules! offset_of {
 }
 
 fn main() -> Result<(), Box<std::error::Error>> {
-    std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
+    //std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
 
     let _ = pretty_env_logger::try_init();
 
     let mut event_loop = EventLoop::new();
 
+    let (window_width, window_height) = (1024, 768);
+
     let window = winit::window::WindowBuilder::new()
         .with_title("triangle.rs")
-        .with_dimensions(LogicalSize::new(1024 as _, 768 as _))
+        .with_dimensions(LogicalSize::new(window_width as _, window_height as _))
         .with_visibility(false)
         .build(&event_loop)?;
 
@@ -170,6 +173,23 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     device.get_queue().submit(encoder.finish()?)?;
 
+    let mut output_texture_descriptor = TextureDescriptor {
+        sample_count: 8,
+        usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+        format: swapchain_format,
+        dimension: TextureDimension::D2,
+        array_layer_count: 1,
+        mip_level_count: 1,
+        size: Extent3D {
+            width: window_width,
+            height: window_height,
+            depth: 1,
+        },
+    };
+
+    let mut output_texture = device.create_texture(output_texture_descriptor)?;
+    let mut output_texture_view = output_texture.create_default_view()?;
+
     let color_replace = BlendDescriptor {
         src_factor: BlendFactor::One,
         dst_factor: BlendFactor::Zero,
@@ -223,7 +243,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
             depth_bias_slope_scale: 0.0,
             depth_bias_clamp: 0.0,
         },
-        sample_count: 1,
+        sample_count: output_texture_descriptor.sample_count,
     };
 
     let pipeline = device.create_render_pipeline(render_pipeline_descriptor)?;
@@ -241,9 +261,14 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     ..
                 } => *control_flow = ControlFlow::Exit,
                 Event::WindowEvent {
-                    event: WindowEvent::Resized(_),
+                    event: WindowEvent::Resized(LogicalSize { width, height }),
                     ..
                 } => {
+                    let (width, height) = (width as u32, height as u32);
+                    output_texture_descriptor.size.width = width;
+                    output_texture_descriptor.size.height = height;
+                    output_texture = device.create_texture(output_texture_descriptor)?;
+                    output_texture_view = output_texture.create_default_view()?;
                     swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
                 }
                 Event::WindowEvent {
@@ -257,7 +282,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     let mut encoder = device.create_command_encoder()?;
                     let mut render_pass = encoder.begin_render_pass(RenderPassDescriptor {
                         color_attachments: &[RenderPassColorAttachmentDescriptor {
-                            attachment: &frame.view,
+                            attachment: &output_texture_view,
                             clear_color: Color {
                                 r: 0.1,
                                 g: 0.1,
@@ -266,7 +291,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
                             },
                             load_op: LoadOp::Clear,
                             store_op: StoreOp::Store,
-                            resolve_target: None,
+                            resolve_target: Some(&frame.view),
                         }],
                         depth_stencil_attachment: None,
                     });

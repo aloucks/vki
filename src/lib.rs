@@ -705,6 +705,7 @@ pub struct RenderPipelineDescriptor {
     pub color_states: Vec<ColorStateDescriptor>,
     pub depth_stencil_state: Option<DepthStencilStateDescriptor>,
     pub input_state: InputStateDescriptor,
+    pub sample_count: u32,
 }
 
 #[derive(Clone, Debug)]

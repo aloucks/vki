@@ -24,12 +24,14 @@ pub struct DepthStencilInfo {
 pub struct ColorInfo {
     pub format: TextureFormat,
     pub load_op: LoadOp,
+    pub has_resolve_target: bool,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
 pub struct RenderPassCacheQuery {
     color: SmallVec<[ColorInfo; MAX_COLOR_ATTACHMENTS]>,
     depth_stencil: Option<DepthStencilInfo>,
+    sample_count: u32,
 }
 
 impl RenderPassCacheQuery {
@@ -39,6 +41,10 @@ impl RenderPassCacheQuery {
 
     pub fn add_color(&mut self, color_info: ColorInfo) {
         self.color.push(color_info);
+    }
+
+    pub fn set_sample_count(&mut self, sample_count: u32) {
+        self.sample_count = sample_count;
     }
 
     //    pub fn with_color(mut self, color_info: ColorInfo) -> RenderPassCacheQuery {
@@ -75,12 +81,42 @@ pub fn color_attachment_reference(attachment: u32) -> vk::AttachmentReference {
     }
 }
 
-pub fn color_attachment_description(color_info: ColorInfo) -> vk::AttachmentDescription {
+pub fn color_attachment_description(
+    color_info: ColorInfo,
+    sample_count: vk::SampleCountFlags,
+) -> vk::AttachmentDescription {
+    vk::AttachmentDescription {
+        flags: vk::AttachmentDescriptionFlags::empty(),
+        format: texture::image_format(color_info.format),
+        samples: sample_count,
+        load_op: attachment_load_op(color_info.load_op),
+        store_op: vk::AttachmentStoreOp::STORE,
+        initial_layout: vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
+        final_layout: vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
+        ..Default::default()
+    }
+}
+
+pub fn resolve_attachment_reference(attachment: u32, color_info: ColorInfo) -> vk::AttachmentReference {
+    if color_info.has_resolve_target {
+        vk::AttachmentReference {
+            attachment,
+            layout: vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
+        }
+    } else {
+        vk::AttachmentReference {
+            attachment: vk::ATTACHMENT_UNUSED,
+            layout: vk::ImageLayout::UNDEFINED,
+        }
+    }
+}
+
+pub fn resolve_attachment_description(color_info: ColorInfo) -> vk::AttachmentDescription {
     vk::AttachmentDescription {
         flags: vk::AttachmentDescriptionFlags::empty(),
         format: texture::image_format(color_info.format),
         samples: vk::SampleCountFlags::TYPE_1,
-        load_op: attachment_load_op(color_info.load_op),
+        load_op: vk::AttachmentLoadOp::DONT_CARE,
         store_op: vk::AttachmentStoreOp::STORE,
         initial_layout: vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
         final_layout: vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
@@ -95,17 +131,36 @@ pub fn depth_stencil_attachment_reference(attachment: u32) -> vk::AttachmentRefe
     }
 }
 
-pub fn depth_stencil_attachment_description(depth_stencil_info: &DepthStencilInfo) -> vk::AttachmentDescription {
+pub fn depth_stencil_attachment_description(
+    depth_stencil_info: &DepthStencilInfo,
+    sample_count: vk::SampleCountFlags,
+) -> vk::AttachmentDescription {
     vk::AttachmentDescription {
         flags: vk::AttachmentDescriptionFlags::empty(),
         format: texture::image_format(depth_stencil_info.format),
-        samples: vk::SampleCountFlags::TYPE_1,
+        samples: sample_count,
         load_op: attachment_load_op(depth_stencil_info.depth_load_op),
         store_op: vk::AttachmentStoreOp::STORE,
         stencil_load_op: attachment_load_op(depth_stencil_info.stencil_load_op),
         stencil_store_op: vk::AttachmentStoreOp::STORE,
         initial_layout: vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
         final_layout: vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+    }
+}
+
+pub fn sample_count(sample_count: u32) -> Result<vk::SampleCountFlags, vk::Result> {
+    match sample_count {
+        1 => Ok(vk::SampleCountFlags::TYPE_1),
+        2 => Ok(vk::SampleCountFlags::TYPE_2),
+        4 => Ok(vk::SampleCountFlags::TYPE_4),
+        8 => Ok(vk::SampleCountFlags::TYPE_8),
+        16 => Ok(vk::SampleCountFlags::TYPE_16),
+        32 => Ok(vk::SampleCountFlags::TYPE_32),
+        64 => Ok(vk::SampleCountFlags::TYPE_64),
+        _ => {
+            log::error!("invalid sample count: {}", sample_count);
+            Err(vk::Result::ERROR_VALIDATION_FAILED_EXT)
+        }
     }
 }
 
@@ -127,11 +182,7 @@ impl RenderPassCache {
         query: RenderPassCacheQuery,
         device: &DeviceInner,
     ) -> Result<vk::RenderPass, vk::Result> {
-        let mut attachment_descriptions = query
-            .color
-            .iter()
-            .map(|color_info| color_attachment_description(*color_info))
-            .collect::<SmallVec<[vk::AttachmentDescription; MAX_COLOR_ATTACHMENTS + 1]>>();
+        let sample_count = sample_count(query.sample_count)?;
 
         let color_attachments = query
             .color
@@ -140,14 +191,46 @@ impl RenderPassCache {
             .map(|(attachment, _)| color_attachment_reference(attachment as u32))
             .collect::<SmallVec<[vk::AttachmentReference; MAX_COLOR_ATTACHMENTS]>>();
 
-        let color_attachment_count = color_attachments.len() as u32;
+        let color_and_resolve_attachment_count = color_attachments.len() as u32;
 
-        let mut depth_stencil_attachment = None;
+        let mut total_attachment_count = color_and_resolve_attachment_count;
+
+        let depth_stencil_attachment = query
+            .depth_stencil
+            .map(|_| depth_stencil_attachment_reference(total_attachment_count));
+
+        if depth_stencil_attachment.is_some() {
+            total_attachment_count += 1;
+        }
+
+        let resolve_attachments = query
+            .color
+            .iter()
+            .enumerate()
+            .map(|(attachment, color_info)| (attachment as u32 + total_attachment_count, color_info))
+            .map(|(attachment, color_info)| resolve_attachment_reference(attachment as u32, *color_info))
+            .collect::<SmallVec<[vk::AttachmentReference; MAX_COLOR_ATTACHMENTS]>>();
+
+        let mut attachment_descriptions = SmallVec::<[vk::AttachmentDescription; 2 * MAX_COLOR_ATTACHMENTS + 1]>::new();
+
+        for color_info in query.color.iter().cloned() {
+            attachment_descriptions.push(color_attachment_description(color_info, sample_count));
+        }
 
         if let Some(ref depth_stencil_info) = query.depth_stencil {
-            let attachment = color_attachment_count;
-            attachment_descriptions.push(depth_stencil_attachment_description(depth_stencil_info));
-            depth_stencil_attachment = Some(depth_stencil_attachment_reference(attachment));
+            attachment_descriptions.push(depth_stencil_attachment_description(depth_stencil_info, sample_count));
+        }
+
+        let mut resolve_attachment_count = 0;
+
+        for color_info in query
+            .color
+            .iter()
+            .filter(|color_info| color_info.has_resolve_target)
+            .cloned()
+        {
+            resolve_attachment_count += 1;
+            attachment_descriptions.push(resolve_attachment_description(color_info));
         }
 
         let depth_stencil_attachment_ptr = depth_stencil_attachment
@@ -158,19 +241,20 @@ impl RenderPassCache {
         let subpass_description = vk::SubpassDescription {
             flags: vk::SubpassDescriptionFlags::empty(),
             pipeline_bind_point: vk::PipelineBindPoint::GRAPHICS,
-            color_attachment_count,
+            color_attachment_count: color_and_resolve_attachment_count,
             p_color_attachments: color_attachments.as_ptr(),
+            p_resolve_attachments: resolve_attachments.as_ptr(),
             p_depth_stencil_attachment: depth_stencil_attachment_ptr,
             ..Default::default()
         };
 
         debug_assert_eq!(
             attachment_descriptions.len(),
-            color_attachments.len() + depth_stencil_attachment.map(|_| 1).unwrap_or(0)
+            color_attachments.len() + resolve_attachment_count + depth_stencil_attachment.map(|_| 1).unwrap_or(0)
         );
 
         let create_info = vk::RenderPassCreateInfo::builder()
-            .attachments(&attachment_descriptions)
+            .attachments(&*attachment_descriptions)
             .subpasses(&[subpass_description])
             .build();
 
@@ -182,8 +266,9 @@ impl RenderPassCache {
     }
 
     pub fn drain(&mut self, device: &DeviceInner) {
-        for (_, handle) in self.cache.drain() {
+        for (query, handle) in self.cache.drain() {
             unsafe {
+                log::trace!("destroying render_pass: {:?}, query: {:?}", handle, query);
                 device.raw.destroy_render_pass(handle, None);
             }
         }

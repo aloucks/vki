@@ -2,6 +2,7 @@ use ash::version::DeviceV1_0;
 use ash::vk;
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
+use crate::imp::render_pass;
 use crate::imp::util;
 use crate::imp::{DeviceInner, TextureInner, TextureViewInner};
 use crate::{
@@ -328,7 +329,7 @@ impl TextureInner {
             extent: util::extent_3d(descriptor.size),
             mip_levels: descriptor.mip_level_count,
             array_layers: descriptor.array_layer_count,
-            samples: vk::SampleCountFlags::TYPE_1,
+            samples: render_pass::sample_count(descriptor.sample_count)?,
             tiling: vk::ImageTiling::OPTIMAL,
             usage: image_usage(descriptor.usage, descriptor.format),
             sharing_mode: vk::SharingMode::EXCLUSIVE,

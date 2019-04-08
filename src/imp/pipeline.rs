@@ -5,7 +5,7 @@ use std::ffi::CString;
 use std::sync::Arc;
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
-use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
+use crate::imp::render_pass::{self, ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
 use crate::imp::sampler;
 use crate::imp::{ComputePipelineInner, DeviceInner, PipelineLayoutInner, RenderPipelineInner};
 use crate::{
@@ -451,7 +451,7 @@ impl RenderPipelineInner {
             .build();
 
         let multisample_state_create_info = vk::PipelineMultisampleStateCreateInfo::builder()
-            .rasterization_samples(vk::SampleCountFlags::TYPE_1)
+            .rasterization_samples(render_pass::sample_count(descriptor.sample_count)?)
             .build();
 
         let depth_stencil_state_create_info = depth_stencil_state_create_info(
@@ -512,10 +512,18 @@ impl RenderPipelineInner {
 
         let mut query = RenderPassCacheQuery::new();
 
+        query.set_sample_count(descriptor.sample_count);
+
         for color_state_info in descriptor.color_states.iter() {
             query.add_color(ColorInfo {
                 load_op: LoadOp::Load,
                 format: color_state_info.format,
+                // TODO: Should has_resolve_target default to true when sample_count > 1?
+                // https://www.khronos.org/registry/vulkan/specs/1.1/html/chap7.html#renderpass-compatibility
+                // Dawn sets this to `false`, presumably because render passes are still considered compatible
+                // when they have differing numbers of attachments, as long as the corresponding attachments
+                // are compatible.
+                has_resolve_target: false,
             });
         }
 

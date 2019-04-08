@@ -203,6 +203,7 @@ impl CommandBufferInner {
         Ok(())
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn record_render_pass_begin(
         &self,
         command_buffer: vk::CommandBuffer,
@@ -211,13 +212,17 @@ impl CommandBufferInner {
         width: u32,
         height: u32,
         state: &mut DeviceState,
+        sample_count: u32,
     ) -> Result<(), vk::Result> {
         let mut query = RenderPassCacheQuery::default();
+
+        query.set_sample_count(sample_count);
 
         for color_attachment in color_attachments.iter() {
             query.add_color(ColorInfo {
                 format: color_attachment.view.texture.descriptor.format,
                 load_op: color_attachment.load_op,
+                has_resolve_target: color_attachment.resolve_target.is_some(),
             });
         }
 
@@ -256,7 +261,11 @@ impl CommandBufferInner {
             attachments.push(depth_stencil_attachment.view.handle);
         }
 
-        //let mut state = self.device.state.lock();
+        for color_attachment in color_attachments.iter() {
+            if let Some(ref resolve_target) = color_attachment.resolve_target {
+                attachments.push(resolve_target.handle);
+            }
+        }
 
         let render_pass = state.get_render_pass(query, &self.device)?;
         let create_info = vk::FramebufferCreateInfo {
@@ -338,11 +347,9 @@ impl CommandBufferInner {
         depth_stencil_attachment: &Option<RenderPassDepthStencilAttachmentInfo>,
         width: u32,
         height: u32,
-        _sample_count: u32,
+        sample_count: u32,
         state: &mut DeviceState,
     ) -> Result<usize, vk::Result> {
-        // TODO: Is sample_count needed? It looks like Dawn only uses it for validation
-
         self.record_render_pass_begin(
             command_buffer,
             color_attachments,
@@ -350,6 +357,7 @@ impl CommandBufferInner {
             width,
             height,
             state,
+            sample_count,
         )?;
 
         self.record_render_pass_dynamic_state_defaults(command_buffer, width, height);
