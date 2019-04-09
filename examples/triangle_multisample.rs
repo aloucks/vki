@@ -265,7 +265,6 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     let (width, height) = (width as u32, height as u32);
                     window_width = width as _;
                     window_height = height as _;
-                    println!("size: {:?}", (window_width, window_height));
                     if width > 0 && height > 0 {
                         output_texture_descriptor.size.width = width;
                         output_texture_descriptor.size.height = height;
