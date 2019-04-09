@@ -4,8 +4,8 @@ use ash::vk;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{BindGroupInner, BindGroupLayoutInner, DeviceInner};
 use crate::{
-    BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, BindingResource, BindingType,
-    ShaderStageFlags,
+    BindGroup, BindGroupBinding, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, BindingResource,
+    BindingType, ShaderStageFlags,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -224,5 +224,11 @@ impl Drop for BindGroupInner {
 impl Into<BindGroup> for BindGroupInner {
     fn into(self) -> BindGroup {
         BindGroup { inner: Arc::new(self) }
+    }
+}
+
+impl BindGroup {
+    pub fn bindings(&self) -> &[BindGroupBinding] {
+        &self.inner.bindings
     }
 }

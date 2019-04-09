@@ -42,6 +42,7 @@ use crate::{
 
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
+use std::sync::atomic::AtomicPtr;
 
 macro_rules! handle_traits {
     ($Name:ident) => {
@@ -199,9 +200,9 @@ pub struct TextureViewInner {
 
 handle_traits!(TextureViewInner);
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug)]
 pub enum BufferState {
-    Mapped(*mut u8),
+    Mapped(AtomicPtr<u8>),
     Unmapped,
 }
 

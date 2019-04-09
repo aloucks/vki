@@ -95,7 +95,7 @@ impl Device {
 
     pub fn create_buffer_mapped(&self, descriptor: BufferDescriptor) -> Result<MappedBuffer, vk::Result> {
         let buffer = BufferInner::new(self.inner.clone(), descriptor)?;
-        let data = buffer.get_mapped_ptr()?;
+        let data = unsafe { buffer.get_mapped_ptr()? };
         Ok(MappedBuffer {
             inner: Arc::new(buffer),
             data,

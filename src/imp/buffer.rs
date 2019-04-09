@@ -10,6 +10,7 @@ use crate::{Buffer, BufferDescriptor, BufferUsageFlags, MappedBuffer};
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use parking_lot::Mutex;
 
+use std::sync::atomic::AtomicPtr;
 use std::sync::Arc;
 use std::{mem, ptr, slice};
 
@@ -278,17 +279,17 @@ impl BufferInner {
         Ok(())
     }
 
-    pub fn get_mapped_ptr(&self) -> Result<*mut u8, vk::Result> {
+    pub unsafe fn get_mapped_ptr(&self) -> Result<*mut u8, vk::Result> {
         let mut buffer_state = self.buffer_state.lock();
         match *buffer_state {
-            BufferState::Mapped(ptr) => Ok(ptr),
+            BufferState::Mapped(ref mut ptr) => Ok(*ptr.get_mut()),
             BufferState::Unmapped => {
                 let mut state = self.device.state.lock();
                 let ptr = state.allocator_mut().map_memory(&self.allocation).map_err(|e| {
                     log::error!("failed to map buffer: {:?}", e);
                     vk::Result::ERROR_VALIDATION_FAILED_EXT // TODO
                 })?;
-                *buffer_state = BufferState::Mapped(ptr);
+                *buffer_state = BufferState::Mapped(AtomicPtr::new(ptr));
                 Ok(ptr)
             }
         }
@@ -357,7 +358,7 @@ impl MappedBuffer {
             buffer_size
         );
         unsafe {
-            let dst_ptr = self.data.offset(offset_bytes as isize);
+            let dst_ptr = self.data.add(offset_bytes);
             ptr::copy_nonoverlapping(data.as_ptr() as *const u8, dst_ptr, data_size);
             self.inner
                 .device
@@ -391,7 +392,7 @@ impl MappedBuffer {
             return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
         }
         unsafe {
-            let src_ptr = self.data.offset(offset_bytes as isize);
+            let src_ptr = self.data.add(offset_bytes);
             let data = slice::from_raw_parts(src_ptr as *const T, count);
             self.inner
                 .device
@@ -415,6 +416,12 @@ impl MappedBuffer {
 }
 
 impl Buffer {
+    /// Uploads all elements of `data` into the buffer. The buffer `offset` is in units of `T`.
+    ///
+    /// ## Implementation Note
+    ///
+    /// The content of `data` is read immediately, but the upload is deferred until the next
+    /// command buffer submission.
     pub fn set_sub_data<T: Copy>(&self, offset: usize, data: &[T]) -> Result<(), vk::Result> {
         // Dawn uses a ring buffer of staging buffers to perform the copy, but this is easier for now
 
@@ -457,5 +464,15 @@ impl Buffer {
                 .cmd_update_buffer(command_buffer, self.inner.handle, offset_bytes, data);
             Ok(())
         }
+    }
+
+    /// Returns the size of the buffer in bytes.
+    pub fn size(&self) -> usize {
+        self.inner.descriptor.size as usize
+    }
+
+    /// Returns the usage flags declared when the buffer was created.
+    pub fn usage(&self) -> BufferUsageFlags {
+        self.inner.descriptor.usage
     }
 }
