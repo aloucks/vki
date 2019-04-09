@@ -159,3 +159,39 @@ fn set_sub_data() {
         Ok(instance)
     });
 }
+
+#[test]
+fn set_sub_data_offset() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let data: &[u32] = &[1, 2, 3, 4];
+        let data_byte_size = std::mem::size_of::<u32>() * data.len();
+
+        let read_buffer = device.create_buffer_mapped(BufferDescriptor {
+            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
+            size: (2 * data_byte_size) as _,
+        })?;
+
+        read_buffer.buffer().set_sub_data(0, data)?;
+        read_buffer.buffer().set_sub_data(data.len(), data)?;
+
+        let fence = device.create_fence()?;
+
+        let encoder = device.create_command_encoder()?;
+        device.get_queue().submit(encoder.finish()?)?;
+
+        fence.wait(Duration::from_millis(1_000_000_000))?;
+
+        let read_data = read_buffer.read::<u32>(0, 4)?;
+        assert_eq!(data, read_data);
+
+        let read_data = read_buffer.read::<u32>(4, 4)?;
+        assert_eq!(data, read_data);
+
+        let read_data = read_buffer.read::<u32>(2, 4)?;
+        assert_eq!(&[3, 4, 1, 2], read_data);
+
+        Ok(instance)
+    });
+}
