@@ -201,6 +201,14 @@ impl BufferInner {
         usage: BufferUsageFlags,
     ) -> Result<(), vk::Result> {
         let mut last_usage = self.last_usage.lock();
+
+        log::trace!(
+            "transition_usage_now buffer: {:?}, last_usage: {:?}, usage: {:?}",
+            self.handle,
+            *last_usage,
+            usage
+        );
+
         let last_includes_target = (*last_usage & usage) == usage;
         let last_read_only = (*last_usage & read_only_buffer_usages()) == *last_usage;
 
@@ -262,6 +270,8 @@ impl BufferInner {
                 image_memory_barriers,
             );
         }
+
+        *last_usage = usage;
 
         Ok(())
     }
@@ -384,6 +394,51 @@ impl MappedBuffer {
     pub fn buffer(&self) -> Buffer {
         Buffer {
             inner: self.inner.clone(),
+        }
+    }
+}
+
+impl Buffer {
+    pub fn set_sub_data<T: Copy>(&self, offset: usize, data: &[T]) -> Result<(), vk::Result> {
+        // Dawn uses a ring buffer of staging buffers to perform the copy, but this is easier for now
+
+        let element_size = std::mem::size_of::<T>();
+        let data_size = element_size * data.len();
+        if data_size > std::u16::MAX as usize {
+            log::error!(
+                "set_sub_data can not be used to copy more than {} bytes; data_size: {}",
+                std::u16::MAX,
+                data_size
+            );
+            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+        }
+        let buffer_size = self.inner.descriptor.size as usize;
+        if (offset * element_size) + data_size > buffer_size {
+            log::error!(
+                "set_sub_data range exceeds buffer size; offset: {}, data_size: {:?}, buffer_size: {:?}",
+                offset,
+                data_size,
+                buffer_size
+            );
+            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+        }
+
+        let mut state = self.inner.device.state.lock();
+
+        let command_buffer = state.get_pending_command_buffer(&self.inner.device)?;
+        if BufferUsageFlags::TRANSFER_DST != *self.inner.last_usage.lock() {
+            self.inner
+                .transition_usage_now(command_buffer, BufferUsageFlags::TRANSFER_DST)?;
+        }
+        unsafe {
+            use std::slice;
+            let offset = offset as u64;
+            let data: &[u8] = slice::from_raw_parts(data.as_ptr() as *const u8, data_size);
+            self.inner
+                .device
+                .raw
+                .cmd_update_buffer(command_buffer, self.inner.handle, offset, data);
+            Ok(())
         }
     }
 }

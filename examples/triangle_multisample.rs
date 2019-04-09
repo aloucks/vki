@@ -30,7 +30,7 @@ macro_rules! offset_of {
 }
 
 fn main() -> Result<(), Box<std::error::Error>> {
-    //std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
+    std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
 
     let _ = pretty_env_logger::try_init();
 
@@ -101,9 +101,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let uniforms_size_bytes = std::mem::size_of::<Uniforms>() as u64;
 
-    let uniform_buffer = device.create_buffer_mapped(BufferDescriptor {
+    let uniform_buffer = device.create_buffer(BufferDescriptor {
         size: uniforms_size_bytes,
-        usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::UNIFORM,
+        usage: BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
     })?;
 
     #[rustfmt::skip]
@@ -121,15 +121,11 @@ fn main() -> Result<(), Box<std::error::Error>> {
         time: 0.0,
     };
 
-    uniform_buffer.write(0, &[uniforms])?;
-
-    let uniforms_fence = device.create_fence()?;
-
     let bind_group = device.create_bind_group(BindGroupDescriptor {
         layout: bind_group_layout.clone(),
         bindings: vec![BindGroupBinding {
             binding: 0,
-            resource: BindingResource::Buffer(uniform_buffer.buffer(), 0..uniforms_size_bytes),
+            resource: BindingResource::Buffer(uniform_buffer.clone(), 0..uniforms_size_bytes),
         }],
     })?;
 
@@ -279,6 +275,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     let frame_time = Instant::now();
                     //println!("new frame; time: {:?}", frame_time);
 
+                    uniforms.time = (start.elapsed().as_millis() as f32) / 1000.0;
+                    uniform_buffer.set_sub_data(0, &[uniforms])?;
+
                     let mut encoder = device.create_command_encoder()?;
                     let mut render_pass = encoder.begin_render_pass(RenderPassDescriptor {
                         color_attachments: &[RenderPassColorAttachmentDescriptor {
@@ -301,11 +300,6 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     render_pass.set_bind_group(0, &bind_group, None);
                     render_pass.draw(3, 1, 0, 1);
                     render_pass.end_pass();
-
-                    uniforms_fence.wait(Duration::from_millis(1000))?;
-                    uniforms.time = (start.elapsed().as_millis() as f32) / 1000.0;
-                    uniform_buffer.write(0, &[uniforms])?;
-                    uniforms_fence.reset()?;
 
                     let queue = device.get_queue();
                     queue.submit(encoder.finish()?)?;

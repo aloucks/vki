@@ -123,3 +123,39 @@ fn create_buffer_mapped() {
         Ok(instance)
     });
 }
+
+#[test]
+fn set_sub_data() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let data: &[u32] = &[1, 2, 3, 4];
+        let data_byte_size = std::mem::size_of::<u32>() * data.len();
+
+        let read_buffer = device.create_buffer_mapped(BufferDescriptor {
+            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
+            size: data_byte_size as _,
+        })?;
+
+        read_buffer.buffer().set_sub_data(0, data)?;
+
+        // TODO: set_sub_data records into the pending command buffer
+        //       so the read below won't pick it up until the command
+        //       buffer is submitted. When refactoring MappedBuffer,
+        //       read and write mapping should probably handle this
+        //       better.
+
+        let fence = device.create_fence()?;
+
+        let encoder = device.create_command_encoder()?;
+        device.get_queue().submit(encoder.finish()?)?;
+
+        fence.wait(Duration::from_millis(1_000_000_000))?;
+
+        let read_data = read_buffer.read::<u32>(0, 4)?;
+
+        assert_eq!(data, read_data);
+
+        Ok(instance)
+    });
+}
