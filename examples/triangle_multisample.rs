@@ -30,13 +30,15 @@ macro_rules! offset_of {
 }
 
 fn main() -> Result<(), Box<std::error::Error>> {
-    std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
+    if std::env::var("VK_INSTANCE_LAYERS").is_err() {
+        std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
+    }
 
     let _ = pretty_env_logger::try_init();
 
     let mut event_loop = EventLoop::new();
 
-    let (window_width, window_height) = (1024, 768);
+    let (mut window_width, mut window_height) = (1024, 768);
 
     let window = winit::window::WindowBuilder::new()
         .with_title("triangle.rs")
@@ -261,18 +263,33 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     ..
                 } => {
                     let (width, height) = (width as u32, height as u32);
-                    output_texture_descriptor.size.width = width;
-                    output_texture_descriptor.size.height = height;
-                    output_texture = device.create_texture(output_texture_descriptor)?;
-                    output_texture_view = output_texture.create_default_view()?;
-                    swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
+                    window_width = width as _;
+                    window_height = height as _;
+                    println!("size: {:?}", (window_width, window_height));
+                    if width > 0 && height > 0 {
+                        output_texture_descriptor.size.width = width;
+                        output_texture_descriptor.size.height = height;
+                        output_texture = device.create_texture(output_texture_descriptor)?;
+                        output_texture_view = output_texture.create_default_view()?;
+                        swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
+                    }
+                }
+                Event::EventsCleared => {
+                    window.request_redraw();
                 }
                 Event::WindowEvent {
                     event: WindowEvent::RedrawRequested,
                     ..
                 } => {
-                    let frame = swapchain.acquire_next_image()?;
                     let frame_time = Instant::now();
+
+                    if window_width <= 0 || window_height <= 0 {
+                        last_frame_time = frame_time;
+                        *control_flow = ControlFlow::WaitUntil(last_frame_time + Duration::from_millis(16));
+                        return Ok(());
+                    }
+
+                    let frame = swapchain.acquire_next_image()?;
                     //println!("new frame; time: {:?}", frame_time);
 
                     uniforms.time = (start.elapsed().as_millis() as f32) / 1000.0;

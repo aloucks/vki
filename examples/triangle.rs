@@ -29,7 +29,9 @@ macro_rules! offset_of {
 }
 
 fn main() -> Result<(), Box<std::error::Error>> {
-    std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
+    if std::env::var("VK_INSTANCE_LAYERS").is_err() {
+        std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
+    }
 
     let _ = pretty_env_logger::try_init();
 
