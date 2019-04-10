@@ -166,8 +166,8 @@ impl BindGroupInner {
                 (&BindingResource::Buffer(ref buffer, ref range), BindingType::UniformBuffer)
                 | (&BindingResource::Buffer(ref buffer, ref range), BindingType::StorageBuffer) => {
                     buffer_infos[num_writes].buffer = buffer.inner.handle;
-                    buffer_infos[num_writes].offset = range.start;
-                    buffer_infos[num_writes].range = range.end;
+                    buffer_infos[num_writes].offset = range.start as u64;
+                    buffer_infos[num_writes].range = range.end as u64;
                     write.p_buffer_info = &buffer_infos[num_writes];
                 }
                 (&BindingResource::Sampler(ref sampler), BindingType::Sampler) => {

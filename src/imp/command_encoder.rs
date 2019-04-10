@@ -167,26 +167,26 @@ impl CommandEncoder {
     pub fn copy_buffer_to_buffer(
         &mut self,
         src: Buffer,
-        src_offset: u64,
+        src_offset: usize,
         dst: Buffer,
-        dst_offset: u64,
-        size_bytes: u64,
+        dst_offset: usize,
+        size_bytes: usize,
     ) {
         // TODO: Fix inconsistency with offset and size types (u64 vs u32 vs usize)
         self.inner.push(Command::CopyBufferToBuffer {
             src: BufferCopy {
                 buffer: src.inner.clone(),
-                offset: src_offset as u32,
+                offset: src_offset,
                 image_height: 0,
                 row_pitch: 0,
             },
             dst: BufferCopy {
                 buffer: dst.inner.clone(),
-                offset: dst_offset as u32,
+                offset: dst_offset,
                 image_height: 0,
                 row_pitch: 0,
             },
-            size_bytes: size_bytes as u32,
+            size_bytes,
         });
 
         let top_level_buffers = &mut self.inner.state.resource_usages.top_level_buffers;
@@ -202,7 +202,7 @@ impl CommandEncoder {
                 buffer: Arc::clone(&src.buffer.inner),
                 row_pitch: src.row_pitch,
                 image_height: src.image_height,
-                offset: src.offset as u32,
+                offset: src.offset,
             },
             dst: TextureCopy {
                 texture: Arc::clone(&dst.texture.inner),
@@ -462,10 +462,15 @@ impl<'a> RenderPassEncoder<'a> {
         });
     }
 
+    /// Set the vertex buffers, starting at the `start_slot` binding index.
+    ///
+    /// ## Panics
+    ///
+    /// Panics if the length of `buffers` is not equal to the length of `offsets`.
     pub fn set_vertex_buffers(&mut self, start_slot: u32, buffers: &[Buffer], offsets: &[u64]) {
         // state.set_vertex_buffers
 
-        debug_assert_eq!(buffers.len(), offsets.len(), "buffers.len() != offsets.len()");
+        assert_eq!(buffers.len(), offsets.len(), "buffers.len() != offsets.len()");
 
         let mut buffers_vec = Vec::with_capacity(buffers.len());
 

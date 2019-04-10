@@ -55,7 +55,7 @@ fn copy_buffer_with_compute_shader() {
             [13.0, 14.0, 15.0, 16.0],
         ];
         let data_byte_size = std::mem::size_of::<[f32; 4]>() * data.len();
-        let data_byte_size = data_byte_size as u64;
+        let data_byte_size = data_byte_size;
 
         let write_buffer = device.create_buffer_mapped(BufferDescriptor {
             usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::STORAGE,

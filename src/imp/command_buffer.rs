@@ -37,7 +37,7 @@ fn buffer_image_copy(
     size_texels: Extent3D,
 ) -> vk::BufferImageCopy {
     vk::BufferImageCopy {
-        buffer_offset: vk::DeviceSize::from(buffer_copy.offset),
+        buffer_offset: buffer_copy.offset as vk::DeviceSize,
         buffer_row_length: buffer_copy.row_pitch, // TODO: row_pitch
         buffer_image_height: buffer_copy.image_height,
         image_subresource: vk::ImageSubresourceLayers {
@@ -107,9 +107,9 @@ impl CommandBufferInner {
                     dst.buffer
                         .transition_usage_now(command_buffer, BufferUsageFlags::TRANSFER_DST)?;
                     let region = vk::BufferCopy {
-                        size: vk::DeviceSize::from(*size_bytes),
-                        src_offset: vk::DeviceSize::from(src.offset),
-                        dst_offset: vk::DeviceSize::from(dst.offset),
+                        size: *size_bytes as vk::DeviceSize,
+                        src_offset: src.offset as vk::DeviceSize,
+                        dst_offset: dst.offset as vk::DeviceSize,
                     };
                     unsafe {
                         self.device.raw.cmd_copy_buffer(

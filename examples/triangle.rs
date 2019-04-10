@@ -98,7 +98,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
         time: f32,
     }
 
-    let uniforms_size_bytes = std::mem::size_of::<Uniforms>() as u64;
+    let uniforms_size_bytes = std::mem::size_of::<Uniforms>();
 
     let uniform_buffer = device.create_buffer(BufferDescriptor {
         size: uniforms_size_bytes,
@@ -142,7 +142,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
         Vertex { position: [ 0.0,  0.5, 0.0], color: [0.0, 0.0, 1.0] },
     ];
 
-    let vertices_size_bytes = (std::mem::size_of::<Vertex>() * vertices.len()) as u64;
+    let vertices_size_bytes = std::mem::size_of::<Vertex>() * vertices.len();
 
     let vertex_buffer = device.create_buffer(BufferDescriptor {
         size: vertices_size_bytes,
@@ -190,7 +190,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
             inputs: vec![VertexInputDescriptor {
                 input_slot: 0,
                 step_mode: InputStepMode::Vertex,
-                stride: std::mem::size_of::<Vertex>() as u64,
+                stride: std::mem::size_of::<Vertex>(),
             }],
             attributes: vec![
                 VertexAttributeDescriptor {

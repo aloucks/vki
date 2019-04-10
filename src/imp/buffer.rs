@@ -143,7 +143,7 @@ pub fn access_flags(usage: BufferUsageFlags) -> vk::AccessFlags {
 impl BufferInner {
     pub fn new(device: Arc<DeviceInner>, descriptor: BufferDescriptor) -> Result<BufferInner, vk::Result> {
         let create_info = vk::BufferCreateInfo {
-            size: descriptor.size,
+            size: descriptor.size as u64,
             usage: usage_flags(descriptor.usage),
             sharing_mode: vk::SharingMode::EXCLUSIVE,
             ..Default::default()
@@ -253,7 +253,7 @@ impl BufferInner {
             dst_queue_family_index: vk::QUEUE_FAMILY_IGNORED,
             buffer: self.handle,
             offset: 0,
-            size: self.descriptor.size,
+            size: self.descriptor.size as u64,
             ..Default::default()
         };
 

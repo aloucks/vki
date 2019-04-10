@@ -7,7 +7,7 @@ use crate::{Color, Extent3D, Origin3D, ShaderStageFlags};
 #[derive(Debug)]
 pub struct BufferCopy {
     pub buffer: Arc<BufferInner>,
-    pub offset: u32,
+    pub offset: usize,
     pub row_pitch: u32,
     pub image_height: u32,
 }
@@ -34,7 +34,7 @@ pub enum Command {
     CopyBufferToBuffer {
         src: BufferCopy,
         dst: BufferCopy,
-        size_bytes: u32,
+        size_bytes: usize,
     },
     CopyBufferToTexture {
         src: BufferCopy,

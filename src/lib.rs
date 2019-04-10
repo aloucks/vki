@@ -259,7 +259,7 @@ bitflags! {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BufferDescriptor {
-    pub size: u64,
+    pub size: usize,
     pub usage: BufferUsageFlags,
 }
 
@@ -400,7 +400,7 @@ pub struct BindGroupLayout {
 pub enum BindingResource {
     Sampler(Sampler),
     TextureView(TextureView),
-    Buffer(Buffer, Range<u64>),
+    Buffer(Buffer, Range<usize>),
 }
 
 impl BindingResource {
@@ -420,7 +420,7 @@ impl BindingResource {
         }
     }
 
-    pub fn as_buffer(&self) -> Option<(&Buffer, &Range<u64>)> {
+    pub fn as_buffer(&self) -> Option<(&Buffer, &Range<usize>)> {
         if let BindingResource::Buffer(ref buffer, range) = self {
             Some((buffer, range))
         } else {
@@ -684,7 +684,7 @@ pub struct VertexAttributeDescriptor {
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct VertexInputDescriptor {
     pub input_slot: u32,
-    pub stride: u64,
+    pub stride: usize,
     pub step_mode: InputStepMode,
 }
 
@@ -777,7 +777,7 @@ pub struct CommandEncoderDescriptor {}
 #[derive(Clone, Debug)]
 pub struct BufferCopyView<'a> {
     pub buffer: &'a Buffer,
-    pub offset: u64,
+    pub offset: usize,
     pub row_pitch: u32,
     pub image_height: u32,
 }

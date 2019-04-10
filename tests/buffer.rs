@@ -94,7 +94,7 @@ fn create_buffer_mapped() {
 
         let data: &[u32] = &[1, 2, 3, 4, 5];
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
-        let data_byte_size = data_byte_size as u64;
+        let data_byte_size = data_byte_size;
 
         let write_buffer = device.create_buffer_mapped(BufferDescriptor {
             usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,

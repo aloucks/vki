@@ -183,7 +183,7 @@ fn create_render_pipeline() {
                     VertexInputDescriptor {
                         input_slot: 0,
                         step_mode: InputStepMode::Vertex,
-                        stride: std::mem::size_of::<Vertex>() as u64,
+                        stride: std::mem::size_of::<Vertex>(),
                     }
                 ],
                 attributes: vec![
@@ -314,7 +314,7 @@ fn create_multi_sample_render_pipeline() {
                     VertexInputDescriptor {
                         input_slot: 0,
                         step_mode: InputStepMode::Vertex,
-                        stride: std::mem::size_of::<Vertex>() as u64,
+                        stride: std::mem::size_of::<Vertex>(),
                     }
                 ],
                 attributes: vec![
