@@ -5,13 +5,13 @@ use ash::{self, vk};
 use lazy_static::lazy_static;
 use parking_lot::{RwLock, RwLockReadGuard};
 
-use std::ffi::{c_void, CStr};
+use std::ffi::CStr;
 use std::fmt;
 use std::mem;
 use std::sync::Arc;
 
 use crate::imp::{debug, AdapterInner, InstanceExt, InstanceInner, SurfaceInner};
-use crate::{Adapter, InitError, Instance, RequestAdapterOptions, Surface, SurfaceDescriptor, SurfaceDescriptorWin32};
+use crate::{Adapter, InitError, Instance, RequestAdapterOptions, Surface, SurfaceDescriptor};
 
 use std::fmt::Debug;
 use std::sync::atomic::Ordering;
@@ -24,7 +24,7 @@ lazy_static! {
                 *entry_guard = Err(InitError::Library(String::from("unload")));
             }
             libc::atexit(unload);
-            RwLock::new(ash::Entry::new().map_err(|e| e.into()))
+            RwLock::new(ash::Entry::new().map_err(Into::into))
         }
     };
 }
@@ -40,15 +40,9 @@ impl Instance {
         Ok(adapter.into())
     }
 
-    pub fn create_surface_win32(&self, hwnd: *const c_void) -> Result<Surface, vk::Result> {
-        let surface = SurfaceInner::new_win32(self.inner.clone(), hwnd)?;
-        Ok(surface.into())
-    }
-
-    #[cfg(target_os = "windows")]
     pub fn create_surface(&self, descriptor: &SurfaceDescriptor) -> Result<Surface, vk::Result> {
-        let descriptor: &SurfaceDescriptorWin32 = descriptor;
-        self.create_surface_win32(descriptor.hwnd)
+        let surface = SurfaceInner::new(self.inner.clone(), descriptor)?;
+        Ok(surface.into())
     }
 }
 
@@ -63,7 +57,9 @@ impl InstanceInner {
 
             let mut extension_names = vec![];
 
-            for p in entry.enumerate_instance_extension_properties()?.iter() {
+            let extension_properties = entry.enumerate_instance_extension_properties()?;
+
+            for p in extension_properties.iter() {
                 let mut include_extension = false;
                 let name = CStr::from_ptr(p.extension_name.as_ptr());
                 let name_cow = name.to_string_lossy();
@@ -107,6 +103,15 @@ impl InstanceInner {
             #[cfg(windows)]
             let surface_win32 = khr::Win32Surface::new(entry, &raw);
 
+            #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+            let surface_xlib = khr::XlibSurface::new(entry, &raw);
+
+            #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+            let surface_xcb = khr::XcbSurface::new(entry, &raw);
+
+            #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+            let surface_wayland = khr::WaylandSurface::new(entry, &raw);
+
             let debug_utils = ext::DebugUtils::new(entry, &raw);
             let debug_report = ext::DebugReport::new(entry, &raw);
             let debug_report_callback = if init_debug_report {
@@ -121,14 +126,33 @@ impl InstanceInner {
 
             let raw_ext = InstanceExt {
                 surface,
+
                 #[cfg(windows)]
                 surface_win32,
+
+                #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+                surface_xlib,
+                #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+                surface_xcb,
+                #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+                surface_wayland,
+
                 debug_utils,
                 debug_report,
             };
 
-            Ok(InstanceInner { raw, raw_ext, debug_report_callback })
+            Ok(InstanceInner { raw, raw_ext, extension_properties, debug_report_callback })
         }
+    }
+
+    pub fn has_extension(&self, name: &str) -> bool {
+        for extension_properties in self.extension_properties.iter() {
+            let ext_name = unsafe { CStr::from_ptr(extension_properties.extension_name.as_ptr()) };
+            if name == ext_name.to_str().unwrap() {
+                return true;
+            }
+        }
+        false
     }
 }
 

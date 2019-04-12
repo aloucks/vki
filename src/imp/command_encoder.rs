@@ -423,8 +423,8 @@ impl<'a> RenderPassEncoder<'a> {
         let (sample_count, width, height) = sample_count_width_height_max;
 
         top_level_encoder.push(Command::BeginRenderPass {
-            color_attachments: descriptor.color_attachments.iter().map(|v| v.into()).collect(),
-            depth_stencil_attachment: descriptor.depth_stencil_attachment.map(|v| v.into()),
+            color_attachments: descriptor.color_attachments.iter().map(Into::into).collect(),
+            depth_stencil_attachment: descriptor.depth_stencil_attachment.map(Into::into),
             sample_count,
             width,
             height,

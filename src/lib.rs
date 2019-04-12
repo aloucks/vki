@@ -109,6 +109,16 @@ pub struct SurfaceDescriptorWin32 {
     pub hwnd: *const std::ffi::c_void,
 }
 
+#[derive(Debug)]
+pub struct SurfaceDescriptorUnix {
+    pub xlib_window: Option<std::os::raw::c_ulong>,
+    pub xlib_display: Option<*mut std::ffi::c_void>,
+    pub xcb_window: Option<std::os::raw::c_ulong>,
+    pub xcb_connection: Option<*mut std::ffi::c_void>,
+    pub wayland_surface: Option<*mut std::ffi::c_void>,
+    pub wayland_display: Option<*mut std::ffi::c_void>,
+}
+
 #[cfg(windows)]
 pub type SurfaceDescriptor = SurfaceDescriptorWin32;
 

@@ -65,6 +65,7 @@ macro_rules! handle_traits {
 pub struct InstanceInner {
     raw: ash::Instance,
     raw_ext: InstanceExt,
+    extension_properties: Vec<vk::ExtensionProperties>,
     debug_report_callback: Option<vk::DebugReportCallbackEXT>,
 }
 
@@ -85,8 +86,19 @@ impl Hash for InstanceInner {
 /// Instance extension functions
 struct InstanceExt {
     surface: khr::Surface,
+
     #[cfg(windows)]
     surface_win32: khr::Win32Surface,
+
+    #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+    surface_xlib: khr::XlibSurface,
+
+    #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+    surface_xcb: khr::XcbSurface,
+
+    #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+    surface_wayland: khr::WaylandSurface,
+
     debug_utils: ext::DebugUtils,
     debug_report: ext::DebugReport,
 }

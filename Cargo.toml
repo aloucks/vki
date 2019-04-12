@@ -15,6 +15,10 @@ log = "0.4.6"
 smallvec = "0.6"
 #crossbeam = "0.7.1"
 
+[features]
+default = ["winit-eventloop-2"]
+winit-eventloop-2 = []
+
 [patch.crates-io]
 ash = { git = "https://github.com/MaikKlein/ash.git", rev = "775a7d0" }
 # vk-mem = { path = "../vk-mem-rs" }
