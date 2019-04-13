@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let window = winit::window::WindowBuilder::new()
         .with_title("triangle.rs")
-        .with_dimensions(LogicalSize::new(window_width as _, window_height as _))
+        .with_dimensions(LogicalSize::from((window_width, window_height)))
         .with_visibility(false)
         .build(&event_loop)?;
 

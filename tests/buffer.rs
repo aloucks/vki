@@ -215,7 +215,7 @@ fn mapping_twice_should_fail() {
             size: data_byte_size,
         })?;
 
-        let mapped = buffer.map_read()?;
+        let _mapped = buffer.map_read()?;
 
         assert_eq!(true, buffer.map_read().is_err(), "mapping twice should fail");
 

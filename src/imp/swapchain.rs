@@ -229,7 +229,7 @@ fn surface_present_mode(
         PowerPreference::LowPower => vk::PresentModeKHR::FIFO,
         PowerPreference::HighPerformance => {
             let physical_device = adapter.physical_device;
-            let present_mode = unsafe {
+            unsafe {
                 instance
                     .raw_ext
                     .surface
@@ -238,8 +238,7 @@ fn surface_present_mode(
                     .cloned()
                     .find(|mode| *mode == vk::PresentModeKHR::MAILBOX)
                     .unwrap_or(vk::PresentModeKHR::FIFO)
-            };
-            present_mode
+            }
         }
     };
     log::debug!("selected present mode: {}", present_mode);
