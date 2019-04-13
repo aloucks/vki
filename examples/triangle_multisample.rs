@@ -162,7 +162,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let mut encoder = device.create_command_encoder()?;
 
     encoder.copy_buffer_to_buffer(
-        staging_vertex_buffer.buffer(),
+        staging_vertex_buffer.unmap(),
         0,
         vertex_buffer.clone(),
         0,

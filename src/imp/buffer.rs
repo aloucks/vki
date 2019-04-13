@@ -282,12 +282,15 @@ impl BufferInner {
     pub unsafe fn get_mapped_ptr(&self) -> Result<*mut u8, vk::Result> {
         let mut buffer_state = self.buffer_state.lock();
         match *buffer_state {
-            BufferState::Mapped(ref mut ptr) => Ok(*ptr.get_mut()),
+            BufferState::Mapped(_) => {
+                log::warn!("buffer already mapped: {:?}", self.handle);
+                Err(vk::Result::ERROR_VALIDATION_FAILED_EXT)
+            }
             BufferState::Unmapped => {
                 let mut state = self.device.state.lock();
                 let ptr = state.allocator_mut().map_memory(&self.allocation).map_err(|e| {
-                    log::error!("failed to map buffer: {:?}", e);
-                    vk::Result::ERROR_VALIDATION_FAILED_EXT // TODO
+                    log::error!("failed to map buffer memory: {:?}", e);
+                    vk::Result::ERROR_MEMORY_MAP_FAILED // TODO
                 })?;
                 *buffer_state = BufferState::Mapped(AtomicPtr::new(ptr));
                 Ok(ptr)
@@ -408,10 +411,16 @@ impl MappedBuffer {
         }
     }
 
-    pub fn buffer(&self) -> Buffer {
+    pub fn unmap(self) -> Buffer {
         Buffer {
             inner: self.inner.clone(),
         }
+    }
+}
+
+impl Drop for MappedBuffer {
+    fn drop(&mut self) {
+        *self.inner.buffer_state.lock() = BufferState::Unmapped;
     }
 }
 
@@ -474,5 +483,29 @@ impl Buffer {
     /// Returns the usage flags declared when the buffer was created.
     pub fn usage(&self) -> BufferUsageFlags {
         self.inner.descriptor.usage
+    }
+
+    pub fn map_read(&self) -> Result<MappedBuffer, vk::Result> {
+        if !self.inner.descriptor.usage.contains(BufferUsageFlags::MAP_READ) {
+            log::warn!("buffer not created with MAP_READ");
+            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+        }
+        let data = unsafe { self.inner.get_mapped_ptr()? };
+        Ok(MappedBuffer {
+            inner: Arc::clone(&self.inner),
+            data,
+        })
+    }
+
+    pub fn map_write(&self) -> Result<MappedBuffer, vk::Result> {
+        if !self.inner.descriptor.usage.contains(BufferUsageFlags::MAP_WRITE) {
+            log::warn!("buffer not created with MAP_WRITE");
+            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+        }
+        let data = unsafe { self.inner.get_mapped_ptr()? };
+        Ok(MappedBuffer {
+            inner: Arc::clone(&self.inner),
+            data,
+        })
     }
 }

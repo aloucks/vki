@@ -57,12 +57,14 @@ fn copy_buffer_with_compute_shader() {
         let data_byte_size = std::mem::size_of::<[f32; 4]>() * data.len();
         let data_byte_size = data_byte_size;
 
-        let write_buffer = device.create_buffer_mapped(BufferDescriptor {
+        let write_buffer_mapped = device.create_buffer_mapped(BufferDescriptor {
             usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::STORAGE,
             size: data_byte_size,
         })?;
 
-        let read_buffer = device.create_buffer_mapped(BufferDescriptor {
+        write_buffer_mapped.write(0, data)?;
+
+        let read_buffer = device.create_buffer(BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE,
             size: data_byte_size,
         })?;
@@ -72,16 +74,14 @@ fn copy_buffer_with_compute_shader() {
             bindings: vec![
                 BindGroupBinding {
                     binding: 0,
-                    resource: BindingResource::Buffer(write_buffer.buffer(), 0..data_byte_size),
+                    resource: BindingResource::Buffer(write_buffer_mapped.unmap(), 0..data_byte_size),
                 },
                 BindGroupBinding {
                     binding: 1,
-                    resource: BindingResource::Buffer(read_buffer.buffer(), 0..data_byte_size),
+                    resource: BindingResource::Buffer(read_buffer.clone(), 0..data_byte_size),
                 },
             ],
         })?;
-
-        write_buffer.write(0, data)?;
 
         let mut compute_pass = encoder.begin_compute_pass();
         compute_pass.set_pipeline(&pipeline);
@@ -96,7 +96,9 @@ fn copy_buffer_with_compute_shader() {
 
         fence.wait(Duration::from_millis(1_000_000_000))?;
 
-        let read: &[[f32; 4]] = read_buffer.read(0, data.len())?;
+        let read_buffer_mapped = read_buffer.map_read()?;
+
+        let read: &[[f32; 4]] = read_buffer_mapped.read(0, data.len())?;
         assert_eq!(data, read);
 
         Ok(instance)
