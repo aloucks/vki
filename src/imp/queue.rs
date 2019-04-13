@@ -53,6 +53,10 @@ impl Queue {
         state.submit_pending_commands(&device, &self.inner.queue)
     }
 
+    /// Creates a fence.
+    ///
+    /// Waiting for the fence to be signaled guarantees that all command buffers submitted
+    /// to the queue, prior to the fence's creation, have completed.
     pub fn create_fence(&self) -> Result<Fence, vk::Result> {
         let fence = FenceInner::new(self.inner.device.clone())?;
         Ok(fence.into())

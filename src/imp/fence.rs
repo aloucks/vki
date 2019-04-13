@@ -43,7 +43,7 @@ impl FenceInner {
 
 fn get_serial_to_wait_for(device: &DeviceInner) -> Serial {
     let state = device.state.lock();
-    state.get_next_pending_serial()
+    state.get_last_submitted_serial()
 }
 
 impl Into<Fence> for FenceInner {
