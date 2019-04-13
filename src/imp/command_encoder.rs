@@ -392,35 +392,53 @@ impl<'a> RenderPassEncoder<'a> {
             usage_tracker.texture_used_as(texture, TextureUsageFlags::OUTPUT_ATTACHMENT);
         }
 
-        let sample_count_width_height_iter = descriptor.color_attachments.iter().map(|a| {
-            let (sample_count, size) = a.attachment.inner.get_sample_count_and_mipmap_size();
-            (sample_count, size.width, size.height)
-        });
+        // The framebuffer needs to be created with the smallest image size. In general, these should
+        // always be the same. The exception is during window resize. If the window event processing
+        // and rendering are on different threads, the width and height of the target and swapchain
+        // images (that are used as resolve textures) could mismatch.
 
-        let sample_count_width_height_iter = sample_count_width_height_iter.chain({
-            if let Some(ref a) = descriptor.depth_stencil_attachment {
-                let (sample_count, size) = a.attachment.inner.get_sample_count_and_mipmap_size();
-                Some((sample_count, size.width, size.height))
+        let mut sample_count = 1;
+        let mut width = 1;
+        let mut height = 1;
+
+        for descriptor in descriptor.color_attachments.iter() {
+            let (a_sample_count, size) = descriptor.attachment.inner.get_sample_count_and_mipmap_size();
+            sample_count = sample_count.max(a_sample_count);
+            width = if width == 1 { size.width } else { width.min(size.width) };
+            height = if height == 1 {
+                size.height
             } else {
-                None
-            }
-        });
-
-        let sample_count_width_height_min = sample_count_width_height_iter.clone().min().unwrap_or((0, 0, 0));
-        let sample_count_width_height_max = sample_count_width_height_iter.clone().max().unwrap_or((0, 0, 0));
-
-        log::trace!("sample_count_width_height_min: {:?}", sample_count_width_height_min);
-        log::trace!("sample_count_width_height_max: {:?}", sample_count_width_height_max);
-
-        if sample_count_width_height_min != sample_count_width_height_max {
-            // TODO: Handle invalid attachments
-            panic!(
-                "sample_count, width, or height mismatch: min = {:?}, max = {:?}",
-                sample_count_width_height_min, sample_count_width_height_max
-            );
+                height.min(size.height)
+            };
         }
 
-        let (sample_count, width, height) = sample_count_width_height_max;
+        if let Some(ref a) = descriptor.depth_stencil_attachment {
+            let (a_sample_count, size) = a.attachment.inner.get_sample_count_and_mipmap_size();
+            sample_count = sample_count.max(a_sample_count);
+            width = width.min(size.width);
+            height = height.min(size.height);
+        }
+
+        for descriptor in descriptor
+            .color_attachments
+            .iter()
+            .filter_map(|a| a.resolve_target.as_ref())
+        {
+            let (a_sample_count, size) = descriptor.inner.get_sample_count_and_mipmap_size();
+            sample_count = sample_count.max(a_sample_count);
+            width = width.min(size.width);
+            height = height.min(size.height);
+        }
+
+        width = width.max(1);
+        height = height.max(1);
+
+        log::trace!(
+            "begin_render_pass; sample_count: {}, width: {}, height: {}",
+            sample_count,
+            width,
+            height
+        );
 
         top_level_encoder.push(Command::BeginRenderPass {
             color_attachments: descriptor.color_attachments.iter().map(Into::into).collect(),

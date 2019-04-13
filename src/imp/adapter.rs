@@ -31,11 +31,9 @@ impl Into<Adapter> for AdapterInner {
 
 impl AdapterInner {
     pub fn new(instance: Arc<InstanceInner>, options: RequestAdapterOptions) -> Result<AdapterInner, vk::Result> {
-        fn new_inner(
-            instance: Arc<InstanceInner>,
-            physical_device: vk::PhysicalDevice,
-            physical_device_properties: vk::PhysicalDeviceProperties,
-        ) -> Result<AdapterInner, vk::Result> {
+        let new_inner = |physical_device: vk::PhysicalDevice,
+                         physical_device_properties: vk::PhysicalDeviceProperties| {
+            let instance = instance.clone();
             let (extensions, physical_device_features) = unsafe {
                 // TODO: capture these
                 for p in instance
@@ -102,8 +100,9 @@ impl AdapterInner {
                 physical_device_format_properties,
                 queue_family_properties,
                 extensions,
+                options,
             })
-        }
+        };
 
         unsafe {
             let physical_devices = instance.raw.enumerate_physical_devices()?;
@@ -115,7 +114,7 @@ impl AdapterInner {
                 PowerPreference::HighPerformance => {
                     for (index, properties) in physical_device_properties.iter().enumerate() {
                         if properties.device_type == vk::PhysicalDeviceType::DISCRETE_GPU {
-                            let inner = new_inner(instance.clone(), physical_devices[index], *properties)?;
+                            let inner = new_inner(physical_devices[index], *properties)?;
                             return Ok(inner);
                         }
                     }
@@ -123,7 +122,7 @@ impl AdapterInner {
                 PowerPreference::LowPower => {
                     for (index, properties) in physical_device_properties.iter().enumerate() {
                         if properties.device_type == vk::PhysicalDeviceType::INTEGRATED_GPU {
-                            let inner = new_inner(instance.clone(), physical_devices[index], *properties)?;
+                            let inner = new_inner(physical_devices[index], *properties)?;
                             return Ok(inner);
                         }
                     }
@@ -133,7 +132,7 @@ impl AdapterInner {
                 .first()
                 .cloned()
                 .ok_or(vk::Result::ERROR_INITIALIZATION_FAILED)
-                .and_then(|physical_device| new_inner(instance, physical_device, physical_device_properties[0]))
+                .and_then(|physical_device| new_inner(physical_device, physical_device_properties[0]))
         }
     }
 

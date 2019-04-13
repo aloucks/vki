@@ -1,10 +1,10 @@
 use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
-use crate::imp::{texture, SurfaceInner, TextureViewInner};
+use crate::imp::{texture, AdapterInner, SurfaceInner, TextureViewInner};
 use crate::imp::{DeviceInner, InstanceInner, SwapchainInner, TextureInner};
 use crate::{
-    Extent3D, Swapchain, SwapchainDescriptor, SwapchainImage, Texture, TextureDescriptor, TextureDimension,
-    TextureUsageFlags, TextureView,
+    Extent3D, PowerPreference, Swapchain, SwapchainDescriptor, SwapchainImage, Texture, TextureDescriptor,
+    TextureDimension, TextureUsageFlags, TextureView,
 };
 
 use ash::prelude::VkResult;
@@ -65,7 +65,7 @@ impl SwapchainInner {
             let surface_image_usage = texture::image_usage(descriptor.usage, descriptor.format);
             let surface_image_count = surface_image_count(&surface_caps);
             let surface_image_extent = surface_image_extent(&surface_caps, dimensions);
-            let surface_present_mode = surface_present_mode(instance, physical_device, surface_handle)?;
+            let surface_present_mode = surface_present_mode(instance, &device.adapter, surface_handle)?;
 
             surface_format_check(&descriptor.surface.inner, physical_device, surface_format)?;
             surface_image_usage_check(&surface_caps, surface_image_usage)?;
@@ -222,21 +222,28 @@ impl Drop for SwapchainInner {
 /// Selects `Mailbox` mode is available, otherwise defaults to `Fifo`.
 fn surface_present_mode(
     instance: &InstanceInner,
-    physical_device: vk::PhysicalDevice,
+    adapter: &AdapterInner,
     surface: vk::SurfaceKHR,
 ) -> VkResult<vk::PresentModeKHR> {
-    unsafe {
-        let present_mode = instance
-            .raw_ext
-            .surface
-            .get_physical_device_surface_present_modes(physical_device, surface)?
-            .iter()
-            .cloned()
-            .find(|mode| *mode == vk::PresentModeKHR::MAILBOX)
-            .unwrap_or(vk::PresentModeKHR::FIFO);
-        log::debug!("selected present mode: {}", present_mode);
-        Ok(present_mode)
-    }
+    let present_mode = match adapter.options.power_preference {
+        PowerPreference::LowPower => vk::PresentModeKHR::FIFO,
+        PowerPreference::HighPerformance => {
+            let physical_device = adapter.physical_device;
+            let present_mode = unsafe {
+                instance
+                    .raw_ext
+                    .surface
+                    .get_physical_device_surface_present_modes(physical_device, surface)?
+                    .iter()
+                    .cloned()
+                    .find(|mode| *mode == vk::PresentModeKHR::MAILBOX)
+                    .unwrap_or(vk::PresentModeKHR::FIFO)
+            };
+            present_mode
+        }
+    };
+    log::debug!("selected present mode: {}", present_mode);
+    Ok(present_mode)
 }
 
 /// Recipe: _Selecting the number of swapchain images_ (page `94`)

@@ -26,3 +26,4 @@ ash = { git = "https://github.com/MaikKlein/ash.git", rev = "775a7d0" }
 [dev-dependencies]
 pretty_env_logger = "0.3.0"
 winit = { git = "https://github.com/tomaka/winit.git", rev = "3cd40ef" } # branch = "eventloop-2.0"
+# winit = "0.19.1"

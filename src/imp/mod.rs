@@ -36,8 +36,8 @@ pub use crate::imp::debug::validate;
 
 use crate::{
     BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions, Limits,
-    PipelineLayoutDescriptor, RenderPipelineDescriptor, SamplerDescriptor, TextureDescriptor, TextureUsageFlags,
-    TextureViewDescriptor,
+    PipelineLayoutDescriptor, RenderPipelineDescriptor, RequestAdapterOptions, SamplerDescriptor, TextureDescriptor,
+    TextureUsageFlags, TextureViewDescriptor,
 };
 
 use std::collections::HashMap;
@@ -113,6 +113,7 @@ pub struct AdapterInner {
     queue_family_properties: Vec<vk::QueueFamilyProperties>,
     name: String,
     extensions: Extensions,
+    options: RequestAdapterOptions,
 }
 
 impl PartialEq for AdapterInner {

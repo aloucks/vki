@@ -41,7 +41,7 @@ impl Default for PowerPreference {
     }
 }
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default)]
 pub struct RequestAdapterOptions {
     pub power_preference: PowerPreference,
 }
