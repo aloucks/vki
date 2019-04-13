@@ -166,7 +166,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
         vertices_size_bytes,
     );
 
-    device.get_queue().submit(encoder.finish()?)?;
+    device.get_queue().submit(&[encoder.finish()?])?;
 
     let color_replace = BlendDescriptor {
         src_factor: BlendFactor::One,
@@ -228,6 +228,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let start = Instant::now();
 
+    let mut last_fps_time = Instant::now();
+    let mut frame_count = 0;
+
     event_loop.run_return(|event, _target, control_flow| {
         let mut handle_event = || {
             match event {
@@ -248,6 +251,14 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     event: WindowEvent::RedrawRequested,
                     ..
                 } => {
+                    frame_count += 1;
+
+                    if last_fps_time.elapsed() > Duration::from_millis(1000) {
+                        println!("FPS: {}", frame_count);
+                        frame_count = 0;
+                        last_fps_time = Instant::now();
+                    }
+
                     let frame = swapchain.acquire_next_image()?;
                     let frame_time = Instant::now();
                     //println!("new frame; time: {:?}", frame_time);
@@ -279,12 +290,12 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     render_pass.end_pass();
 
                     let queue = device.get_queue();
-                    queue.submit(encoder.finish()?)?;
+                    queue.submit(&[encoder.finish()?])?;
 
                     let queue = device.get_queue();
                     queue.present(frame)?;
 
-                    *control_flow = ControlFlow::WaitUntil(last_frame_time + Duration::from_millis(16));
+                    *control_flow = ControlFlow::WaitUntil(last_frame_time + Duration::from_millis(0));
                     last_frame_time = frame_time;
                 }
                 _ => {}

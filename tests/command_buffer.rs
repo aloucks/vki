@@ -92,7 +92,7 @@ fn copy_buffer_with_compute_shader() {
         let fence = device.create_fence()?;
 
         let queue = device.get_queue();
-        queue.submit(encoder.finish()?)?;
+        queue.submit(&[encoder.finish()?])?;
 
         fence.wait(Duration::from_millis(1_000_000_000))?;
 

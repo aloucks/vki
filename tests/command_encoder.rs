@@ -101,7 +101,7 @@ fn submit_command_buffer() {
 
         let queue = device.get_queue();
 
-        queue.submit(command_buffer)?;
+        queue.submit(&[command_buffer])?;
 
         Ok(instance)
     });

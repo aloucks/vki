@@ -10,7 +10,7 @@ use vki::{
 };
 
 use winit::dpi::LogicalSize;
-use winit::event::{Event, StartCause, WindowEvent};
+use winit::event::{Event, KeyboardInput, StartCause, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::platform::desktop::EventLoopExtDesktop;
 
@@ -169,7 +169,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
         vertices_size_bytes,
     );
 
-    device.get_queue().submit(encoder.finish()?)?;
+    device.get_queue().submit(&[encoder.finish()?])?;
 
     let mut output_texture_descriptor = TextureDescriptor {
         sample_count: 8,
@@ -248,6 +248,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let start = Instant::now();
 
+    let mut last_fps_time = Instant::now();
+    let mut frame_count = 0;
+
     event_loop.run_return(|event, _target, control_flow| {
         let mut handle_event = || {
             match event {
@@ -257,7 +260,21 @@ fn main() -> Result<(), Box<std::error::Error>> {
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
                     ..
-                } => *control_flow = ControlFlow::Exit,
+                }
+                | Event::WindowEvent {
+                    event:
+                        WindowEvent::KeyboardInput {
+                            input:
+                                KeyboardInput {
+                                    virtual_keycode: Some(VirtualKeyCode::Escape),
+                                    ..
+                                },
+                            ..
+                        },
+                    ..
+                } => {
+                    *control_flow = ControlFlow::Exit;
+                }
                 Event::WindowEvent {
                     event: WindowEvent::Resized(LogicalSize { width, height }),
                     ..
@@ -273,9 +290,6 @@ fn main() -> Result<(), Box<std::error::Error>> {
                         swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
                     }
                 }
-                Event::EventsCleared => {
-                    window.request_redraw();
-                }
                 Event::WindowEvent {
                     event: WindowEvent::RedrawRequested,
                     ..
@@ -288,8 +302,15 @@ fn main() -> Result<(), Box<std::error::Error>> {
                         return Ok(());
                     }
 
+                    frame_count += 1;
+
+                    if last_fps_time.elapsed() > Duration::from_millis(1000) {
+                        println!("FPS: {}", frame_count);
+                        frame_count = 0;
+                        last_fps_time = Instant::now();
+                    }
+
                     let frame = swapchain.acquire_next_image()?;
-                    //println!("new frame; time: {:?}", frame_time);
 
                     uniforms.time = (start.elapsed().as_millis() as f32) / 1000.0;
                     uniform_buffer.set_sub_data(0, &[uniforms])?;
@@ -318,7 +339,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     render_pass.end_pass();
 
                     let queue = device.get_queue();
-                    queue.submit(encoder.finish()?)?;
+                    queue.submit(&[encoder.finish()?])?;
 
                     let queue = device.get_queue();
                     queue.present(frame)?;

@@ -27,6 +27,11 @@ impl Fence {
         }
         Ok(())
     }
+
+    pub fn is_signaled(&self) -> bool {
+        let serial = *self.inner.serial.lock();
+        serial <= self.inner.device.state.lock().get_last_completed_serial()
+    }
 }
 
 impl FenceInner {

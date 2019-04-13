@@ -418,7 +418,7 @@ fn create_multi_sample_render_pipeline() {
         render_pass.end_pass();
 
         let queue = device.get_queue();
-        queue.submit(encoder.finish()?)?;
+        queue.submit(&[encoder.finish()?])?;
 
         Ok(instance)
     });

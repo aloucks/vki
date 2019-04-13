@@ -113,7 +113,7 @@ fn create_buffer_mapped() {
         let fence = device.create_fence()?;
 
         let queue = device.get_queue();
-        queue.submit(encoder.finish()?)?;
+        queue.submit(&[encoder.finish()?])?;
 
         fence.wait(Duration::from_millis(1_000_000_000))?;
 
@@ -148,7 +148,7 @@ fn set_sub_data() {
         let fence = device.create_fence()?;
 
         let encoder = device.create_command_encoder()?;
-        device.get_queue().submit(encoder.finish()?)?;
+        device.get_queue().submit(&[encoder.finish()?])?;
 
         fence.wait(Duration::from_millis(1_000_000_000))?;
 
@@ -179,7 +179,7 @@ fn set_sub_data_offset() {
         let fence = device.create_fence()?;
 
         let encoder = device.create_command_encoder()?;
-        device.get_queue().submit(encoder.finish()?)?;
+        device.get_queue().submit(&[encoder.finish()?])?;
 
         fence.wait(Duration::from_millis(1_000_000_000))?;
 

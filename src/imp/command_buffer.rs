@@ -93,7 +93,7 @@ fn image_copy(src: &TextureCopy, dst: &TextureCopy, size_texels: Extent3D) -> vk
 
 impl CommandBufferInner {
     pub fn record_commands(
-        &mut self,
+        &self,
         command_buffer: vk::CommandBuffer,
         state: &mut DeviceState,
     ) -> Result<(), vk::Result> {
@@ -514,7 +514,7 @@ impl CommandBufferInner {
     }
 
     fn record_compute_pass(
-        &mut self,
+        &self,
         command_buffer: vk::CommandBuffer,
         mut command_index: usize,
     ) -> Result<usize, vk::Result> {

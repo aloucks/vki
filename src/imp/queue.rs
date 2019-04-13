@@ -37,15 +37,22 @@ impl<'a> Queue<'a> {
         frame.swapchain.device.tick()
     }
 
-    pub fn submit(self, mut command_buffer: CommandBuffer) -> Result<(), vk::Result> {
-        let device = command_buffer.inner.device.clone();
+    pub fn submit(self, command_buffers: &[CommandBuffer]) -> Result<(), vk::Result> {
+        if let Some(device) = command_buffers.first().map(|command_buffer| {
+            // TODO: Refactor Queue and QueueInner so that this isn't needed.
+            command_buffer.inner.device.clone()
+        }) {
+            device.tick()?;
 
-        device.tick()?;
+            let mut state = device.state.lock();
 
-        let mut state = device.state.lock();
-        let vk_command_buffer = state.get_pending_command_buffer(&device)?;
-        command_buffer.inner.record_commands(vk_command_buffer, &mut state)?;
-        state.submit_pending_commands(&device, &self.inner)?;
+            for command_buffer in command_buffers.iter() {
+                let vk_command_buffer = state.get_pending_command_buffer(&device)?;
+                command_buffer.inner.record_commands(vk_command_buffer, &mut state)?;
+            }
+
+            state.submit_pending_commands(&device, &self.inner)?;
+        }
 
         Ok(())
     }
