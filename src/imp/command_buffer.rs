@@ -400,13 +400,12 @@ impl CommandBufferInner {
                     let bind_point = vk::PipelineBindPoint::GRAPHICS;
                     descriptor_sets.flush(&self.device, command_buffer, bind_point);
                     unsafe {
-                        let base_vertex = *base_vertex as i32;
                         self.device.raw.cmd_draw_indexed(
                             command_buffer,
                             *index_count,
                             *instance_count,
                             *first_index,
-                            base_vertex,
+                            *base_vertex,
                             *first_instance,
                         )
                     }
