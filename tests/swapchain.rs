@@ -85,8 +85,10 @@ fn recreate_after_resize() {
         let (mut event_loop, window) = support::headless_window()?;
         let (instance, _adapter, device, surface, mut swapchain) = support::init_with_window(&window)?;
 
-        let frame = swapchain.acquire_next_image()?;
         let queue = device.get_queue();
+
+        let frame = swapchain.acquire_next_image()?;
+
         queue.present(frame)?;
 
         let new_size = LogicalSize {
@@ -116,7 +118,7 @@ fn recreate_after_resize() {
         assert_eq!(true, resized);
 
         let frame = swapchain.acquire_next_image()?;
-        let queue = device.get_queue();
+
         queue.present(frame)?;
 
         Ok(instance)

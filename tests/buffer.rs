@@ -110,9 +110,10 @@ fn create_buffer_mapped() {
 
         encoder.copy_buffer_to_buffer(write_buffer_mapped.unmap(), 0, read_buffer.clone(), 0, data_byte_size);
 
-        let fence = device.create_fence()?;
-
         let queue = device.get_queue();
+
+        let fence = queue.create_fence()?;
+
         queue.submit(&[encoder.finish()?])?;
 
         fence.wait(Duration::from_millis(1_000_000_000))?;
@@ -147,10 +148,13 @@ fn set_sub_data() {
         //       read and write mapping should probably handle this
         //       better.
 
-        let fence = device.create_fence()?;
+        let queue = device.get_queue();
+
+        let fence = queue.create_fence()?;
 
         let encoder = device.create_command_encoder()?;
-        device.get_queue().submit(&[encoder.finish()?])?;
+
+        queue.submit(&[encoder.finish()?])?;
 
         fence.wait(Duration::from_millis(1_000_000_000))?;
 
@@ -180,10 +184,13 @@ fn set_sub_data_offset() {
         read_buffer.set_sub_data(0, data)?;
         read_buffer.set_sub_data(data.len(), data)?;
 
-        let fence = device.create_fence()?;
+        let queue = device.get_queue();
+
+        let fence = queue.create_fence()?;
 
         let encoder = device.create_command_encoder()?;
-        device.get_queue().submit(&[encoder.finish()?])?;
+
+        queue.submit(&[encoder.finish()?])?;
 
         fence.wait(Duration::from_millis(1_000_000_000))?;
 

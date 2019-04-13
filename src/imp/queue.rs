@@ -1,9 +1,10 @@
 use ash::vk;
 
-use crate::{CommandBuffer, Queue, SwapchainImage};
+use crate::imp::FenceInner;
+use crate::{CommandBuffer, Fence, Queue, SwapchainImage};
 
 impl Queue {
-    pub fn present(self, frame: SwapchainImage) -> Result<(), vk::Result> {
+    pub fn present(&self, frame: SwapchainImage) -> Result<(), vk::Result> {
         {
             let device = &frame.swapchain.device;
             let mut state = frame.swapchain.device.state.lock();
@@ -37,23 +38,23 @@ impl Queue {
         frame.swapchain.device.tick()
     }
 
-    pub fn submit(self, command_buffers: &[CommandBuffer]) -> Result<(), vk::Result> {
-        if let Some(device) = command_buffers.first().map(|command_buffer| {
-            // TODO: Refactor Queue and QueueInner so that this isn't needed.
-            command_buffer.inner.device.clone()
-        }) {
-            device.tick()?;
+    pub fn submit(&self, command_buffers: &[CommandBuffer]) -> Result<(), vk::Result> {
+        let device = &self.inner.device;
 
-            let mut state = device.state.lock();
+        device.tick()?;
 
-            for command_buffer in command_buffers.iter() {
-                let vk_command_buffer = state.get_pending_command_buffer(&device)?;
-                command_buffer.inner.record_commands(vk_command_buffer, &mut state)?;
-            }
+        let mut state = self.inner.device.state.lock();
 
-            state.submit_pending_commands(&device, &self.inner.queue)?;
+        for command_buffer in command_buffers.iter() {
+            let vk_command_buffer = state.get_pending_command_buffer(&device)?;
+            command_buffer.inner.record_commands(vk_command_buffer, &mut state)?;
         }
 
-        Ok(())
+        state.submit_pending_commands(&device, &self.inner.queue)
+    }
+
+    pub fn create_fence(&self) -> Result<Fence, vk::Result> {
+        let fence = FenceInner::new(self.inner.device.clone())?;
+        Ok(fence.into())
     }
 }

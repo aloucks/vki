@@ -290,9 +290,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     render_pass.end_pass();
 
                     let queue = device.get_queue();
+
                     queue.submit(&[encoder.finish()?])?;
 
-                    let queue = device.get_queue();
                     queue.present(frame)?;
 
                     *control_flow = ControlFlow::WaitUntil(last_frame_time + Duration::from_millis(0));

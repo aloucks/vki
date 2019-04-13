@@ -5,18 +5,21 @@ use parking_lot::Mutex;
 use vk_mem::{Allocator, AllocatorCreateInfo};
 
 use crate::error::SurfaceError;
+
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
 use crate::imp::render_pass::{RenderPassCache, RenderPassCacheQuery};
 use crate::imp::serial::{Serial, SerialQueue};
+use crate::imp::{swapchain, texture};
+
 use crate::imp::{
-    swapchain, AdapterInner, BindGroupInner, BindGroupLayoutInner, BufferInner, CommandEncoderInner,
-    ComputePipelineInner, DeviceExt, DeviceInner, FenceInner, QueueInfo, QueueInner, RenderPipelineInner, SamplerInner,
+    AdapterInner, BindGroupInner, BindGroupLayoutInner, BufferInner, CommandEncoderInner, ComputePipelineInner,
+    DeviceExt, DeviceInner, PipelineLayoutInner, QueueInfo, QueueInner, RenderPipelineInner, SamplerInner,
     ShaderModuleInner, SurfaceInner, SwapchainInner, TextureInner,
 };
-use crate::imp::{texture, PipelineLayoutInner};
+
 use crate::{
     BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor,
-    CommandEncoder, ComputePipeline, ComputePipelineDescriptor, Device, DeviceDescriptor, Fence, Limits, MappedBuffer,
+    CommandEncoder, ComputePipeline, ComputePipelineDescriptor, Device, DeviceDescriptor, Limits, MappedBuffer,
     PipelineLayout, PipelineLayoutDescriptor, Queue, RenderPipeline, RenderPipelineDescriptor, Sampler,
     SamplerDescriptor, ShaderModule, ShaderModuleDescriptor, Surface, Swapchain, SwapchainDescriptor, Texture,
     TextureDescriptor, TextureFormat,
@@ -154,11 +157,6 @@ impl Device {
     pub fn create_command_encoder(&self) -> Result<CommandEncoder, vk::Result> {
         let command_encoder = CommandEncoderInner::new(self.inner.clone())?;
         Ok(command_encoder.into())
-    }
-
-    pub fn create_fence(&self) -> Result<Fence, vk::Result> {
-        let fence = FenceInner::new(self.inner.clone())?;
-        Ok(fence.into())
     }
 }
 
