@@ -1,7 +1,7 @@
 use ash::extensions::khr;
 use ash::version::{DeviceV1_0, InstanceV1_0};
 use ash::vk;
-use parking_lot::{Mutex, ReentrantMutex, ReentrantMutexGuard};
+use parking_lot::Mutex;
 use vk_mem::{Allocator, AllocatorCreateInfo};
 
 use crate::error::SurfaceError;
@@ -10,7 +10,7 @@ use crate::imp::render_pass::{RenderPassCache, RenderPassCacheQuery};
 use crate::imp::serial::{Serial, SerialQueue};
 use crate::imp::{
     swapchain, AdapterInner, BindGroupInner, BindGroupLayoutInner, BufferInner, CommandEncoderInner,
-    ComputePipelineInner, DeviceExt, DeviceInner, FenceInner, QueueInner, RenderPipelineInner, SamplerInner,
+    ComputePipelineInner, DeviceExt, DeviceInner, FenceInner, QueueInfo, QueueInner, RenderPipelineInner, SamplerInner,
     ShaderModuleInner, SurfaceInner, SwapchainInner, TextureInner,
 };
 use crate::imp::{texture, PipelineLayoutInner};
@@ -82,9 +82,12 @@ impl Device {
         Ok(formats)
     }
 
-    pub fn get_queue<'a>(&'a self) -> Queue<'a> {
+    pub fn get_queue(&self) -> Queue {
         Queue {
-            inner: self.inner.get_queue(),
+            inner: QueueInner {
+                device: Arc::clone(&self.inner),
+                queue: self.inner.queue,
+            },
         }
     }
 
@@ -192,11 +195,11 @@ impl DeviceInner {
             let extensions = descriptor.extensions.clone();
 
             let queue_index = 0;
-            let queue = ReentrantMutex::new(QueueInner {
+            let queue = QueueInfo {
                 handle: raw.get_device_queue(queue_family_index, queue_index),
                 queue_index,
                 queue_family_index,
-            });
+            };
 
             let swapchain = khr::Swapchain::new(&adapter.instance.raw, &raw);
             let raw_ext = DeviceExt { swapchain };
@@ -239,10 +242,6 @@ impl DeviceInner {
 
             Ok(inner)
         }
-    }
-
-    pub fn get_queue<'a>(&'a self) -> ReentrantMutexGuard<'a, QueueInner> {
-        self.queue.lock()
     }
 
     pub fn tick(&self) -> Result<(), vk::Result> {
@@ -358,8 +357,8 @@ impl DeviceState {
         // TODO: maprequest/uploader/allocator ticks
         self.fenced_deleter
             .tick(self.last_completed_serial, device, &mut self.allocator);
-        let queue = device.queue.lock();
-        self.submit_pending_commands(device, &*queue)?;
+        let queue = &device.queue;
+        self.submit_pending_commands(device, &queue)?;
 
         Ok(())
     }
@@ -439,7 +438,7 @@ impl DeviceState {
         &mut self.fenced_deleter
     }
 
-    pub fn submit_pending_commands(&mut self, device: &DeviceInner, queue: &QueueInner) -> Result<(), vk::Result> {
+    pub fn submit_pending_commands(&mut self, device: &DeviceInner, queue: &QueueInfo) -> Result<(), vk::Result> {
         let pending_commands = match self.pending_commands.take() {
             None => {
                 // If there are no pending commands and everything in flight has resolved,
@@ -512,7 +511,7 @@ impl DeviceState {
 
         let create_info = vk::CommandPoolCreateInfo {
             flags: vk::CommandPoolCreateFlags::TRANSIENT,
-            queue_family_index: device.queue.lock().queue_family_index,
+            queue_family_index: device.queue.queue_family_index,
             ..Default::default()
         };
 

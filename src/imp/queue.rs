@@ -2,7 +2,7 @@ use ash::vk;
 
 use crate::{CommandBuffer, Queue, SwapchainImage};
 
-impl<'a> Queue<'a> {
+impl Queue {
     pub fn present(self, frame: SwapchainImage) -> Result<(), vk::Result> {
         {
             let device = &frame.swapchain.device;
@@ -10,7 +10,7 @@ impl<'a> Queue<'a> {
             let command_buffer = state.get_pending_command_buffer(&device)?;
             let texture = &frame.swapchain.textures[frame.image_index as usize];
             texture.transition_usage_now(command_buffer, texture.descriptor.usage)?;
-            state.submit_pending_commands(&frame.swapchain.device, &*self.inner)?;
+            state.submit_pending_commands(&frame.swapchain.device, &self.inner.queue)?;
 
             // these should always be empty after pending commands were submitted
             debug_assert_eq!(0, state.get_wait_semaphores().len());
@@ -28,7 +28,7 @@ impl<'a> Queue<'a> {
                 .device
                 .raw_ext
                 .swapchain
-                .queue_present(self.inner.handle, &present_info)?;
+                .queue_present(self.inner.queue.handle, &present_info)?;
             if suboptimal {
                 log::warn!("present: suboptimal")
             }
@@ -51,7 +51,7 @@ impl<'a> Queue<'a> {
                 command_buffer.inner.record_commands(vk_command_buffer, &mut state)?;
             }
 
-            state.submit_pending_commands(&device, &self.inner)?;
+            state.submit_pending_commands(&device, &self.inner.queue)?;
         }
 
         Ok(())

@@ -1,7 +1,7 @@
 use ash::extensions::{ext, khr};
 use ash::version::InstanceV1_0;
 use ash::vk::{self, Handle};
-use parking_lot::{Mutex, ReentrantMutex};
+use parking_lot::Mutex;
 use vk_mem::{Allocation, AllocationInfo};
 
 use std::sync::Arc;
@@ -137,9 +137,7 @@ pub struct DeviceInner {
     adapter: Arc<AdapterInner>,
     extensions: Extensions,
     limits: Limits,
-
-    queue: ReentrantMutex<QueueInner>,
-
+    queue: QueueInfo,
     state: Mutex<device::DeviceState>,
 }
 
@@ -155,6 +153,11 @@ impl Hash for DeviceInner {
     fn hash<H: Hasher>(&self, state: &mut H) {
         state.write_u64(self.raw.handle().as_raw())
     }
+}
+
+pub struct QueueInner {
+    device: Arc<DeviceInner>,
+    queue: QueueInfo,
 }
 
 /// Device extension functions
@@ -185,7 +188,7 @@ pub struct SurfaceInner {
 handle_traits!(SurfaceInner);
 
 #[derive(Copy, Clone, Debug)]
-pub struct QueueInner {
+pub struct QueueInfo {
     handle: vk::Queue,
     queue_index: u32,
     queue_family_index: u32,

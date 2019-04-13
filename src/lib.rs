@@ -9,8 +9,6 @@ extern crate bitflags;
 
 use std::sync::Arc;
 
-use parking_lot::ReentrantMutexGuard;
-
 #[macro_use]
 mod macros;
 mod error;
@@ -127,8 +125,8 @@ pub struct Surface {
     inner: Arc<imp::SurfaceInner>,
 }
 
-pub struct Queue<'a> {
-    inner: ReentrantMutexGuard<'a, imp::QueueInner>,
+pub struct Queue {
+    inner: imp::QueueInner,
 }
 
 pub struct SwapchainImage {
