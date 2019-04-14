@@ -12,14 +12,14 @@ use std::time::{Duration, Instant};
 
 impl Fence {
     pub fn reset(&self) -> Result<(), vk::Result> {
-        *self.inner.serial.lock() = get_serial_to_wait_for(&self.inner.device);
+        *self.inner.serial.lock() = get_last_submitted_serial(&self.inner.device);
         Ok(())
     }
 
     pub fn wait(&self, timeout: Duration) -> Result<(), vk::Result> {
         let timeout = Instant::now() + timeout;
         let serial = *self.inner.serial.lock();
-        while serial > self.inner.device.state.lock().get_last_completed_serial() {
+        while serial > get_last_completed_serial(&self.inner.device) {
             self.inner.device.tick()?;
             if Instant::now() >= timeout {
                 return Err(vk::Result::TIMEOUT);
@@ -30,20 +30,25 @@ impl Fence {
 
     pub fn is_signaled(&self) -> bool {
         let serial = *self.inner.serial.lock();
-        serial <= self.inner.device.state.lock().get_last_completed_serial()
+        serial <= get_last_completed_serial(&self.inner.device)
     }
 }
 
 impl FenceInner {
     pub fn new(device: Arc<DeviceInner>) -> Result<FenceInner, vk::Result> {
-        let serial = { Mutex::new(get_serial_to_wait_for(&device)) };
+        let serial = { Mutex::new(get_last_submitted_serial(&device)) };
         Ok(FenceInner { serial, device })
     }
 }
 
-fn get_serial_to_wait_for(device: &DeviceInner) -> Serial {
+fn get_last_submitted_serial(device: &DeviceInner) -> Serial {
     let state = device.state.lock();
     state.get_last_submitted_serial()
+}
+
+fn get_last_completed_serial(device: &DeviceInner) -> Serial {
+    let state = device.state.lock();
+    state.get_last_completed_serial()
 }
 
 impl Into<Fence> for FenceInner {
