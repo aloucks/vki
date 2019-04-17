@@ -797,3 +797,12 @@ pub struct TextureCopyView<'a> {
     pub array_layer: u32,
     pub origin: Origin3D,
 }
+
+/// Not in the GPUWeb spec as of 2019/04/13
+#[derive(Clone, Debug)]
+pub struct TextureBlitView<'a> {
+    pub texture: &'a Texture,
+    pub mip_level: u32,
+    pub array_layer: u32,
+    pub bounds: [Origin3D; 2],
+}

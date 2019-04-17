@@ -71,8 +71,6 @@ fn main() -> Result<(), Box<std::error::Error>> {
     };
 
     let mut swapchain = device.create_swapchain(swapchain_desc, None)?;
-    let mut last_frame_time = Instant::now();
-    window.show();
 
     let vertex_shader = device.create_shader_module(ShaderModuleDescriptor {
         code: Cow::Borrowed(include_bytes!("shaders/triangle.vert.spv")),
@@ -251,10 +249,13 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let mut last_fps_time = Instant::now();
     let mut frame_count = 0;
 
+    window.show();
+
     event_loop.run_return(|event, _target, control_flow| {
         let mut handle_event = || {
             match event {
                 Event::NewEvents(StartCause::Init) | Event::NewEvents(StartCause::ResumeTimeReached { .. }) => {
+                    *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(16));
                     window.request_redraw();
                 }
                 Event::WindowEvent {
@@ -294,11 +295,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     event: WindowEvent::RedrawRequested,
                     ..
                 } => {
-                    let frame_time = Instant::now();
-
                     if window_width <= 0 || window_height <= 0 {
-                        last_frame_time = frame_time;
-                        *control_flow = ControlFlow::WaitUntil(last_frame_time + Duration::from_millis(16));
                         return Ok(());
                     }
 
@@ -343,9 +340,6 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     queue.submit(&[encoder.finish()?])?;
 
                     queue.present(frame)?;
-
-                    *control_flow = ControlFlow::WaitUntil(last_frame_time + Duration::from_millis(16));
-                    last_frame_time = frame_time;
                 }
                 _ => {}
             }

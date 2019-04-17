@@ -13,6 +13,7 @@ use ash::vk;
 use ash::vk::StructureType;
 use parking_lot::Mutex;
 
+use crate::imp::texture::SubresourceUsageTracker;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -123,12 +124,13 @@ impl SwapchainInner {
             };
 
             let textures = images.iter().cloned().map(|handle| {
+                let subresource_usage = SubresourceUsageTracker::new(1, 1, descriptor.format);
                 Arc::new(TextureInner {
                     handle,
                     device: device.clone(),
                     allocation: None,
                     allocation_info: None,
-                    last_usage: Mutex::new(TextureUsageFlags::NONE),
+                    subresource_usage: Mutex::new(subresource_usage),
                     descriptor: texture_descriptor,
                 })
             });
@@ -145,7 +147,7 @@ impl SwapchainInner {
             let mut state = device.state.lock();
             let command_buffer = state.get_pending_command_buffer(&device)?;
             for texture in textures.iter() {
-                texture.transition_usage_now(command_buffer, texture.descriptor.usage)?;
+                texture.transition_usage_now(command_buffer, texture.descriptor.usage, None)?;
             }
             drop(state);
 

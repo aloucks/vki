@@ -2,14 +2,14 @@ use ash::vk;
 
 use crate::{
     BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder,
-    ComputePassEncoder, ComputePipeline, Extent3D, LoadOp, RenderPassColorAttachmentDescriptor,
+    ComputePassEncoder, ComputePipeline, Extent3D, FilterMode, LoadOp, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPassEncoder, RenderPipeline, StoreOp,
-    TextureCopyView, TextureUsageFlags,
+    TextureBlitView, TextureCopyView, TextureUsageFlags,
 };
 
 use std::sync::Arc;
 
-use crate::imp::command::{BufferCopy, Command, TextureCopy};
+use crate::imp::command::{BufferCopy, Command, TextureBlit, TextureCopy};
 use crate::imp::command_buffer::CommandBufferState;
 use crate::imp::pass_resource_usage::{CommandBufferResourceUsage, PassResourceUsageTracker};
 use crate::imp::{
@@ -236,6 +236,29 @@ impl CommandEncoder {
                 array_layer: dst.array_layer, // TODO: slice ?
             },
             size_texels: copy_size,
+        });
+
+        let top_level_textures = &mut self.inner.state.resource_usages.top_level_textures;
+
+        top_level_textures.insert(src.texture.inner.clone());
+        top_level_textures.insert(dst.texture.inner.clone());
+    }
+
+    pub fn blit_texture_to_texture(&mut self, src: TextureBlitView, dst: TextureBlitView, filter: FilterMode) {
+        self.inner.push(Command::BlitTextureToTexture {
+            src: TextureBlit {
+                texture: Arc::clone(&src.texture.inner),
+                mip_level: src.mip_level,
+                bounds_texels: src.bounds,
+                array_layer: src.array_layer,
+            },
+            dst: TextureBlit {
+                texture: Arc::clone(&dst.texture.inner),
+                mip_level: dst.mip_level,
+                bounds_texels: dst.bounds,
+                array_layer: dst.array_layer,
+            },
+            filter,
         });
 
         let top_level_textures = &mut self.inner.state.resource_usages.top_level_textures;

@@ -10,7 +10,7 @@ impl Queue {
             let mut state = frame.swapchain.device.state.lock();
             let command_buffer = state.get_pending_command_buffer(&device)?;
             let texture = &frame.swapchain.textures[frame.image_index as usize];
-            texture.transition_usage_now(command_buffer, texture.descriptor.usage)?;
+            texture.transition_usage_now(command_buffer, texture.descriptor.usage, None)?;
             state.submit_pending_commands(&frame.swapchain.device, &self.inner.queue)?;
 
             // these should always be empty after pending commands were submitted
@@ -43,14 +43,18 @@ impl Queue {
 
         device.tick()?;
 
-        let mut state = self.inner.device.state.lock();
-
-        for command_buffer in command_buffers.iter() {
+        if !command_buffers.is_empty() {
+            let mut state = self.inner.device.state.lock();
             let vk_command_buffer = state.get_pending_command_buffer(&device)?;
-            command_buffer.inner.record_commands(vk_command_buffer, &mut state)?;
-        }
 
-        state.submit_pending_commands(&device, &self.inner.queue)
+            for command_buffer in command_buffers.iter() {
+                command_buffer.inner.record_commands(vk_command_buffer, &mut state)?;
+            }
+
+            state.submit_pending_commands(&device, &self.inner.queue)
+        } else {
+            Ok(())
+        }
     }
 
     /// Creates a fence.

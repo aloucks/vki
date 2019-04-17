@@ -1,4 +1,4 @@
-use crate::Extent3D;
+use crate::{Extent3D, Origin3D};
 use ash::vk;
 
 pub fn has_zero_or_one_bits(bits: u32) -> bool {
@@ -14,11 +14,11 @@ pub fn extent_3d(extent: Extent3D) -> vk::Extent3D {
     }
 }
 
-pub fn offset_3d(extent: Extent3D) -> vk::Extent3D {
-    vk::Extent3D {
-        width: extent.width,
-        height: extent.height,
-        depth: extent.depth,
+pub fn offset_3d(origin: Origin3D) -> vk::Offset3D {
+    vk::Offset3D {
+        x: origin.x,
+        y: origin.y,
+        z: origin.z,
     }
 }
 

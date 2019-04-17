@@ -2,17 +2,18 @@ use ash::version::DeviceV1_0;
 use ash::vk;
 use smallvec::SmallVec;
 
-use crate::imp::command::{BufferCopy, Command, TextureCopy};
+use crate::imp::command::{BufferCopy, Command, TextureBlit, TextureCopy};
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::pass_resource_usage::CommandBufferResourceUsage;
 use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
-use crate::imp::{render_pass, texture, DeviceInner, PipelineLayoutInner};
+use crate::imp::{render_pass, sampler, texture, util, DeviceInner, PipelineLayoutInner};
 use crate::imp::{CommandBufferInner, RenderPipelineInner};
 
 use crate::{BufferUsageFlags, Extent3D, IndexFormat, TextureUsageFlags};
 
 use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::device::DeviceState;
+
 use std::sync::Arc;
 
 pub const MAX_VERTEX_INPUTS: usize = 16;
@@ -91,6 +92,31 @@ fn image_copy(src: &TextureCopy, dst: &TextureCopy, size_texels: Extent3D) -> vk
     }
 }
 
+fn image_blit(src: &TextureBlit, dst: &TextureBlit) -> vk::ImageBlit {
+    vk::ImageBlit {
+        src_subresource: vk::ImageSubresourceLayers {
+            aspect_mask: texture::aspect_mask(src.texture.descriptor.format),
+            mip_level: src.mip_level,
+            base_array_layer: src.array_layer,
+            layer_count: 1,
+        },
+        src_offsets: [
+            util::offset_3d(src.bounds_texels[0]),
+            util::offset_3d(src.bounds_texels[1]),
+        ],
+        dst_subresource: vk::ImageSubresourceLayers {
+            aspect_mask: texture::aspect_mask(dst.texture.descriptor.format),
+            mip_level: dst.mip_level,
+            base_array_layer: dst.array_layer,
+            layer_count: 1,
+        },
+        dst_offsets: [
+            util::offset_3d(dst.bounds_texels[0]),
+            util::offset_3d(dst.bounds_texels[1]),
+        ],
+    }
+}
+
 impl CommandBufferInner {
     pub fn record_commands(
         &self,
@@ -124,7 +150,7 @@ impl CommandBufferInner {
                     src.buffer
                         .transition_usage_now(command_buffer, BufferUsageFlags::TRANSFER_SRC)?;
                     dst.texture
-                        .transition_usage_now(command_buffer, TextureUsageFlags::TRANSFER_DST)?;
+                        .transition_usage_now(command_buffer, TextureUsageFlags::TRANSFER_DST, None)?;
                     let region = buffer_image_copy(src, dst, *size_texels);
                     unsafe {
                         self.device.raw.cmd_copy_buffer_to_image(
@@ -138,7 +164,7 @@ impl CommandBufferInner {
                 }
                 Command::CopyTextureToBuffer { src, dst, size_texels } => {
                     src.texture
-                        .transition_usage_now(command_buffer, TextureUsageFlags::TRANSFER_SRC)?;
+                        .transition_usage_now(command_buffer, TextureUsageFlags::TRANSFER_SRC, None)?;
                     dst.buffer
                         .transition_usage_now(command_buffer, BufferUsageFlags::TRANSFER_DST)?;
                     let region = buffer_image_copy(dst, src, *size_texels);
@@ -153,19 +179,63 @@ impl CommandBufferInner {
                     }
                 }
                 Command::CopyTextureToTexture { dst, src, size_texels } => {
+                    let src_usage = TextureUsageFlags::TRANSFER_SRC;
+                    let src_subresource = Some(texture::Subresource {
+                        array_layer: src.array_layer,
+                        mip_level: src.mip_level,
+                    });
                     src.texture
-                        .transition_usage_now(command_buffer, TextureUsageFlags::TRANSFER_SRC)?;
+                        .transition_usage_now(command_buffer, src_usage, src_subresource)?;
+
+                    let dst_usage = TextureUsageFlags::TRANSFER_DST;
+                    let dst_subresource = Some(texture::Subresource {
+                        array_layer: dst.array_layer,
+                        mip_level: dst.mip_level,
+                    });
                     dst.texture
-                        .transition_usage_now(command_buffer, TextureUsageFlags::TRANSFER_DST)?;
+                        .transition_usage_now(command_buffer, dst_usage, dst_subresource)?;
+
                     let region = image_copy(src, dst, *size_texels);
+
                     unsafe {
                         self.device.raw.cmd_copy_image(
                             command_buffer,
                             src.texture.handle,
-                            vk::ImageLayout::GENERAL,
+                            vk::ImageLayout::TRANSFER_SRC_OPTIMAL,
                             dst.texture.handle,
                             vk::ImageLayout::TRANSFER_DST_OPTIMAL,
                             &[region],
+                        );
+                    }
+                }
+                Command::BlitTextureToTexture { src, dst, filter } => {
+                    let src_usage = TextureUsageFlags::TRANSFER_SRC;
+                    let src_subresource = Some(texture::Subresource {
+                        array_layer: src.array_layer,
+                        mip_level: src.mip_level,
+                    });
+                    src.texture
+                        .transition_usage_now(command_buffer, src_usage, src_subresource)?;
+
+                    let dst_usage = TextureUsageFlags::TRANSFER_DST;
+                    let dst_subresource = Some(texture::Subresource {
+                        array_layer: dst.array_layer,
+                        mip_level: dst.mip_level,
+                    });
+                    dst.texture
+                        .transition_usage_now(command_buffer, dst_usage, dst_subresource)?;
+
+                    let region = image_blit(src, dst);
+
+                    unsafe {
+                        self.device.raw.cmd_blit_image(
+                            command_buffer,
+                            src.texture.handle,
+                            vk::ImageLayout::TRANSFER_SRC_OPTIMAL,
+                            dst.texture.handle,
+                            vk::ImageLayout::TRANSFER_DST_OPTIMAL,
+                            &[region],
+                            sampler::filter_mode(*filter),
                         );
                     }
                 }

@@ -1,6 +1,6 @@
 use vki::{
-    Extent3D, TextureAspectFlags, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
-    TextureViewDescriptor, TextureViewDimension,
+    Extent3D, FilterMode, Origin3D, TextureAspectFlags, TextureBlitView, TextureCopyView, TextureDescriptor,
+    TextureDimension, TextureFormat, TextureUsageFlags, TextureViewDescriptor, TextureViewDimension,
 };
 
 pub mod support;
@@ -93,4 +93,145 @@ fn create_texture_and_cube_view() {
 
         Ok(instance)
     });
+}
+
+#[test]
+fn copy_texture_to_texture() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let (width, height, depth) = (1024, 1024, 1);
+
+        let size = Extent3D { width, height, depth };
+
+        let texture1 = device.create_texture(TextureDescriptor {
+            usage: TextureUsageFlags::TRANSFER_SRC,
+            sample_count: 1,
+            format: TextureFormat::R8G8B8A8Unorm,
+            dimension: TextureDimension::D2,
+            size,
+            array_layer_count: 1,
+            mip_level_count: 1,
+        })?;
+
+        let texture2 = device.create_texture(TextureDescriptor {
+            usage: TextureUsageFlags::SAMPLED | TextureUsageFlags::TRANSFER_DST,
+            sample_count: 1,
+            format: TextureFormat::R8G8B8A8Unorm,
+            dimension: TextureDimension::D2,
+            size,
+            array_layer_count: 1,
+            mip_level_count: 1,
+        })?;
+
+        let src = TextureCopyView {
+            texture: &texture1,
+            mip_level: 0,
+            array_layer: 0,
+            origin: Origin3D { x: 0, y: 0, z: 0 },
+        };
+
+        let dst = TextureCopyView {
+            texture: &texture2,
+            mip_level: 0,
+            array_layer: 0,
+            origin: Origin3D { x: 0, y: 0, z: 0 },
+        };
+
+        let mut encoder = device.create_command_encoder()?;
+
+        encoder.copy_texture_to_texture(src, dst, size);
+
+        let command_buffers = &[encoder.finish()?];
+
+        let queue = device.get_queue();
+
+        queue.submit(command_buffers)?;
+
+        // TODO: Verification
+
+        // Submitting twice isn't necessary, but this helps catch issues with subresource tracking
+        queue.submit(command_buffers)?;
+
+        Ok(instance)
+    })
+}
+
+#[test]
+fn blit_texture_to_texture_generate_mipmaps() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let (width, height, depth) = (1024, 1024, 1);
+
+        let mip_level_count = (width.max(height) as f32).log2().floor() as u32 + 1;
+
+        let texture = device.create_texture(TextureDescriptor {
+            usage: TextureUsageFlags::SAMPLED | TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST,
+            sample_count: 1,
+            format: TextureFormat::R8G8B8A8Unorm,
+            dimension: TextureDimension::D2,
+            size: Extent3D { width, height, depth },
+            array_layer_count: 1,
+            mip_level_count,
+        })?;
+
+        let mut encoder = device.create_command_encoder()?;
+
+        let mut mip_width = width;
+        let mut mip_height = height;
+
+        for i in 1..mip_level_count {
+            let src = TextureBlitView {
+                texture: &texture,
+                mip_level: i - 1,
+                array_layer: 0,
+                bounds: [
+                    Origin3D { x: 0, y: 0, z: 0 },
+                    Origin3D {
+                        x: mip_width as i32,
+                        y: mip_height as i32,
+                        z: 1,
+                    },
+                ],
+            };
+
+            if mip_width > 1 {
+                mip_width = mip_width / 2;
+            }
+
+            if mip_height > 1 {
+                mip_height = mip_height / 2;
+            }
+
+            let dst = TextureBlitView {
+                texture: &texture,
+                mip_level: i,
+                array_layer: 0,
+                bounds: [
+                    Origin3D { x: 0, y: 0, z: 0 },
+                    Origin3D {
+                        x: mip_width as i32,
+                        y: mip_height as i32,
+                        z: 1,
+                    },
+                ],
+            };
+
+            encoder.blit_texture_to_texture(src, dst, FilterMode::Linear);
+        }
+
+        let command_buffers = &[encoder.finish()?];
+
+        let queue = device.get_queue();
+
+        queue.submit(command_buffers)?;
+
+        // TODO: Verification
+
+        // Submitting twice isn't necessary, but this helps catch issues with subresource tracking
+        queue.submit(command_buffers)?;
+
+        Ok(instance)
+    })
 }

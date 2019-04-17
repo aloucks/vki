@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::{BindGroupInner, BufferInner, ComputePipelineInner, RenderPipelineInner, TextureInner};
-use crate::{Color, Extent3D, Origin3D, ShaderStageFlags};
+use crate::{Color, Extent3D, FilterMode, Origin3D, ShaderStageFlags};
 
 #[derive(Debug)]
 pub struct BufferCopy {
@@ -18,6 +18,14 @@ pub struct TextureCopy {
     pub mip_level: u32,
     pub array_layer: u32,
     pub origin_texels: Origin3D,
+}
+
+#[derive(Debug)]
+pub struct TextureBlit {
+    pub texture: Arc<TextureInner>,
+    pub mip_level: u32,
+    pub array_layer: u32,
+    pub bounds_texels: [Origin3D; 2],
 }
 
 #[derive(Debug)]
@@ -50,6 +58,11 @@ pub enum Command {
         src: TextureCopy,
         dst: TextureCopy,
         size_texels: Extent3D,
+    },
+    BlitTextureToTexture {
+        src: TextureBlit,
+        dst: TextureBlit,
+        filter: FilterMode,
     },
     Dispatch {
         x: u32,
@@ -171,7 +184,7 @@ pub enum Command {
 fn command_size() {
     // The command size can balloon if we embed a SmallVec or fixed sized array. This just
     // raises awareness..
-    assert_eq!(80, std::mem::size_of::<Command>());
+    assert_eq!(88, std::mem::size_of::<Command>());
 }
 
 //#[test]

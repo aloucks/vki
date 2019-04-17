@@ -199,7 +199,7 @@ pub struct TextureInner {
     handle: vk::Image,
     device: Arc<DeviceInner>,
     descriptor: TextureDescriptor,
-    last_usage: Mutex<TextureUsageFlags>,
+    subresource_usage: Mutex<texture::SubresourceUsageTracker>,
     // if the allocation is None, the image is owned by the swapchain
     allocation: Option<Allocation>,
     allocation_info: Option<AllocationInfo>,

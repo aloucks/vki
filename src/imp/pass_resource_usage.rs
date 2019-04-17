@@ -16,7 +16,7 @@ impl PassResourceUsage {
             buffer.transition_usage_now(command_buffer, *usage)?;
         }
         for (texture, usage) in self.textures.iter() {
-            texture.transition_usage_now(command_buffer, *usage)?;
+            texture.transition_usage_now(command_buffer, *usage, None)?;
         }
         Ok(())
     }
