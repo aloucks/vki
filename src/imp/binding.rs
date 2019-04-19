@@ -164,7 +164,9 @@ impl BindGroupInner {
 
             match (&binding.resource, layout_binding.binding_type) {
                 (&BindingResource::Buffer(ref buffer, ref range), BindingType::UniformBuffer)
-                | (&BindingResource::Buffer(ref buffer, ref range), BindingType::StorageBuffer) => {
+                | (&BindingResource::Buffer(ref buffer, ref range), BindingType::DynamicUniformBuffer)
+                | (&BindingResource::Buffer(ref buffer, ref range), BindingType::StorageBuffer)
+                | (&BindingResource::Buffer(ref buffer, ref range), BindingType::DynamicStorageBuffer) => {
                     buffer_infos[num_writes].buffer = buffer.inner.handle;
                     buffer_infos[num_writes].offset = range.start as u64;
                     buffer_infos[num_writes].range = range.end as u64;

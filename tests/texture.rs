@@ -235,3 +235,57 @@ fn blit_texture_to_texture_generate_mipmaps() {
         Ok(instance)
     })
 }
+
+#[test]
+fn create_depth_texture_and_view() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let descriptor = TextureDescriptor {
+            usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+            size: Extent3D {
+                width: 1024,
+                height: 1024,
+                depth: 1,
+            },
+            array_layer_count: 1,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::D32Float,
+        };
+
+        let texture = device.create_texture(descriptor)?;
+
+        let _texture_view = texture.create_default_view()?;
+
+        Ok(instance)
+    });
+}
+
+#[test]
+fn create_depth_stencil_texture_and_view() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let descriptor = TextureDescriptor {
+            usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+            size: Extent3D {
+                width: 1024,
+                height: 1024,
+                depth: 1,
+            },
+            array_layer_count: 1,
+            mip_level_count: 1,
+            sample_count: 1,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::D32FloatS8Uint,
+        };
+
+        let texture = device.create_texture(descriptor)?;
+
+        let _texture_view = texture.create_default_view()?;
+
+        Ok(instance)
+    });
+}

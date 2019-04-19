@@ -38,10 +38,10 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let mut event_loop = EventLoop::new();
 
-    let (mut window_width, mut window_height) = (1024, 768);
+    let (mut window_width, mut window_height) = (800, 600);
 
     let window = winit::window::WindowBuilder::new()
-        .with_title("triangle.rs")
+        .with_title("triangle_multisample.rs")
         .with_dimensions(LogicalSize::from((window_width, window_height)))
         .with_visibility(false)
         .build(&event_loop)?;
@@ -160,9 +160,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let mut encoder = device.create_command_encoder()?;
 
     encoder.copy_buffer_to_buffer(
-        staging_vertex_buffer.unmap(),
+        &staging_vertex_buffer.unmap(),
         0,
-        vertex_buffer.clone(),
+        &vertex_buffer,
         0,
         vertices_size_bytes,
     );
