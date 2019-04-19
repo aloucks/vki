@@ -426,6 +426,7 @@ impl Drop for MappedBuffer {
 
 impl Buffer {
     /// Uploads all elements of `data` into the buffer. The buffer `offset` is in units of `T`.
+    /// The buffer requires the `TRANSFER_DST` usage flag to be set.
     ///
     /// ## Implementation Note
     ///

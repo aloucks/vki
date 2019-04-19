@@ -108,7 +108,7 @@ fn create_buffer_mapped() {
             size: data_byte_size,
         })?;
 
-        encoder.copy_buffer_to_buffer(write_buffer_mapped.unmap(), 0, read_buffer.clone(), 0, data_byte_size);
+        encoder.copy_buffer_to_buffer(&write_buffer_mapped.unmap(), 0, &read_buffer, 0, data_byte_size);
 
         let queue = device.get_queue();
 

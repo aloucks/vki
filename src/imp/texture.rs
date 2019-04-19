@@ -30,6 +30,7 @@ pub fn memory_usage(_usage: TextureUsageFlags) -> MemoryUsage {
 
 pub fn is_depth(format: TextureFormat) -> bool {
     match format {
+        TextureFormat::D32Float => true,
         TextureFormat::D32FloatS8Uint => true,
         _ => false,
     }

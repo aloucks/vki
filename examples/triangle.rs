@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let window = winit::window::WindowBuilder::new()
         .with_title("triangle.rs")
-        .with_dimensions(LogicalSize::new(1024 as _, 768 as _))
+        .with_dimensions(LogicalSize::from((800, 600)))
         .with_visibility(false)
         .build(&event_loop)?;
 
@@ -159,9 +159,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let mut encoder = device.create_command_encoder()?;
 
     encoder.copy_buffer_to_buffer(
-        staging_vertex_buffer.unmap(),
+        &staging_vertex_buffer.unmap(),
         0,
-        vertex_buffer.clone(),
+        &vertex_buffer,
         0,
         vertices_size_bytes,
     );

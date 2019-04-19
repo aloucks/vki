@@ -166,9 +166,9 @@ impl CommandEncoder {
 
     pub fn copy_buffer_to_buffer(
         &mut self,
-        src: Buffer,
+        src: &Buffer,
         src_offset: usize,
-        dst: Buffer,
+        dst: &Buffer,
         dst_offset: usize,
         size_bytes: usize,
     ) {
