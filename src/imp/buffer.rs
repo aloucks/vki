@@ -4,8 +4,8 @@ use ash::vk::{DependencyFlags, MemoryPropertyFlags};
 
 use vk_mem::{AllocationCreateFlags, AllocationCreateInfo, MemoryUsage};
 
-use crate::imp::{BufferInner, BufferState, DeviceInner};
-use crate::{Buffer, BufferDescriptor, BufferUsageFlags, MappedBuffer};
+use crate::imp::{pipeline, texture, BufferInner, BufferState, BufferViewInner, DeviceInner};
+use crate::{Buffer, BufferDescriptor, BufferUsageFlags, BufferView, BufferViewDescriptor, MappedBuffer};
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use parking_lot::Mutex;
@@ -73,6 +73,11 @@ pub fn usage_flags(usage: BufferUsageFlags) -> vk::BufferUsageFlags {
 
     if usage.intersects(BufferUsageFlags::STORAGE) {
         flags |= vk::BufferUsageFlags::STORAGE_BUFFER;
+    }
+
+    // TODO: The GpuWeb spec doesn't yet define texel storage
+    if usage.intersects(BufferUsageFlags::STORAGE) {
+        flags |= vk::BufferUsageFlags::STORAGE_TEXEL_BUFFER;
     }
 
     flags
@@ -508,5 +513,39 @@ impl Buffer {
             inner: Arc::clone(&self.inner),
             data,
         })
+    }
+
+    pub fn create_view(&self, descriptor: BufferViewDescriptor) -> Result<BufferView, vk::Result> {
+        let buffer_view = BufferViewInner::new(self.inner.clone(), descriptor)?;
+        Ok(buffer_view.into())
+    }
+}
+
+impl BufferViewInner {
+    pub fn new(buffer: Arc<BufferInner>, descriptor: BufferViewDescriptor) -> Result<BufferViewInner, vk::Result> {
+        let format = descriptor.format.either(texture::image_format, pipeline::vertex_format);
+        let create_info = vk::BufferViewCreateInfo {
+            buffer: buffer.handle,
+            offset: descriptor.offset as u64,
+            range: descriptor.size as u64,
+            format,
+            ..Default::default()
+        };
+        let handle = unsafe { buffer.device.raw.create_buffer_view(&create_info, None)? };
+        Ok(BufferViewInner { handle, buffer })
+    }
+}
+
+impl Into<BufferView> for BufferViewInner {
+    fn into(self) -> BufferView {
+        BufferView { inner: Arc::new(self) }
+    }
+}
+
+impl Drop for BufferViewInner {
+    fn drop(&mut self) {
+        let mut state = self.buffer.device.state.lock();
+        let serial = state.get_next_pending_serial();
+        state.get_fenced_deleter().delete_when_unused(self.handle, serial);
     }
 }

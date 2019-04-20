@@ -126,7 +126,16 @@ impl CommandEncoderInner {
                         .expect("BindingType::SampledTexture => BindingResource::TextureView");
                     usage_tracker.texture_used_as(texture_view.inner.texture.clone(), TextureUsageFlags::SAMPLED);
                 }
-                _ => {}
+                BindingType::StorageTexelBuffer => {
+                    let buffer_view = bind_group.inner.bindings[index]
+                        .resource
+                        .as_buffer_view()
+                        .expect("BindingType::StorageTexelBuffer => BindingResource::BufferView");
+                    usage_tracker.buffer_used_as(buffer_view.inner.buffer.clone(), BufferUsageFlags::STORAGE);
+                }
+                _ => {
+                    unimplemented!("binding type: {:?}", layout_binding.binding_type);
+                }
             }
         }
 

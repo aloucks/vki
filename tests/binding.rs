@@ -1,7 +1,7 @@
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BufferDescriptor, BufferUsageFlags, Extent3D, SamplerDescriptor, ShaderStageFlags, TextureDescriptor,
-    TextureDimension, TextureFormat, TextureUsageFlags,
+    BindingType, BufferDescriptor, BufferUsageFlags, BufferViewDescriptor, Extent3D, SamplerDescriptor,
+    ShaderStageFlags, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
 };
 
 pub mod support;
@@ -35,6 +35,17 @@ fn create_bind_group() {
             size: 1024,
         };
         let buffer = device.create_buffer(buffer_descriptor)?;
+
+        let texel_buffer_descriptor = BufferDescriptor {
+            usage: BufferUsageFlags::STORAGE,
+            size: 1024,
+        };
+        let texel_buffer = device.create_buffer(texel_buffer_descriptor)?;
+        let texel_buffer_view = texel_buffer.create_view(BufferViewDescriptor {
+            format: either::Left(TextureFormat::R8G8B8A8Unorm),
+            size: 1024,
+            offset: 0,
+        })?;
 
         let sampler_descriptor = SamplerDescriptor::default();
         let sampler = device.create_sampler(sampler_descriptor)?;
@@ -72,6 +83,11 @@ fn create_bind_group() {
                     visibility: ShaderStageFlags::FRAGMENT,
                     binding_type: BindingType::SampledTexture,
                 },
+                BindGroupLayoutBinding {
+                    binding: 3,
+                    visibility: ShaderStageFlags::FRAGMENT,
+                    binding_type: BindingType::StorageTexelBuffer,
+                },
             ],
         };
         let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
@@ -90,6 +106,10 @@ fn create_bind_group() {
                 BindGroupBinding {
                     binding: 2,
                     resource: BindingResource::TextureView(texture_view),
+                },
+                BindGroupBinding {
+                    binding: 3,
+                    resource: BindingResource::BufferView(texel_buffer_view),
                 },
             ],
         };

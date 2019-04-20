@@ -24,6 +24,7 @@ use winit::window::{Window, WindowBuilder};
 pub const DEFAULT_DEPTH_FORMAT: TextureFormat = TextureFormat::D32FloatS8Uint;
 pub const DEFAULT_COLOR_FORMAT: TextureFormat = TextureFormat::B8G8R8A8Unorm;
 
+#[allow(unused_macros)]
 macro_rules! offset_of {
     ($base:path, $field:ident) => {{
         #[allow(unused_unsafe)]

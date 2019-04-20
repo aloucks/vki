@@ -236,6 +236,14 @@ pub struct BufferInner {
 handle_traits!(BufferInner);
 
 #[derive(Debug)]
+pub struct BufferViewInner {
+    handle: vk::BufferView,
+    buffer: Arc<BufferInner>,
+}
+
+handle_traits!(BufferViewInner);
+
+#[derive(Debug)]
 pub struct SamplerInner {
     handle: vk::Sampler,
     device: Arc<DeviceInner>,

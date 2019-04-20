@@ -1,8 +1,7 @@
 #![allow(clippy::needless_lifetimes)]
 #![allow(dead_code)]
 
-// TODO: Using `extern crate` here helps intellij find `bitflags!` defined structs,
-//       although auto-completion for the associated constants still does not work.
+// TODO: Using `extern crate` here helps intellij find `bitflags!` defined structs.
 #[macro_use]
 extern crate bitflags;
 //use bitflags::bitflags;
@@ -179,6 +178,9 @@ pub enum TextureFormat {
     B8G8R8A8Unorm,
     B8G8R8A8UnormSRGB,
 
+    // TODO: Update 128-bit formats
+    RGBA32Float,
+
     D32Float,
     D32FloatS8Uint,
 }
@@ -274,6 +276,20 @@ pub struct BufferDescriptor {
 #[derive(Clone, Debug)]
 pub struct Buffer {
     inner: Arc<imp::BufferInner>,
+}
+
+/// non-standard / not in the gpuweb spec
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct BufferViewDescriptor {
+    pub format: either::Either<TextureFormat, VertexFormat>,
+    pub offset: usize,
+    pub size: usize,
+}
+
+/// non-standard / not in the gpuweb spec
+#[derive(Clone, Debug)]
+pub struct BufferView {
+    inner: Arc<imp::BufferViewInner>,
 }
 
 pub struct MappedBuffer {
@@ -383,8 +399,8 @@ pub enum BindingType {
     Sampler,
     SampledTexture,
     StorageBuffer,
-    //StorageTexture, // TOOD: Not GpuWeb
     DynamicStorageBuffer,
+    StorageTexelBuffer, // TOOD: Not GpuWeb
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -409,6 +425,7 @@ pub enum BindingResource {
     Sampler(Sampler),
     TextureView(TextureView),
     Buffer(Buffer, Range<usize>),
+    BufferView(BufferView), // not in gpuweb spec
 }
 
 impl BindingResource {
@@ -431,6 +448,14 @@ impl BindingResource {
     pub fn as_buffer(&self) -> Option<(&Buffer, &Range<usize>)> {
         if let BindingResource::Buffer(ref buffer, range) = self {
             Some((buffer, range))
+        } else {
+            None
+        }
+    }
+
+    pub fn as_buffer_view(&self) -> Option<&BufferView> {
+        if let BindingResource::BufferView(ref buffer_view) = self {
+            Some(buffer_view)
         } else {
             None
         }
