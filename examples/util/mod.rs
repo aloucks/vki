@@ -397,7 +397,7 @@ impl Camera {
         let height = self.viewport.height - self.viewport.bottom;
         let aspect = width as f32 / height as f32;
 
-        let clip = clip_correction();
+        let clip = clip_correction_matrix();
 
         self.projection = clip * cgmath::perspective(self.fovy, aspect, self.near, self.far);
     }
@@ -738,10 +738,18 @@ pub fn to_float_secs(d: std::time::Duration) -> f32 {
 
 /// Returns a clip correction matrix to account for the Vulkan coordinate system.
 ///
+/// Vulkan clip space has inverted Y and half Z.
+///
+/// https://github.com/LunarG/VulkanSamples/commit/0dd36179880238014512c0637b0ba9f41febe803
+///
+/// https://matthewwellings.com/blog/the-new-vulkan-coordinate-system/
+///
+/// http://anki3d.org/vulkan-coordinate-system/
+///
 /// ```glsl
 /// gl_Position = clip * projection * view * model * vec4(position, 1.0);
 /// ```
-pub fn clip_correction() -> Matrix4<f32> {
+pub fn clip_correction_matrix() -> Matrix4<f32> {
     let mut clip = cgmath::Matrix4::identity();
     clip[1][1] = -1.0;
     clip[2][2] = 0.5;
