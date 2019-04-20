@@ -636,8 +636,8 @@ impl<T: 'static> EventHandler<T> for ArcBallCameraControlHandler {
                 ..
             } => {
                 let transform = app.camera.view.invert().unwrap();
-                let forward = transform.transform_vector(-Vector3::unit_z());
                 let left = transform.transform_vector(Vector3::unit_x());
+                let forward = -left.cross(Vector3::unit_y());
 
                 match virtual_keycode {
                     VirtualKeyCode::W => {
@@ -658,6 +658,12 @@ impl<T: 'static> EventHandler<T> for ArcBallCameraControlHandler {
                     VirtualKeyCode::D => {
                         app.camera.eye += left;
                         app.camera.center += left;
+                    }
+                    VirtualKeyCode::PageUp => {
+                        app.camera.eye += Vector3::unit_y();
+                    }
+                    VirtualKeyCode::PageDown => {
+                        app.camera.eye -= Vector3::unit_y();
                     }
                     _ => {}
                 }
