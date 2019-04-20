@@ -14,6 +14,7 @@ pub struct FencedDeleter {
     swapchains: SerialQueue<(vk::SwapchainKHR, Arc<SurfaceInner>)>,
     semaphores: SerialQueue<vk::Semaphore>,
     buffers: SerialQueue<(vk::Buffer, Allocation)>,
+    buffer_views: SerialQueue<vk::BufferView>,
     images: SerialQueue<(vk::Image, Allocation)>,
     image_views: SerialQueue<vk::ImageView>,
     samplers: SerialQueue<vk::Sampler>,
@@ -42,6 +43,7 @@ impl FencedDeleter {
         log::trace!(" swapchains:             {}", self.swapchains.len());
         log::trace!(" semaphores:             {}", self.semaphores.len());
         log::trace!(" buffers:                {}", self.buffers.len());
+        log::trace!(" buffer_views:           {}", self.buffer_views.len());
         log::trace!(" images:                 {}", self.images.len());
         log::trace!(" image_views:            {}", self.image_views.len());
         log::trace!(" descriptor_set_layouts: {}", self.descriptor_set_layouts.len());
@@ -84,6 +86,13 @@ impl FencedDeleter {
             log::trace!("destroy image_view: {:?}, completed: {:?}", handle, serial);
             unsafe {
                 device.raw.destroy_image_view(handle, None);
+            }
+        }
+
+        for (handle, serial) in self.buffer_views.drain_up_to(last_completed_serial) {
+            log::trace!("destroy buffer_view: {:?}, completed: {:?}", handle, serial);
+            unsafe {
+                device.raw.destroy_buffer_view(handle, None);
             }
         }
 
@@ -187,6 +196,12 @@ impl DeleteWhenUnused<vk::Semaphore> for FencedDeleter {
 impl DeleteWhenUnused<(vk::Buffer, Allocation)> for FencedDeleter {
     fn get_serial_queue(&mut self) -> &mut SerialQueue<(vk::Buffer, Allocation)> {
         &mut self.buffers
+    }
+}
+
+impl DeleteWhenUnused<vk::BufferView> for FencedDeleter {
+    fn get_serial_queue(&mut self) -> &mut SerialQueue<vk::BufferView> {
+        &mut self.buffer_views
     }
 }
 

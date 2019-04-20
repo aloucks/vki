@@ -18,7 +18,7 @@ pub fn descriptor_type(binding_type: BindingType) -> vk::DescriptorType {
         BindingType::DynamicUniformBuffer => vk::DescriptorType::UNIFORM_BUFFER_DYNAMIC,
         BindingType::UniformBuffer => vk::DescriptorType::UNIFORM_BUFFER,
         BindingType::StorageBuffer => vk::DescriptorType::STORAGE_BUFFER,
-        //BindingType::StorageTexture => vk::DescriptorType::STORAGE_TEXEL_BUFFER,
+        BindingType::StorageTexelBuffer => vk::DescriptorType::STORAGE_TEXEL_BUFFER,
     }
 }
 
@@ -149,6 +149,7 @@ impl BindGroupInner {
         let mut writes = vec![vk::WriteDescriptorSet::default(); MAX_BINDINGS_PER_GROUP];
         let mut buffer_infos = vec![vk::DescriptorBufferInfo::default(); MAX_BINDINGS_PER_GROUP];
         let mut image_infos = vec![vk::DescriptorImageInfo::default(); MAX_BINDINGS_PER_GROUP];
+        let mut texel_buffer_views = vec![vk::BufferView::null(); MAX_BINDINGS_PER_GROUP];
 
         let mut num_writes = 0;
 
@@ -181,6 +182,10 @@ impl BindGroupInner {
                     // TODO: Dawn notes that there could be two usages?
                     image_infos[num_writes].image_layout = vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL;
                     write.p_image_info = &image_infos[num_writes];
+                }
+                (&BindingResource::BufferView(ref buffer_view), BindingType::StorageTexelBuffer) => {
+                    texel_buffer_views[num_writes] = buffer_view.inner.handle;
+                    write.p_texel_buffer_view = &texel_buffer_views[num_writes];
                 }
                 _ => {
                     // TODO
