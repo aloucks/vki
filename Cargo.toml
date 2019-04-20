@@ -28,7 +28,9 @@ pretty_env_logger = "0.3.0"
 winit = { git = "https://github.com/rust-windowing/winit.git", rev = "2253565" } # branch = "eventloop-2.0"
 # winit = { path = "../winit" } # branch = "eventloop-2.0"
 # winit = "0.19.1"
+num-traits = "0.2.6"
 cgmath = "0.17.0"
+image = "0.21.1"
 
 [profile.dev]
 opt-level = 1

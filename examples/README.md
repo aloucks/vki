@@ -13,3 +13,8 @@
 ## cube.rs
 
 ![cube.rs](screenshots/cube.png)
+
+
+## cube_texture.rs
+
+![cube_texture.rs](screenshots/cube_texture.png)
