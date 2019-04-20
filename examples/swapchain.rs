@@ -1,4 +1,3 @@
-use vki::winit_surface_descriptor;
 use vki::{DeviceDescriptor, Instance, RequestAdapterOptions, SwapchainDescriptor, TextureFormat, TextureUsageFlags};
 
 use winit::dpi::LogicalSize;
@@ -8,8 +7,12 @@ use winit::platform::desktop::EventLoopExtDesktop;
 
 use std::time::{Duration, Instant};
 
+const VK_ERROR_OUT_OF_DATE_KHR: ash::vk::Result = ash::vk::Result::ERROR_OUT_OF_DATE_KHR;
+
 fn main() -> Result<(), Box<std::error::Error>> {
-    std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
+    if std::env::var("VK_INSTANCE_LAYERS").is_err() {
+        std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
+    }
 
     let _ = pretty_env_logger::try_init();
 
@@ -17,7 +20,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let window = winit::window::WindowBuilder::new()
         .with_title("swapchain.rs")
-        .with_dimensions(LogicalSize::new(1024 as _, 768 as _))
+        .with_dimensions(LogicalSize::from((800, 600)))
         .with_visibility(false)
         .build(&event_loop)?;
 
@@ -26,7 +29,15 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let adapter = instance.request_adaptor(adapter_options)?;
     println!("Adapter: {}", adapter.name());
 
-    let surface_descriptor = winit_surface_descriptor!(&window);
+    // The winit_surface_descriptor macro is optional. It creates the platform specific
+    // descriptor without vki requiring a dependency on winit (or a specific version of winit).
+    //
+    // On windows, this evaluates to:
+    //
+    // SurfaceDescriptorWin32 {
+    //    hwnd: window.get_hwnd()
+    // }
+    let surface_descriptor = vki::winit_surface_descriptor!(&window);
 
     let surface = instance.create_surface(&surface_descriptor)?;
 
@@ -36,8 +47,8 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let formats = device.get_supported_swapchain_formats(&surface)?;
     println!("Supported swapchain formats: {:?}", formats);
 
-    let swapchain_format = TextureFormat::B8G8R8A8UnormSRGB;
-    assert!(formats.contains(&swapchain_format));
+    let swapchain_format = TextureFormat::B8G8R8A8Unorm;
+    assert!(formats.contains(&swapchain_format), "Unsupported swapchain format");
 
     let swapchain_desc = SwapchainDescriptor {
         surface: &surface,
@@ -46,13 +57,16 @@ fn main() -> Result<(), Box<std::error::Error>> {
     };
 
     let mut swapchain = device.create_swapchain(swapchain_desc, None)?;
-    let mut last_frame_time = Instant::now();
+
     window.show();
 
     event_loop.run_return(|event, _target, control_flow| {
         let mut handle_event = || {
             match event {
                 Event::NewEvents(StartCause::Init) | Event::NewEvents(StartCause::ResumeTimeReached { .. }) => {
+                    const TARGET_FRAMERATE: u64 = 60;
+                    let max_wait_millis = 1000 / TARGET_FRAMERATE;
+                    *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(max_wait_millis));
                     window.request_redraw();
                 }
                 Event::WindowEvent {
@@ -63,20 +77,38 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     event: WindowEvent::Resized(_),
                     ..
                 } => {
+                    // Note that the swapchain should not be re-created when the window width
+                    // or height is equal to zero. This can happen during a resize or when
+                    // the window is minimized. We do not handle this case here, but it is
+                    // handled in the examples framework. Minimizing this window should result
+                    // in a validation error.
                     swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
                 }
                 Event::WindowEvent {
                     event: WindowEvent::RedrawRequested,
                     ..
                 } => {
-                    let frame = swapchain.acquire_next_image()?;
-                    let frame_time = Instant::now();
-                    //println!("new frame; time: {:?}", frame_time);
-                    let queue = device.get_queue();
-                    queue.present(frame)?;
+                    // println!("new frame; time: {:?}", Instant::now());
 
-                    *control_flow = ControlFlow::WaitUntil(last_frame_time + Duration::from_millis(16));
-                    last_frame_time = frame_time;
+                    // End the frame early if the swapchain is out of date and hasn't been re-created yet
+                    let frame = match swapchain.acquire_next_image() {
+                        Ok(frame) => frame,
+                        Err(VK_ERROR_OUT_OF_DATE_KHR) => return Ok(()),
+                        Err(e) => return Err(e)?,
+                    };
+
+                    // Record drawing commands here!
+
+                    let queue = device.get_queue();
+
+                    // Submit drawing commands here!
+
+                    // Drop the frame if the swapchain is out of date and hasn't been re-created yet
+                    match queue.present(frame) {
+                        Ok(()) => {}
+                        Err(VK_ERROR_OUT_OF_DATE_KHR) => return Ok(()),
+                        Err(e) => return Err(e)?,
+                    }
                 }
                 _ => {}
             }
