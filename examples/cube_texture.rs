@@ -100,16 +100,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         address_mode_v: AddressMode::ClampToEdge,
         address_mode_w: AddressMode::ClampToEdge,
         lod_max_clamp: 1000.0,
-        lod_min_clamp: 1.0,
+        lod_min_clamp: 0.0,
         mipmap_filter: FilterMode::Linear,
         min_filter: FilterMode::Linear,
         mag_filter: FilterMode::Linear,
-        compare_function: CompareFunction::Always,
+        compare_function: CompareFunction::Never,
     })?;
 
     // create texture
 
     let mip_level_count = (texture_size.width.max(texture_size.height) as f32).log2().floor() as u32 + 1;
+
+    println!("lod mip_levels: {}", mip_level_count);
 
     let container_texture = app.device.create_texture(TextureDescriptor {
         mip_level_count,
