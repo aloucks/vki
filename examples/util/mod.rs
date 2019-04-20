@@ -353,7 +353,7 @@ pub struct Camera {
 
 impl Camera {
     pub fn new(window_width: u32, window_height: u32) -> Camera {
-        let fovy = Deg(65.0);
+        let fovy = Deg(45.0);
         let near = 0.01;
         let far = 10000.0;
 
