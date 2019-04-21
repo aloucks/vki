@@ -64,7 +64,7 @@ impl InstanceInner {
                 let name = CStr::from_ptr(p.extension_name.as_ptr());
                 let name_cow = name.to_string_lossy();
                 log::trace!("found instance extension: {}", name_cow);
-                if name_cow.contains("surface") {
+                if name_cow.ends_with("surface") {
                     include_extension = true;
                 }
                 if name_cow == "VK_EXT_debug_report" && init_debug_report {
@@ -76,7 +76,9 @@ impl InstanceInner {
                 }
             }
 
-            for p in entry.enumerate_instance_layer_properties()?.iter() {
+            let instance_layer_properties = entry.enumerate_instance_layer_properties()?;
+
+            for p in instance_layer_properties.iter() {
                 let name = CStr::from_ptr(p.layer_name.as_ptr());
                 log::trace!("found instance layer: {}", name.to_string_lossy());
             }
@@ -84,10 +86,21 @@ impl InstanceInner {
             let app_info = vk::ApplicationInfo::builder()
                 .api_version(ash::vk_make_version!(1, 0, 0));
 
-            let layer_names = [
+            let layer_names = vec![
                 #[cfg(debug_assertions)]
                 c_str!("VK_LAYER_LUNARG_standard_validation")
             ];
+
+            for layer_name in layer_names.iter() {
+                let requested_layer_name = CStr::from_ptr(*layer_name);
+                let is_available = instance_layer_properties.iter().any(|p| {
+                    let name = CStr::from_ptr(p.layer_name.as_ptr());
+                    name == requested_layer_name
+                });
+                if !is_available {
+                    log::error!("requested layer unavailable: {:?}", requested_layer_name.to_string_lossy());
+                }
+            }
 
             let extension_names_ptrs: Vec<_> = extension_names.iter().map(|name| name.as_ptr()).collect();
 
