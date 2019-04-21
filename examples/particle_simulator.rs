@@ -26,13 +26,6 @@ use rand::Rng;
 
 use std::time::{Duration, Instant};
 
-#[repr(C)]
-#[derive(Copy, Clone, Debug)]
-struct PositionColor {
-    pub position: [f32; 3],
-    pub color: [f32; 4],
-}
-
 const PARTICLE_GROUP_SIZE: usize = 512;
 const PARTICLE_GROUP_COUNT: usize = 8192;
 const PARTICLE_COUNT: usize = PARTICLE_GROUP_SIZE * PARTICLE_GROUP_COUNT;
