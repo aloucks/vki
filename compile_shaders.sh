@@ -5,7 +5,8 @@
 set -e
 
 DIR=$(dirname ${BASH_SOURCE[0]})
-FILES=$(find $DIR -name "*.glsl")
+# find all glsl files except for anything nested under ./target
+FILES=$(find $DIR -path ./target -prune -o -name "*.glsl" -print)
 
 for FILE in ${FILES}; do
     NAME_GLSL=$(basename ${FILE})

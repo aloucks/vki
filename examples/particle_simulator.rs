@@ -26,7 +26,6 @@ use rand::Rng;
 
 use std::time::{Duration, Instant};
 
-
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 struct PositionColor {

@@ -119,6 +119,9 @@ pub struct SurfaceDescriptorUnix {
 #[cfg(windows)]
 pub type SurfaceDescriptor = SurfaceDescriptorWin32;
 
+#[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+pub type SurfaceDescriptor = SurfaceDescriptorUnix;
+
 #[derive(Clone, Debug)]
 pub struct Surface {
     inner: Arc<imp::SurfaceInner>,

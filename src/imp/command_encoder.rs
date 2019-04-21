@@ -105,18 +105,18 @@ impl CommandEncoderInner {
     ) {
         for (index, layout_binding) in bind_group.inner.layout.bindings.iter().enumerate() {
             match layout_binding.binding_type {
-                BindingType::UniformBuffer => {
+                BindingType::UniformBuffer | BindingType::DynamicUniformBuffer => {
                     let (buffer, _) = bind_group.inner.bindings[index]
                         .resource
                         .as_buffer()
-                        .expect("BindingType::UniformBuffer => BindingResource::Buffer");
+                        .expect("BindingType::[Dynamic]UniformBuffer => BindingResource::Buffer");
                     usage_tracker.buffer_used_as(buffer.inner.clone(), BufferUsageFlags::UNIFORM);
                 }
-                BindingType::StorageBuffer => {
+                BindingType::StorageBuffer | BindingType::DynamicStorageBuffer => {
                     let (buffer, _) = bind_group.inner.bindings[index]
                         .resource
                         .as_buffer()
-                        .expect("BindingType::StorageBuffer => BindingResource::Buffer");
+                        .expect("BindingType::[Dynamic]StorageBuffer => BindingResource::Buffer");
                     usage_tracker.buffer_used_as(buffer.inner.clone(), BufferUsageFlags::STORAGE);
                 }
                 BindingType::SampledTexture => {
@@ -133,8 +133,8 @@ impl CommandEncoderInner {
                         .expect("BindingType::StorageTexelBuffer => BindingResource::BufferView");
                     usage_tracker.buffer_used_as(buffer_view.inner.buffer.clone(), BufferUsageFlags::STORAGE);
                 }
-                _ => {
-                    unimplemented!("binding type: {:?}", layout_binding.binding_type);
+                BindingType::Sampler => {
+                    // no usage to track
                 }
             }
         }

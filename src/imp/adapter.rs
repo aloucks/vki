@@ -105,10 +105,19 @@ impl AdapterInner {
         };
 
         unsafe {
-            let physical_devices = instance.raw.enumerate_physical_devices()?;
+            let physical_devices = match instance.raw.enumerate_physical_devices() {
+                Ok(physical_devices) => physical_devices,
+                Err(e) => {
+                    log::error!("failed to enumerate physical devices: {:?}", e);
+                    return Err(e)?;
+                }
+            };
             let physical_device_properties = &mut Vec::with_capacity(physical_devices.len());
             for physical_device in physical_devices.iter().cloned() {
-                physical_device_properties.push(instance.raw.get_physical_device_properties(physical_device));
+                let properties = instance.raw.get_physical_device_properties(physical_device);
+                let name = CStr::from_ptr(properties.device_name.as_ptr());
+                log::debug!("found physical device: {:?} ({})", name, properties.device_type);
+                physical_device_properties.push(properties);
             }
             match options.power_preference {
                 PowerPreference::HighPerformance => {
