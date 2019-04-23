@@ -190,7 +190,7 @@ impl BindGroupInner {
                 _ => {
                     // TODO
                     panic!(
-                        "invalid binding.binding_type: {:?}, binding.resource: {:?}",
+                        "binding mismatch: binding.binding_type: {:?}, binding.resource: {:?}",
                         layout_binding.binding_type, binding.resource
                     );
                 }
