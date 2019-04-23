@@ -367,8 +367,6 @@ impl DeviceState {
         for (fence, serial) in self.fences_in_flight.iter().cloned() {
             match unsafe { device.raw.get_fence_status(fence) } {
                 Ok(()) => {
-                    log::trace!("resetting fence: {:?}, completed_serial: {:?}", fence, serial);
-                    unsafe { device.raw.reset_fences(&[fence])? };
                     last_completed_serial = Some(serial);
                 }
                 Err(vk::Result::NOT_READY) => {
@@ -381,9 +379,15 @@ impl DeviceState {
             }
         }
         if let Some(last_completed_serial) = last_completed_serial {
+            let index = self.unused_fences.len();
             for (fence, serial) in self.fences_in_flight.drain_up_to(last_completed_serial) {
                 log::trace!("recycling fence: {:?}, completed_serial: {:?}", fence, serial);
                 self.unused_fences.push(fence);
+            }
+            let fences = &self.unused_fences[index..];
+            log::trace!("resetting fences: {:?}", fences);
+            unsafe {
+                device.raw.reset_fences(fences)?;
             }
             self.last_completed_serial = last_completed_serial;
         }
