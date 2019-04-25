@@ -10,8 +10,9 @@ controls:
 |Key|Movement| 
 |---|---| 
 |`W`, `S`, `A`, `D`|Forward, Backward, Strafe-Left, Strafe-Right|
-|`PageUp`, `PageDown`|Up, Down|
+|`PageUp`, `PageDown`|Up, Down; (Hold `Shift` to preserve the focus point)|
 |`C`|Set the camera's focus point at the origin|
+|`F11`|Toggle fullscreen|
 |`Mouse-Click-Drag`|Rotate the camera around the focus point|
 |`Mouse-Scroll`|Move the camera toward or away from the focus point|
 
@@ -35,5 +36,12 @@ controls:
 ![cube_texture.rs](screenshots/cube_texture.png)
 
 ## particle_simulator.rs
+
+### Additional Controls
+
+|Key|Action| 
+|---|---| 
+|`F2`|Reset position and velocity values|
+|`F3`|Reset position values|
 
 ![particle_simulator.rs](screenshots/particle_simulator.png)
