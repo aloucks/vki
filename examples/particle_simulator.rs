@@ -10,7 +10,7 @@ use num_traits::Zero;
 
 use std::borrow::Cow;
 
-use crate::util::{App, EventHandlers};
+use crate::util::{App, EventHandler, EventHandlers};
 
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
@@ -25,6 +25,7 @@ use vki::{
 use rand::Rng;
 
 use std::time::{Duration, Instant};
+use winit::event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 
 const PARTICLE_GROUP_SIZE: usize = 512;
 const PARTICLE_GROUP_COUNT: usize = 8192;
@@ -33,16 +34,61 @@ const MAX_ATTRACTORS: usize = 64;
 
 // Derived from the particle simulator example of the OpenGL Programming Guide (chapter 12)
 
+#[derive(Default)]
+struct State {
+    reset1: bool,
+    reset2: bool,
+}
+
+struct ResetHandler;
+
+impl EventHandler<State> for ResetHandler {
+    fn on_event(&mut self, app: &mut App<State>, event: &Event<()>) -> bool {
+        if let Event::WindowEvent {
+            event:
+                WindowEvent::KeyboardInput {
+                    input:
+                        KeyboardInput {
+                            virtual_keycode: Some(VirtualKeyCode::F2),
+                            state: ElementState::Pressed,
+                            ..
+                        },
+                    ..
+                },
+            ..
+        } = event
+        {
+            app.state.reset1 = true;
+        }
+        if let Event::WindowEvent {
+            event:
+                WindowEvent::KeyboardInput {
+                    input:
+                        KeyboardInput {
+                            virtual_keycode: Some(VirtualKeyCode::F3),
+                            state: ElementState::Pressed,
+                            ..
+                        },
+                    ..
+                },
+            ..
+        } = event
+        {
+            app.state.reset2 = true;
+        }
+
+        false
+    }
+}
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let _ = pretty_env_logger::try_init();
 
-    let mut app: App<()> = App::init("particle_simulator.rs", 800, 600, EventHandlers::Default)?;
+    let mut event_handlers = EventHandlers::default_event_handlers();
 
-    //    let physical_size = app.window.get_current_monitor().get_dimensions();
-    //    let dpi_factor= app.window.get_current_monitor().get_hidpi_factor();
-    //    app.window.set_decorations(false);
-    //    app.window.set_inner_size(physical_size.to_logical(dpi_factor));
-    //    app.window.set_position(LogicalPosition::new(0.0, 0.0));
+    event_handlers.push(Box::new(ResetHandler));
+
+    let mut app: App<State> = App::init("particle_simulator.rs", 800, 600, EventHandlers::Custom(event_handlers))?;
 
     app.set_sample_count(4)?;
 
@@ -103,9 +149,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let velocity_data: Vec<Vector4<f32>> = std::iter::repeat(Vector4::<f32>::zero())
         .take(PARTICLE_COUNT)
         .map(|_| {
-            let x = rng.gen_range(-0.1, 0.1);
-            let y = rng.gen_range(-0.1, 0.1);
-            let z = rng.gen_range(-0.1, 0.1);
+            let x = rng.gen_range(-0.05, 0.05);
+            let y = rng.gen_range(-0.05, 0.05);
+            let z = rng.gen_range(-0.05, 0.05);
             let w = 0.0;
             Vector4::new(x, y, z, w)
         })
@@ -117,7 +163,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let velocity_buffer_view = velocity_buffer.create_view(BufferViewDescriptor {
         offset: 0,
         format: either::Left(TextureFormat::RGBA32Float),
-        size: util::byte_length(&velocity_data),
+        size: velocity_buffer.size(),
     })?;
 
     let position_buffer = util::create_buffer_with_data(
@@ -130,7 +176,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let position_buffer_view = position_buffer.create_view(BufferViewDescriptor {
         offset: 0,
         format: either::Left(TextureFormat::RGBA32Float),
-        size: util::byte_length(&position_data),
+        size: position_buffer.size(),
     })?;
 
     let mvp_buffer = util::create_buffer_with_data(
@@ -284,6 +330,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut fence: Option<Fence> = None;
 
+    let mut rng = rand::thread_rng();
+
     let attractor_masses: Vec<f32> = std::iter::repeat(0.0)
         .take(MAX_ATTRACTORS)
         .map(|_| rng.gen_range(0.5, 1.0))
@@ -323,7 +371,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         attractor_block_data[0].dt = delta * 200.0;
 
         if let Some(ref fence) = fence {
-            fence.wait(Duration::from_millis(1000))?;
+            fence.wait(Duration::from_millis(1_000_000_000))?;
             fence.reset()?;
         }
 
@@ -337,6 +385,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         };
 
         let mut encoder = app.device.create_command_encoder()?;
+
+        if app.state.reset1 {
+            util::copy_to_buffer(&app.device, &mut encoder, &position_data, &position_buffer)?;
+            util::copy_to_buffer(&app.device, &mut encoder, &velocity_data, &velocity_buffer)?;
+            app.state.reset1 = false;
+        }
+
+        if app.state.reset2 {
+            util::copy_to_buffer(&app.device, &mut encoder, &position_data, &position_buffer)?;
+            app.state.reset2 = false;
+        }
 
         let (attachment, resolve_target) = if app.get_sample_count() == 1 {
             (&frame.view, None)
@@ -367,7 +426,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         render_pass.set_pipeline(&render_pipeline);
         render_pass.set_bind_group(0, &render_bind_group, None);
         render_pass.set_vertex_buffers(0, &[position_buffer.clone()], &[0]);
-        render_pass.draw(position_data.len() as u32, 1, 0, 0);
+        render_pass.draw(PARTICLE_COUNT as u32, 1, 0, 0);
         render_pass.end_pass();
 
         let command_buffer = encoder.finish()?;

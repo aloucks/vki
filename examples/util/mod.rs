@@ -99,18 +99,32 @@ pub enum EventHandlers<T> {
     Custom(Vec<Box<dyn EventHandler<T>>>),
 }
 
+impl<T: 'static> EventHandlers<T> {
+    pub fn default_event_handlers() -> Vec<Box<dyn EventHandler<T>>> {
+        vec![
+            Box::new(CloseRequestedHandler),
+            Box::new(WindowResizedHandler::default()),
+            Box::new(CameraViewportHandler),
+            Box::new(ArcBallCameraControlHandler::default()),
+        ]
+    }
+}
+
 impl<T: 'static> Into<Vec<Box<dyn EventHandler<T>>>> for EventHandlers<T> {
     fn into(self) -> Vec<Box<dyn EventHandler<T>>> {
         match self {
-            EventHandlers::Default => vec![
-                Box::new(CloseRequestedHandler),
-                Box::new(WindowResizedHandler::default()),
-                Box::new(CameraViewportHandler),
-                Box::new(ArcBallCameraControlHandler::default()),
-            ],
+            EventHandlers::Default => EventHandlers::default_event_handlers(),
             EventHandlers::Custom(event_handlers) => event_handlers,
         }
     }
+}
+
+enum WindowMode {
+    Fullscreen {
+        last_position: LogicalPosition,
+        last_size: LogicalSize,
+    },
+    Windowed,
 }
 
 pub struct App<T> {
@@ -125,6 +139,7 @@ pub struct App<T> {
     pub should_close: bool,
     pub camera: Camera,
     pub state: T,
+    window_mode: WindowMode,
     sample_count: u32,
     event_handlers: Option<Vec<Box<dyn EventHandler<T>>>>,
     event_loop: Option<EventLoop<()>>,
@@ -183,6 +198,7 @@ impl<T: 'static> App<T> {
         let event_loop = Some(event_loop);
         let event_handlers = Some(event_handlers.into());
         let camera = Camera::new(window_width, window_height);
+        let window_mode = WindowMode::Windowed;
 
         Ok(App {
             instance,
@@ -199,7 +215,50 @@ impl<T: 'static> App<T> {
             event_loop,
             event_handlers,
             sample_count,
+            window_mode,
         })
+    }
+
+    pub fn toggle_window_mode(&mut self) {
+        match self.window_mode {
+            WindowMode::Windowed => {
+                let last_position = self.window.get_position().unwrap();
+                let last_size = self.window.get_inner_size().unwrap();
+                let monitor = self.window.get_current_monitor();
+                let dpi_factor = monitor.get_hidpi_factor();
+                let x = monitor.get_position().x as _;
+
+                // If the window is wider than the current monitor, stretch it across all monitors
+                let mut inner_physical_size = monitor.get_dimensions();
+                if last_size.to_physical(dpi_factor).width > inner_physical_size.width {
+                    let monitor_count = self.window.get_available_monitors().count();
+                    inner_physical_size.width *= monitor_count as f64;
+                }
+
+                self.window.hide();
+                self.window.set_decorations(false);
+                self.window.set_position(LogicalPosition::from((x, 0)));
+                self.window.set_inner_size(inner_physical_size.to_logical(dpi_factor));
+                self.window.show();
+
+                self.window_mode = WindowMode::Fullscreen {
+                    last_position,
+                    last_size,
+                };
+            }
+            WindowMode::Fullscreen {
+                last_position,
+                last_size,
+            } => {
+                self.window.hide();
+                self.window.set_decorations(true);
+                self.window.set_inner_size(last_size);
+                self.window.set_position(last_position);
+                self.window.show();
+
+                self.window_mode = WindowMode::Windowed;
+            }
+        }
     }
 
     pub fn set_sample_count(&mut self, sample_count: u32) -> Result<(), vk::Result> {
@@ -629,7 +688,9 @@ impl<T: 'static> EventHandler<T> for ArcBallCameraControlHandler {
                     WindowEvent::KeyboardInput {
                         input:
                             KeyboardInput {
+                                state: ElementState::Pressed,
                                 virtual_keycode: Some(virtual_keycode),
+                                modifiers,
                                 ..
                             },
                         ..
@@ -662,9 +723,18 @@ impl<T: 'static> EventHandler<T> for ArcBallCameraControlHandler {
                     }
                     VirtualKeyCode::PageUp => {
                         app.camera.eye += Vector3::unit_y();
+                        if !modifiers.shift {
+                            app.camera.center += Vector3::unit_y();
+                        }
                     }
                     VirtualKeyCode::PageDown => {
                         app.camera.eye -= Vector3::unit_y();
+                        if !modifiers.shift {
+                            app.camera.center -= Vector3::unit_y();
+                        }
+                    }
+                    VirtualKeyCode::F11 => {
+                        app.toggle_window_mode();
                     }
                     _ => {}
                 }
