@@ -90,6 +90,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let pipeline_layout = device.create_pipeline_layout(PipelineLayoutDescriptor {
         bind_group_layouts: vec![bind_group_layout.clone()],
+        push_constant_ranges: vec![],
     })?;
 
     #[repr(C)]

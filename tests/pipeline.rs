@@ -62,6 +62,7 @@ fn create_pipeline_layout() {
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout],
+            push_constant_ranges: vec![],
         };
 
         let _pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
@@ -98,6 +99,7 @@ fn create_compute_pipeline() {
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout],
+            push_constant_ranges: vec![],
         };
 
         let pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
@@ -144,6 +146,7 @@ fn create_render_pipeline() {
 
         let pipeline_layout = device.create_pipeline_layout(PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout],
+            push_constant_ranges: vec![],
         })?;
 
         #[repr(C)]
@@ -275,6 +278,7 @@ fn create_multi_sample_render_pipeline() {
 
         let pipeline_layout = device.create_pipeline_layout(PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout],
+            push_constant_ranges: vec![],
         })?;
 
         #[repr(C)]
@@ -467,6 +471,7 @@ fn set_bind_group() {
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout.clone()],
+            push_constant_ranges: vec![],
         };
 
         let pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
@@ -568,6 +573,152 @@ fn set_bind_group() {
 }
 
 #[test]
+fn set_bind_group_out_of_order() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let shader_module_descriptor = ShaderModuleDescriptor {
+            code: Cow::Borrowed(include_bytes!("shaders/pipeline.set_bind_group.comp.spv")),
+        };
+        let shader_module = device.create_shader_module(shader_module_descriptor)?;
+
+        let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
+            bindings: &[
+                BindGroupLayoutBinding {
+                    binding: 0,
+                    visibility: ShaderStageFlags::COMPUTE,
+                    binding_type: BindingType::UniformBuffer,
+                },
+                BindGroupLayoutBinding {
+                    binding: 1,
+                    visibility: ShaderStageFlags::COMPUTE,
+                    binding_type: BindingType::StorageBuffer,
+                },
+                BindGroupLayoutBinding {
+                    binding: 2,
+                    visibility: ShaderStageFlags::COMPUTE,
+                    binding_type: BindingType::StorageTexelBuffer,
+                },
+                BindGroupLayoutBinding {
+                    binding: 3,
+                    visibility: ShaderStageFlags::COMPUTE,
+                    binding_type: BindingType::Sampler,
+                },
+                BindGroupLayoutBinding {
+                    binding: 4,
+                    visibility: ShaderStageFlags::COMPUTE,
+                    binding_type: BindingType::SampledTexture,
+                },
+            ],
+        };
+        let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
+
+        let pipeline_layout_descriptor = PipelineLayoutDescriptor {
+            bind_group_layouts: vec![bind_group_layout.clone()],
+            push_constant_ranges: vec![],
+        };
+
+        let pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
+
+        let pipeline_stage_descriptor = PipelineStageDescriptor {
+            entry_point: Cow::Borrowed("main"),
+            module: shader_module,
+        };
+
+        let compute_pipeline_descriptor = ComputePipelineDescriptor {
+            layout: pipeline_layout,
+            compute_stage: pipeline_stage_descriptor,
+        };
+
+        let compute_pipeline = device.create_compute_pipeline(compute_pipeline_descriptor)?;
+
+        let uniform_buffer = device.create_buffer(BufferDescriptor {
+            size: 1024,
+            usage: BufferUsageFlags::UNIFORM,
+        })?;
+        let storage_buffer = device.create_buffer(BufferDescriptor {
+            size: 1024,
+            usage: BufferUsageFlags::STORAGE,
+        })?;
+        let image_buffer = device.create_buffer(BufferDescriptor {
+            size: 1024,
+            usage: BufferUsageFlags::STORAGE, // TODO: texel storage
+        })?;
+        let image_buffer_view = image_buffer.create_view(BufferViewDescriptor {
+            size: 1024,
+            offset: 0,
+            format: either::Left(TextureFormat::RGBA32Float),
+        })?;
+        let sampler = device.create_sampler(SamplerDescriptor {
+            mag_filter: FilterMode::Nearest,
+            min_filter: FilterMode::Nearest,
+            mipmap_filter: FilterMode::Nearest,
+            lod_min_clamp: 0.0,
+            lod_max_clamp: 1000.0,
+            address_mode_u: AddressMode::ClampToEdge,
+            address_mode_v: AddressMode::ClampToEdge,
+            address_mode_w: AddressMode::ClampToEdge,
+            compare_function: CompareFunction::Never,
+        })?;
+        let texture = device.create_texture(TextureDescriptor {
+            size: Extent3D {
+                width: 256,
+                height: 256,
+                depth: 1,
+            },
+            format: TextureFormat::R8G8B8A8Unorm,
+            dimension: TextureDimension::D2,
+            usage: TextureUsageFlags::SAMPLED,
+            sample_count: 1,
+            mip_level_count: 1,
+            array_layer_count: 1,
+        })?;
+        let texture_view = texture.create_default_view()?;
+
+        let bind_group = device.create_bind_group(BindGroupDescriptor {
+            layout: bind_group_layout,
+            // Note that the order of the array elements does not match the layout,
+            // but the `binding` values correspond to the correct layout bindings.
+            bindings: vec![
+                BindGroupBinding {
+                    binding: 4,
+                    resource: BindingResource::TextureView(texture_view),
+                },
+                BindGroupBinding {
+                    binding: 1,
+                    resource: BindingResource::Buffer(storage_buffer, 0..1024),
+                },
+                BindGroupBinding {
+                    binding: 0,
+                    resource: BindingResource::Buffer(uniform_buffer, 0..1024),
+                },
+                BindGroupBinding {
+                    binding: 3,
+                    resource: BindingResource::Sampler(sampler),
+                },
+                BindGroupBinding {
+                    binding: 2,
+                    resource: BindingResource::BufferView(image_buffer_view),
+                },
+            ],
+        })?;
+
+        let mut encoder = device.create_command_encoder()?;
+
+        let mut compute_pass = encoder.begin_compute_pass();
+        compute_pass.set_pipeline(&compute_pipeline);
+        compute_pass.set_bind_group(0, &bind_group, None);
+        compute_pass.dispatch(1, 1, 1);
+        compute_pass.end_pass();
+
+        let command_buffer = encoder.finish()?;
+        device.get_queue().submit(&[command_buffer])?;
+
+        Ok(instance)
+    });
+}
+
+#[test]
 fn set_bind_group_dynamic_offsets() {
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
@@ -610,6 +761,7 @@ fn set_bind_group_dynamic_offsets() {
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout.clone()],
+            push_constant_ranges: vec![],
         };
 
         let pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;

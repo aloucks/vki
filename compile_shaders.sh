@@ -24,6 +24,6 @@ for FILE in ${FILES}; do
     GLSL_TIME=$(stat -c %Y ${FILE})
     if [[ ! -f ${PATH_SPV} || ${GLSL_TIME} > $(stat -c %Y ${PATH_SPV}) ]]; then
         echo "Compiling: ${FILE}"
-        glslc -fshader-stage=${STAGE} ${FILE} -o ${PATH_SPV}
+        glslc -Werror -fshader-stage=${STAGE} ${FILE} -o ${PATH_SPV}
     fi
 done

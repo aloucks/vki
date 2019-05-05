@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::render_pass::{self, ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
-use crate::imp::sampler;
+use crate::imp::{binding, sampler};
 use crate::imp::{ComputePipelineInner, DeviceInner, PipelineLayoutInner, RenderPipelineInner};
 use crate::{
     BlendFactor, BlendOperation, ColorStateDescriptor, ColorWriteFlags, CompareFunction, ComputePipeline,
@@ -16,18 +16,22 @@ use crate::{
     VertexFormat, VertexInputDescriptor,
 };
 
-pub const MAX_PUSH_CONSTANTS_SIZE: u32 = 128;
+pub const MAX_PUSH_CONSTANTS_SIZE: usize = 128;
 
 impl PipelineLayoutInner {
     pub fn new(
         device: Arc<DeviceInner>,
         descriptor: PipelineLayoutDescriptor,
     ) -> Result<PipelineLayoutInner, vk::Result> {
-        let push_constant_range = vk::PushConstantRange {
-            stage_flags: vk::ShaderStageFlags::ALL,
-            offset: 0,
-            size: MAX_PUSH_CONSTANTS_SIZE,
-        };
+        let push_constant_ranges: Vec<_> = descriptor
+            .push_constant_ranges
+            .iter()
+            .map(|r| vk::PushConstantRange {
+                offset: r.offset as _,
+                size: r.size as _,
+                stage_flags: binding::shader_stage_flags(r.stages),
+            })
+            .collect();
 
         let descriptor_set_layouts: Vec<_> = descriptor
             .bind_group_layouts
@@ -36,7 +40,7 @@ impl PipelineLayoutInner {
             .collect();
 
         let create_info = vk::PipelineLayoutCreateInfo::builder()
-            .push_constant_ranges(&[push_constant_range])
+            .push_constant_ranges(&push_constant_ranges)
             .set_layouts(&descriptor_set_layouts)
             .build();
 

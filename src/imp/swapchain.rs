@@ -243,7 +243,7 @@ fn surface_present_mode(
             }
         }
     };
-    log::debug!("selected present mode: {}", present_mode);
+    log::debug!("selected present mode: {:?}", present_mode);
     Ok(present_mode)
 }
 
@@ -260,7 +260,7 @@ pub fn surface_image_count(surface_caps: &vk::SurfaceCapabilitiesKHR) -> u32 {
             }
         }
     };
-    log::debug!("selected image count: {}", count);
+    log::debug!("selected image count: {:?}", count);
     count
 }
 
@@ -299,7 +299,7 @@ pub fn surface_image_usage_check(
     usage_flags: vk::ImageUsageFlags,
 ) -> Result<(), SurfaceError> {
     if surface_caps.supported_usage_flags.contains(usage_flags) {
-        log::debug!("selected image usage: {}", usage_flags);
+        log::debug!("selected image usage: {:?}", usage_flags);
         Ok(())
     } else {
         Err(SurfaceError::UnsupportedImageUsageFlags(usage_flags))
@@ -312,7 +312,7 @@ pub fn surface_image_transform_check(
     transform_flags: vk::SurfaceTransformFlagsKHR,
 ) -> Result<(), SurfaceError> {
     if surface_caps.supported_transforms.contains(transform_flags) {
-        log::debug!("selected image transform: {}", transform_flags);
+        log::debug!("selected image transform: {:?}", transform_flags);
         Ok(())
     } else {
         Err(SurfaceError::UnsupportedImageTransformFlags(transform_flags))
@@ -326,7 +326,7 @@ fn surface_format_check(
 ) -> Result<(), SurfaceError> {
     if surface.is_supported_format(physical_device, requested_format)? {
         log::debug!(
-            "selected format: {}, color_space: {}",
+            "selected format: {:?}, color_space: {:?}",
             requested_format.format,
             requested_format.color_space
         );

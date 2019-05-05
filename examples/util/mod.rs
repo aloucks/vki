@@ -8,9 +8,10 @@ use ash::vk;
 use std::slice;
 
 use vki::{
-    Adapter, Buffer, BufferDescriptor, BufferUsageFlags, CommandEncoder, Device, DeviceDescriptor, Extensions,
-    Extent3D, Instance, PowerPreference, RequestAdapterOptions, Surface, Swapchain, SwapchainDescriptor,
-    TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView,
+    Adapter, Buffer, BufferCopyView, BufferDescriptor, BufferUsageFlags, CommandEncoder, Device, DeviceDescriptor,
+    Extensions, Extent3D, FilterMode, Instance, Origin3D, PowerPreference, RequestAdapterOptions, Surface, Swapchain,
+    SwapchainDescriptor, Texture, TextureBlitView, TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat,
+    TextureUsageFlags, TextureView,
 };
 
 use std::time::{Duration, Instant};
@@ -200,6 +201,8 @@ impl<T: 'static> App<T> {
         let camera = Camera::new(window_width, window_height);
         let window_mode = WindowMode::Windowed;
 
+        log::debug!("{:#?}", adapter);
+
         Ok(App {
             instance,
             surface,
@@ -334,6 +337,12 @@ impl<T: 'static> App<T> {
     }
 }
 
+/// Convenience function for submitting a command buffer and creating a new encoder
+pub fn submit(device: &Device, encoder: CommandEncoder) -> Result<CommandEncoder, vki::EncoderError> {
+    device.get_queue().submit(&[encoder.finish()?])?;
+    Ok(device.create_command_encoder()?)
+}
+
 /// Creates a new buffer with the given data. If the `usage` flag contains `BufferUsageFlags::MAP_WRITE`,
 /// the data is mapped and copied directly. Otherwise, a staging buffer is used to copy the data
 pub fn create_buffer_with_data<U: Copy + 'static>(
@@ -384,6 +393,132 @@ pub fn copy_to_buffer<T: Copy + 'static>(
 ) -> Result<(), vk::Result> {
     let staging_buffer = create_staging_buffer(device, data)?;
     encoder.copy_buffer_to_buffer(&staging_buffer, 0, destination, 0, self::byte_length(data));
+    Ok(())
+}
+
+/// If `has_mipmaps` is `false`, the `mip_level_count` is set to `1`. Otherwise, the
+/// additional mipmaps should be generated or uploaded separately.
+pub fn create_texture_with_data(
+    device: &Device,
+    encoder: &mut CommandEncoder,
+    data: &[u8],
+    has_mipmaps: bool,
+    format: TextureFormat,
+    width: u32,
+    height: u32,
+) -> Result<Texture, vk::Result> {
+    let size = Extent3D {
+        width,
+        height,
+        depth: 1,
+    };
+    let mip_level_count = if has_mipmaps {
+        (size.width.max(size.height) as f32).log2().floor() as u32 + 1
+    } else {
+        1
+    };
+
+    let descriptor = TextureDescriptor {
+        mip_level_count,
+        size,
+        format,
+        sample_count: 1,
+        array_layer_count: 1,
+        usage: TextureUsageFlags::SAMPLED | TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST,
+        dimension: TextureDimension::D2,
+    };
+
+    let texture = device.create_texture(descriptor)?;
+
+    let buffer = create_staging_buffer(&device, data)?;
+
+    encoder.copy_buffer_to_texture(
+        BufferCopyView {
+            offset: 0,
+            buffer: &buffer,
+            image_height: size.height,
+            row_pitch: size.width,
+        },
+        TextureCopyView {
+            texture: &texture,
+            origin: Origin3D { x: 0, y: 0, z: 0 },
+            mip_level: 0,
+            array_layer: 0,
+        },
+        size,
+    );
+
+    Ok(texture)
+}
+
+/// If `has_mipmaps` is `false`, the `mip_level_count` is set to `1`. Otherwise, the
+/// additional mipmaps should be generated or uploaded separately.
+pub fn create_texture(
+    device: &Device,
+    encoder: &mut CommandEncoder,
+    img: image::DynamicImage,
+    has_mipmaps: bool,
+) -> Result<Texture, vk::Result> {
+    use image::DynamicImage;
+    use image::GenericImageView;
+
+    let (width, height) = img.dimensions();
+
+    let (format, data): (TextureFormat, &[u8]) = match &img {
+        DynamicImage::ImageRgba8(img) => (TextureFormat::R8G8B8A8Unorm, &img),
+        DynamicImage::ImageLuma8(img) => (TextureFormat::R8Unorm, &img),
+        _ => unimplemented!(),
+    };
+
+    create_texture_with_data(device, encoder, data, has_mipmaps, format, width, height)
+}
+
+pub fn generate_mipmaps(encoder: &mut CommandEncoder, texture: &Texture) -> Result<(), vk::Result> {
+    let mut mip_width = texture.size().width;
+    let mut mip_height = texture.size().height;
+
+    let mip_level_count = texture.mip_level_count();
+
+    for i in 1..mip_level_count {
+        let src = TextureBlitView {
+            texture: &texture,
+            mip_level: i - 1,
+            array_layer: 0,
+            bounds: [
+                Origin3D { x: 0, y: 0, z: 0 },
+                Origin3D {
+                    x: mip_width as i32,
+                    y: mip_height as i32,
+                    z: 1,
+                },
+            ],
+        };
+
+        if mip_width > 1 {
+            mip_width = mip_width / 2;
+        }
+
+        if mip_height > 1 {
+            mip_height = mip_height / 2;
+        }
+
+        let dst = TextureBlitView {
+            texture: &texture,
+            mip_level: i,
+            array_layer: 0,
+            bounds: [
+                Origin3D { x: 0, y: 0, z: 0 },
+                Origin3D {
+                    x: mip_width as i32,
+                    y: mip_height as i32,
+                    z: 1,
+                },
+            ],
+        };
+
+        encoder.blit_texture_to_texture(src, dst, FilterMode::Linear);
+    }
+
     Ok(())
 }
 
@@ -794,6 +929,10 @@ pub fn byte_stride<T: Copy>(_: &[T]) -> usize {
 
 pub fn byte_length<T: Copy>(values: &[T]) -> usize {
     byte_stride(values) * values.len()
+}
+
+pub fn byte_offset<T: Copy>(count: usize) -> usize {
+    std::mem::size_of::<T>() * count
 }
 
 pub fn byte_cast<T: Copy>(values: &[T]) -> &[u8] {

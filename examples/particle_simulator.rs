@@ -252,10 +252,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let compute_pipeline_layout = app.device.create_pipeline_layout(PipelineLayoutDescriptor {
         bind_group_layouts: vec![compute_bind_group_layout],
+        push_constant_ranges: vec![],
     })?;
 
     let render_pipeline_layout = app.device.create_pipeline_layout(PipelineLayoutDescriptor {
         bind_group_layouts: vec![render_bind_group_layout],
+        push_constant_ranges: vec![],
     })?;
 
     let vs = app.device.create_shader_module(ShaderModuleDescriptor {
@@ -299,7 +301,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     dst_factor: BlendFactor::One,
                     operation: BlendOperation::Add,
                 },
-                alpha_blend: BlendDescriptor::REPLACE,
+                alpha_blend: BlendDescriptor::OPAQUE,
                 write_mask: ColorWriteFlags::ALL,
             }
         ],

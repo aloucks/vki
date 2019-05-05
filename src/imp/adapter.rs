@@ -116,7 +116,7 @@ impl AdapterInner {
             for physical_device in physical_devices.iter().cloned() {
                 let properties = instance.raw.get_physical_device_properties(physical_device);
                 let name = CStr::from_ptr(properties.device_name.as_ptr());
-                log::debug!("found physical device: {:?} ({})", name, properties.device_type);
+                log::debug!("found physical device: {:?} ({:?})", name, properties.device_type);
                 physical_device_properties.push(properties);
             }
             match options.power_preference {
@@ -161,8 +161,8 @@ impl Debug for Adapter {
         fmt.debug_struct("Adapter")
             .field("name", &self.inner.name)
             .field("physical_device", &self.inner.physical_device)
-            //.field("physical_device_properties", &self.inner.physical_device_properties)
-            //.field("physical_device_features", &self.inner.physical_device_features)
+            .field("physical_device_properties", &self.inner.physical_device_properties)
+            .field("physical_device_features", &self.inner.physical_device_features)
             .finish()
     }
 }

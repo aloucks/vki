@@ -237,14 +237,14 @@ impl BufferInner {
         let dst_access_mask = access_flags(usage);
 
         log::trace!(
-            "usage: {:?}, last_usage: {:?}, src_stage_mask: {}, src_access_mask: {}",
+            "usage: {:?}, last_usage: {:?}, src_stage_mask: {:?}, src_access_mask: {:?}",
             usage,
             *last_usage,
             src_stage_mask,
             src_access_mask
         );
         log::trace!(
-            "usage: {:?}, last_usage: {:?}, dst_stage_mask: {}, dst_access_mask: {}",
+            "usage: {:?}, last_usage: {:?}, dst_stage_mask: {:?}, dst_access_mask: {:?}",
             usage,
             *last_usage,
             dst_stage_mask,

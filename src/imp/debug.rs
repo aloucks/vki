@@ -38,7 +38,7 @@ pub unsafe extern "system" fn debug_utils_messenger_callback(
             _ => log::Level::Debug,
         };
 
-        log::log!(level, "[{}] {}", ty, message);
+        log::log!(level, "[{:?}] {}", ty, message);
     }
 
     unimplemented!()
@@ -80,7 +80,7 @@ pub struct ValidationError {
 
 impl Debug for ValidationError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "[{}] {}", self.flags, self.message)
+        write!(f, "[{:?}] {}", self.flags, self.message)
     }
 }
 
