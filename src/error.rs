@@ -1,6 +1,6 @@
 use ash::vk;
 
-use std::error::Error;
+use std::error::Error as StdError;
 use std::fmt::{self, Display};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -15,7 +15,7 @@ impl Display for InitError {
     }
 }
 
-impl Error for InitError {}
+impl StdError for InitError {}
 
 impl<'a> From<&'a InitError> for InitError {
     fn from(e: &'a InitError) -> InitError {
@@ -66,10 +66,19 @@ impl Display for SurfaceError {
     }
 }
 
-impl std::error::Error for SurfaceError {}
+impl StdError for SurfaceError {}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct EncoderError(pub String);
+pub enum EncoderError {
+    Validation(String),
+    VkError(vk::Result),
+}
+
+impl From<vk::Result> for EncoderError {
+    fn from(e: vk::Result) -> EncoderError {
+        EncoderError::VkError(e)
+    }
+}
 
 impl Display for EncoderError {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
@@ -77,4 +86,15 @@ impl Display for EncoderError {
     }
 }
 
-impl Error for EncoderError {}
+impl StdError for EncoderError {}
+
+#[derive(Clone)]
+pub struct Error {
+    kind: ErrorKind,
+    code: Option<vk::Result>,
+}
+
+#[derive(Clone, Debug)]
+pub enum ErrorKind {
+    VkResult(vk::Result),
+}

@@ -13,7 +13,7 @@ mod macros;
 mod error;
 mod imp;
 
-pub use crate::error::InitError;
+pub use crate::error::{EncoderError, InitError};
 pub use crate::imp::validate;
 
 use std::borrow::Cow;
@@ -162,7 +162,7 @@ pub struct Color {
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum TextureFormat {
     // 8-bit formats
     R8Unorm,
@@ -174,9 +174,12 @@ pub enum TextureFormat {
     // TODO: Update 16-bit formats
     R8G8Unorm,
     R8G8Uint,
+    //
+    //    Rgb8Unorm,
 
     // TODO: Update 32-bit formats
     R8G8B8A8Unorm,
+    R8G8B8A8UnormSRGB,
     R8G8B8A8Uint,
     B8G8R8A8Unorm,
     B8G8R8A8UnormSRGB,
@@ -203,7 +206,7 @@ bitflags! {
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum TextureDimension {
     D1,
     D2,
@@ -211,7 +214,7 @@ pub enum TextureDimension {
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum TextureViewDimension {
     D1,
     D2,
@@ -250,7 +253,7 @@ pub struct TextureViewDescriptor {
     pub array_layer_count: u32,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct TextureView {
     inner: Arc<imp::TextureViewInner>,
 }
@@ -276,7 +279,7 @@ pub struct BufferDescriptor {
     pub usage: BufferUsageFlags,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Buffer {
     inner: Arc<imp::BufferInner>,
 }
@@ -290,7 +293,7 @@ pub struct BufferViewDescriptor {
 }
 
 /// non-standard / not in the gpuweb spec
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct BufferView {
     inner: Arc<imp::BufferViewInner>,
 }
@@ -305,20 +308,20 @@ pub struct Fence {
     inner: imp::FenceInner,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Texture {
     inner: Arc<imp::TextureInner>,
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum FilterMode {
     Nearest,
     Linear,
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum AddressMode {
     ClampToEdge,
     Repeat,
@@ -326,7 +329,7 @@ pub enum AddressMode {
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum CompareFunction {
     Never,
     Less,
@@ -379,7 +382,7 @@ impl Default for SamplerDescriptor {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct Sampler {
     inner: Arc<imp::SamplerInner>,
 }
@@ -395,7 +398,7 @@ bitflags! {
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum BindingType {
     UniformBuffer,
     DynamicUniformBuffer,
@@ -413,17 +416,24 @@ pub struct BindGroupLayoutBinding {
     pub binding_type: BindingType,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BindGroupLayoutDescriptor<'a> {
     pub bindings: &'a [BindGroupLayoutBinding],
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct BindGroupLayout {
     inner: Arc<imp::BindGroupLayoutInner>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct PushConstantRange {
+    pub stages: ShaderStageFlags,
+    pub offset: usize,
+    pub size: usize,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum BindingResource {
     Sampler(Sampler),
     TextureView(TextureView),
@@ -465,42 +475,43 @@ impl BindingResource {
     }
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct BindGroupBinding {
     pub binding: u32,
     pub resource: BindingResource,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct BindGroupDescriptor {
     pub layout: BindGroupLayout,
     pub bindings: Vec<BindGroupBinding>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct BindGroup {
     inner: Arc<imp::BindGroupInner>,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct PipelineLayoutDescriptor {
     pub bind_group_layouts: Vec<BindGroupLayout>,
+    pub push_constant_ranges: Vec<PushConstantRange>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct PipelineLayout {
     inner: Arc<imp::PipelineLayoutInner>,
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum FrontFace {
     Ccw,
     Cw,
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum CullMode {
     None,
     Front,
@@ -508,7 +519,7 @@ pub enum CullMode {
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum BlendFactor {
     Zero,
     One,
@@ -526,7 +537,7 @@ pub enum BlendFactor {
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum BlendOperation {
     Add,
     Subtract,
@@ -547,7 +558,7 @@ bitflags! {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct BlendDescriptor {
     pub src_factor: BlendFactor,
     pub dst_factor: BlendFactor,
@@ -555,23 +566,30 @@ pub struct BlendDescriptor {
 }
 
 impl BlendDescriptor {
-    pub const REPLACE: BlendDescriptor = BlendDescriptor {
+    /// A common descriptor for solid objects
+    pub const OPAQUE: BlendDescriptor = BlendDescriptor {
         src_factor: BlendFactor::One,
         dst_factor: BlendFactor::Zero,
         operation: BlendOperation::Add,
     };
+    /// A common descriptor for translucent objects
+    pub const BLEND: BlendDescriptor = BlendDescriptor {
+        src_factor: BlendFactor::SrcAlpha,
+        dst_factor: BlendFactor::OneMinusSrcAlpha,
+        operation: BlendOperation::Add,
+    };
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct ColorStateDescriptor {
     pub format: TextureFormat,
-    pub alpha_blend: BlendDescriptor,
     pub color_blend: BlendDescriptor,
+    pub alpha_blend: BlendDescriptor,
     pub write_mask: ColorWriteFlags,
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum StencilOperation {
     Keep,
     Zero,
@@ -583,7 +601,7 @@ pub enum StencilOperation {
     DecrementWrap,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct StencilStateFaceDescriptor {
     pub compare: CompareFunction,
     pub fail_op: StencilOperation,
@@ -611,35 +629,35 @@ pub struct DepthStencilStateDescriptor {
     pub stencil_write_mask: u32,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ShaderModuleDescriptor {
     pub code: Cow<'static, [u8]>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ShaderModule {
     inner: Arc<imp::ShaderModuleInner>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct PipelineStageDescriptor {
     pub module: ShaderModule,
     pub entry_point: Cow<'static, str>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ComputePipelineDescriptor {
     pub layout: PipelineLayout,
     pub compute_stage: PipelineStageDescriptor,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct ComputePipeline {
     inner: Arc<imp::ComputePipelineInner>,
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum PrimitiveTopology {
     PointList,
     LineList,
@@ -648,7 +666,7 @@ pub enum PrimitiveTopology {
     TriangleStrip,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub struct RasterizationStateDescriptor {
     pub front_face: FrontFace,
     pub cull_mode: CullMode,
@@ -657,22 +675,45 @@ pub struct RasterizationStateDescriptor {
     pub depth_bias_clamp: f32,
 }
 
+impl PartialEq for RasterizationStateDescriptor {
+    #[rustfmt::skip]
+    fn eq(&self, other: &RasterizationStateDescriptor) -> bool {
+        self.front_face.eq(&other.front_face) &&
+        self.cull_mode.eq(&other.cull_mode) &&
+        self.depth_bias.eq(&other.depth_bias) &&
+        self.depth_bias_slope_scale.eq(&other.depth_bias_slope_scale) &&
+        self.depth_bias_clamp.eq(&other.depth_bias_clamp)
+    }
+}
+
+impl Hash for RasterizationStateDescriptor {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.front_face.hash(state);
+        self.cull_mode.hash(state);
+        self.depth_bias.hash(state);
+        self.depth_bias_slope_scale.to_bits().hash(state);
+        self.depth_bias_clamp.to_bits().hash(state);
+    }
+}
+
+impl Eq for RasterizationStateDescriptor {}
+
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum IndexFormat {
     U16,
     U32,
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum InputStepMode {
     Vertex,
     Instance,
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum VertexFormat {
     UChar2,
     UChar4,
@@ -709,7 +750,7 @@ pub enum VertexFormat {
     Int4,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct VertexAttributeDescriptor {
     pub shader_location: u32,
     /// The index of the vertex buffer containing this attribute. See `RenderPassEncoder::set_vertex_buffers`.
@@ -718,7 +759,7 @@ pub struct VertexAttributeDescriptor {
     pub format: VertexFormat,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct VertexInputDescriptor {
     /// The index of the vertex buffer containing these attributes. See `RenderPassEncoder::set_vertex_buffers`.
     pub input_slot: u32,
@@ -726,14 +767,14 @@ pub struct VertexInputDescriptor {
     pub step_mode: InputStepMode,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct InputStateDescriptor {
     pub index_format: IndexFormat,
     pub attributes: Vec<VertexAttributeDescriptor>,
     pub inputs: Vec<VertexInputDescriptor>,
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct RenderPipelineDescriptor {
     pub layout: PipelineLayout,
     pub vertex_stage: PipelineStageDescriptor,
@@ -752,14 +793,14 @@ pub struct RenderPipeline {
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum LoadOp {
     Clear,
     Load,
 }
 
 #[repr(u32)]
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum StoreOp {
     Store,
 }

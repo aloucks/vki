@@ -6,10 +6,10 @@ use crate::imp::command::{BufferCopy, Command, TextureBlit, TextureCopy};
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::pass_resource_usage::CommandBufferResourceUsage;
 use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
+use crate::imp::{binding, pipeline};
 use crate::imp::{render_pass, sampler, texture, util, DeviceInner, PipelineLayoutInner};
 use crate::imp::{CommandBufferInner, RenderPipelineInner};
-
-use crate::{BufferUsageFlags, Extent3D, IndexFormat, TextureUsageFlags};
+use crate::{BufferUsageFlags, Extent3D, IndexFormat, ShaderStageFlags, TextureUsageFlags};
 
 use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::device::DeviceState;
@@ -480,6 +480,19 @@ impl CommandBufferInner {
                         )
                     }
                 }
+                Command::SetPushConstants {
+                    stages,
+                    offset_bytes,
+                    size_bytes,
+                    values,
+                } => descriptor_sets.on_set_push_constants(
+                    &self.device,
+                    command_buffer,
+                    *stages,
+                    *offset_bytes,
+                    *size_bytes,
+                    &values,
+                ),
                 Command::SetBindGroup {
                     index,
                     bind_group,
@@ -617,6 +630,19 @@ impl CommandBufferInner {
                     let dynamic_offsets = dynamic_offsets.as_ref().map(Vec::as_slice);
                     descriptor_sets.on_set_bind_group(*index, bind_group.handle, dynamic_offsets);
                 }
+                Command::SetPushConstants {
+                    stages,
+                    offset_bytes,
+                    size_bytes,
+                    values,
+                } => descriptor_sets.on_set_push_constants(
+                    &self.device,
+                    command_buffer,
+                    *stages,
+                    *offset_bytes,
+                    *size_bytes,
+                    &values,
+                ),
                 _ => {}
             }
 
@@ -678,10 +704,12 @@ impl<'a> DescriptorSetTracker<'a> {
                 }
             }
         } else {
-            disturbed_index = Some(0);
+            // TODO: Why was this disturbing the descriptor sets if there was no prior pipeline set?
+            // disturbed_index = Some(0);
         }
 
         if let Some(disturbed_index) = disturbed_index {
+            log::trace!("on_pipeline_layout_change::disturbed_binding: {}", disturbed_index);
             for i in disturbed_index..self.sets.len() {
                 self.sets[i] = vk::DescriptorSet::default();
                 self.dirty_sets[i] = false;
@@ -719,6 +747,34 @@ impl<'a> DescriptorSetTracker<'a> {
             None => {
                 log::error!("attempt to flush bind groups without any pipeline set");
             }
+        }
+    }
+
+    fn on_set_push_constants(
+        &mut self,
+        device: &DeviceInner,
+        command_buffer: vk::CommandBuffer,
+        stages: ShaderStageFlags,
+        offset_bytes: u32,
+        size_bytes: u32,
+        values: &[u8],
+    ) {
+        debug_assert!(
+            (size_bytes + offset_bytes) <= pipeline::MAX_PUSH_CONSTANTS_SIZE as u32,
+            "push_constants size (and offset) cannot exceed {} bytes",
+            pipeline::MAX_PUSH_CONSTANTS_SIZE
+        );
+        let layout = self
+            .current_layout
+            .as_ref()
+            .map(|layout| layout.handle)
+            .expect("set_push_constants called before set_pipeline");
+        let stage_flags = binding::shader_stage_flags(stages);
+        let values = &values[0..size_bytes as usize];
+        unsafe {
+            device
+                .raw
+                .cmd_push_constants(command_buffer, layout, stage_flags, offset_bytes, values)
         }
     }
 }

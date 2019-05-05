@@ -108,6 +108,7 @@ pub fn image_format(format: TextureFormat) -> vk::Format {
         TextureFormat::R8G8Uint => vk::Format::R8G8_UINT,
 
         TextureFormat::R8G8B8A8Unorm => vk::Format::R8G8B8A8_UNORM,
+        TextureFormat::R8G8B8A8UnormSRGB => vk::Format::R8G8B8A8_SRGB,
         TextureFormat::R8G8B8A8Uint => vk::Format::R8G8B8A8_UINT,
         TextureFormat::B8G8R8A8Unorm => vk::Format::B8G8R8A8_UNORM,
         TextureFormat::B8G8R8A8UnormSRGB => vk::Format::B8G8R8A8_SRGB,
@@ -140,6 +141,7 @@ pub fn pixel_size(format: TextureFormat) -> u32 {
         TextureFormat::R8G8Uint
         => 2,
         TextureFormat::R8G8B8A8Unorm |
+        TextureFormat::R8G8B8A8UnormSRGB |
         TextureFormat::R8G8B8A8Uint |
         TextureFormat::B8G8R8A8Unorm |
         TextureFormat::B8G8R8A8UnormSRGB
@@ -326,6 +328,14 @@ impl Texture {
         log::trace!("default image_view descriptor: {:?}", descriptor);
         self.create_view(descriptor)
     }
+
+    pub fn size(&self) -> Extent3D {
+        self.inner.descriptor.size
+    }
+
+    pub fn mip_level_count(&self) -> u32 {
+        self.inner.descriptor.mip_level_count
+    }
 }
 
 impl TextureInner {
@@ -459,8 +469,8 @@ impl TextureInner {
                 log::trace!(
                     concat!(
                         "mip_level: {}, array_layer: {}, ",
-                        "old_usage: {:?}, old_layout: {}, src_stage_mask: {}, src_access_mask: {}, ",
-                        "new_usage: {:?}, new_layout: {}, dst_stage_mask: {}, dst_access_mask: {}"
+                        "old_usage: {:?}, old_layout: {:?}, src_stage_mask: {:?}, src_access_mask: {:?}, ",
+                        "new_usage: {:?}, new_layout: {:?}, dst_stage_mask: {:?}, dst_access_mask: {:?}"
                     ),
                     image_memory_barrier.subresource_range.base_mip_level,
                     image_memory_barrier.subresource_range.base_array_layer,

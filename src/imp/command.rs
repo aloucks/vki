@@ -98,10 +98,10 @@ pub enum Command {
         pipeline: Arc<RenderPipelineInner>,
     },
     SetPushConstants {
-        // TODO: SetPushConstants (32bit aligned?)
         stages: ShaderStageFlags,
-        offset_bytes: u32, // bytes?
-        count: u32,        // bytes?
+        offset_bytes: u32,
+        size_bytes: u32,
+        values: Vec<u8>,
     },
     SetStencilReference {
         reference: u32,
@@ -139,55 +139,9 @@ pub enum Command {
     },
 }
 
-//lazy_static! {
-//    static ref DYNAMIC_OFFSETS: Mutex<Vec<Vec<u64>>> = {
-//        let dynamic_offsets = Mutex::new(Vec::new());
-//        extern "C" fn free() {
-//            DYNAMIC_OFFSETS.lock().clear();
-//        }
-//        unsafe {
-//            libc::atexit(free);
-//        }
-//        dynamic_offsets
-//    };
-//}
-//
-//pub struct DynamicOffsets(Vec<u64>);
-//
-//impl Drop for DynamicOffsets {
-//    fn drop(&mut self) {
-//        // Recycle the vec only if it allocated some capacity
-//        if self.0.capacity() > 0 {
-//            let mut recycle = Vec::new();
-//            mem::swap(&mut recycle, &mut self.0);
-//            unsafe {
-//                recycle.set_len(0);
-//            }
-//            DYNAMIC_OFFSETS.lock().push(recycle);
-//        }
-//    }
-//}
-//
-//impl DynamicOffsets {
-//    pub fn alloc(dynamic_offsets: &[u64]) -> DynamicOffsets {
-//        let mut data = DYNAMIC_OFFSETS.lock().pop().unwrap_or_else(Vec::new);
-//        data.extend_from_slice(dynamic_offsets);
-//        DynamicOffsets(data)
-//    }
-//
-//    pub fn get(&self) -> &[u64] {
-//        &self.0
-//    }
-//}
-
 #[test]
 fn command_size() {
     // The command size can balloon if we embed a SmallVec or fixed sized array. This just
     // raises awareness..
     assert_eq!(88, std::mem::size_of::<Command>());
 }
-
-//#[test]
-//fn push_constants_alignment() {
-//    assert_eq!(32, std::mem::align_of::<PushConstantsData>());
-//}

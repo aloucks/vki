@@ -4,8 +4,8 @@ use ash::vk;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{BindGroupInner, BindGroupLayoutInner, DeviceInner};
 use crate::{
-    BindGroup, BindGroupBinding, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, ShaderStageFlags,
+    BindGroup, BindGroupBinding, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutBinding,
+    BindGroupLayoutDescriptor, BindingResource, BindingType, ShaderStageFlags,
 };
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -78,6 +78,26 @@ impl Into<BindGroupLayout> for BindGroupLayoutInner {
     fn into(self) -> BindGroupLayout {
         BindGroupLayout { inner: Arc::new(self) }
     }
+}
+
+/// Finds the corresponding `BindGroupLayoutBinding`. The `bind_group_binding_descriptor_index` identifies
+/// the index in `BindGroupDescriptor::bindings`. If the corresponding binding is found at this index
+/// in `layout_bindings`, it's returned. Otherwise, a linear search is performed.
+pub fn find_layout_binding(
+    bind_group_binding_descriptor_index: usize,
+    bind_group_binding: u32,
+    layout_bindings: &[BindGroupLayoutBinding],
+) -> Option<&BindGroupLayoutBinding> {
+    // fast path
+    let layout_binding = layout_bindings
+        .get(bind_group_binding_descriptor_index)
+        .filter(|layout| layout.binding == bind_group_binding);
+
+    layout_binding.or_else(|| {
+        layout_bindings
+            .iter()
+            .find(|layout| layout.binding == bind_group_binding)
+    })
 }
 
 impl BindGroupInner {
@@ -154,7 +174,8 @@ impl BindGroupInner {
         let mut num_writes = 0;
 
         for (index, binding) in descriptor.bindings.iter().enumerate() {
-            let layout_binding = layout_bindings[index];
+            let layout_binding = find_layout_binding(index, binding.binding, &layout_bindings)
+                .unwrap_or_else(|| panic!("layout binding not found for bind_group binding: {}", binding.binding));
 
             let write = &mut writes[num_writes];
             write.dst_set = bind_group.handle;

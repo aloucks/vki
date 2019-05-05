@@ -132,6 +132,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let pipeline_layout = app.device.create_pipeline_layout(PipelineLayoutDescriptor {
         bind_group_layouts: vec![bind_group_layout],
+        push_constant_ranges: vec![],
     })?;
 
     let vs = app.device.create_shader_module(ShaderModuleDescriptor {
@@ -158,8 +159,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         color_states: vec![
             ColorStateDescriptor {
                 format: util::DEFAULT_COLOR_FORMAT,
-                color_blend: BlendDescriptor::REPLACE,
-                alpha_blend: BlendDescriptor::REPLACE,
+                color_blend: BlendDescriptor::OPAQUE,
+                alpha_blend: BlendDescriptor::OPAQUE,
                 write_mask: ColorWriteFlags::ALL,
             }
         ],

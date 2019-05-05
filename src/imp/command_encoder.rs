@@ -3,8 +3,8 @@ use ash::vk;
 use crate::{
     BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder,
     ComputePassEncoder, ComputePipeline, Extent3D, FilterMode, LoadOp, RenderPassColorAttachmentDescriptor,
-    RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPassEncoder, RenderPipeline, StoreOp,
-    TextureBlitView, TextureCopyView, TextureUsageFlags,
+    RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPassEncoder, RenderPipeline,
+    ShaderStageFlags, StoreOp, TextureBlitView, TextureCopyView, TextureUsageFlags,
 };
 
 use std::sync::Arc;
@@ -12,6 +12,7 @@ use std::sync::Arc;
 use crate::imp::command::{BufferCopy, Command, TextureBlit, TextureCopy};
 use crate::imp::command_buffer::CommandBufferState;
 use crate::imp::pass_resource_usage::{CommandBufferResourceUsage, PassResourceUsageTracker};
+use crate::imp::{binding, pipeline};
 use crate::imp::{
     CommandBufferInner, CommandEncoderInner, ComputePassEncoderInner, DeviceInner, RenderPassEncoderInner,
     TextureViewInner,
@@ -96,6 +97,36 @@ impl CommandEncoderInner {
         self.state.push(command)
     }
 
+    fn set_push_constants<T: Copy>(
+        &mut self,
+        stages: ShaderStageFlags,
+        offset_bytes: usize,
+        value: T,
+    ) -> Result<(), vk::Result> {
+        let size_bytes = std::mem::size_of::<T>();
+        if size_bytes + offset_bytes > pipeline::MAX_PUSH_CONSTANTS_SIZE {
+            log::error!(
+                "push constants offset + value size may not exceed {} bytes",
+                pipeline::MAX_PUSH_CONSTANTS_SIZE
+            );
+            Err(vk::Result::ERROR_VALIDATION_FAILED_EXT)
+        } else {
+            let mut values = vec![0_u8; pipeline::MAX_PUSH_CONSTANTS_SIZE];
+            let src = &value as *const _ as *const u8;
+            unsafe {
+                std::ptr::copy_nonoverlapping(src, values.as_mut_ptr(), values.len());
+            }
+            self.push(Command::SetPushConstants {
+                size_bytes: size_bytes as u32,
+                offset_bytes: offset_bytes as u32,
+                values,
+                stages,
+            });
+            Ok(())
+        }
+    }
+
+    /// TODO: return an error instead of panic when there's a binding mismatch
     fn set_bind_group(
         &mut self,
         index: u32,
@@ -103,31 +134,35 @@ impl CommandEncoderInner {
         dynamic_offsets: Option<&[u32]>,
         usage_tracker: &mut PassResourceUsageTracker,
     ) {
-        for (index, layout_binding) in bind_group.inner.layout.bindings.iter().enumerate() {
+        let layout_bindings = &bind_group.inner.layout.bindings;
+        for (index, binding) in bind_group.inner.bindings.iter().enumerate() {
+            let layout_binding = binding::find_layout_binding(index, binding.binding, &layout_bindings)
+                .unwrap_or_else(|| panic!("layout binding not found for bind_group binding: {}", binding.binding));
+
             match layout_binding.binding_type {
                 BindingType::UniformBuffer | BindingType::DynamicUniformBuffer => {
-                    let (buffer, _) = bind_group.inner.bindings[index]
+                    let (buffer, _) = binding
                         .resource
                         .as_buffer()
                         .expect("BindingType::[Dynamic]UniformBuffer => BindingResource::Buffer");
                     usage_tracker.buffer_used_as(buffer.inner.clone(), BufferUsageFlags::UNIFORM);
                 }
                 BindingType::StorageBuffer | BindingType::DynamicStorageBuffer => {
-                    let (buffer, _) = bind_group.inner.bindings[index]
+                    let (buffer, _) = binding
                         .resource
                         .as_buffer()
                         .expect("BindingType::[Dynamic]StorageBuffer => BindingResource::Buffer");
                     usage_tracker.buffer_used_as(buffer.inner.clone(), BufferUsageFlags::STORAGE);
                 }
                 BindingType::SampledTexture => {
-                    let texture_view = bind_group.inner.bindings[index]
+                    let texture_view = binding
                         .resource
                         .as_texture_view()
                         .expect("BindingType::SampledTexture => BindingResource::TextureView");
                     usage_tracker.texture_used_as(texture_view.inner.texture.clone(), TextureUsageFlags::SAMPLED);
                 }
                 BindingType::StorageTexelBuffer => {
-                    let buffer_view = bind_group.inner.bindings[index]
+                    let buffer_view = binding
                         .resource
                         .as_buffer_view()
                         .expect("BindingType::StorageTexelBuffer => BindingResource::BufferView");
@@ -384,6 +419,17 @@ impl<'a> ComputePassEncoder<'a> {
             .set_bind_group(index, bind_group, dynamic_offsets, usage_tracker);
     }
 
+    pub fn set_push_constants<T: Copy>(
+        &mut self,
+        stages: ShaderStageFlags,
+        offset_bytes: usize,
+        value: T,
+    ) -> Result<(), vk::Result> {
+        self.inner
+            .top_level_encoder
+            .set_push_constants(stages, offset_bytes, value)
+    }
+
     pub fn dispatch(&mut self, x: u32, y: u32, z: u32) {
         self.inner.top_level_encoder.push(Command::Dispatch { x, y, z });
     }
@@ -596,5 +642,16 @@ impl<'a> RenderPassEncoder<'a> {
             base_vertex,
             first_instance,
         })
+    }
+
+    pub fn set_push_constants<T: Copy>(
+        &mut self,
+        stages: ShaderStageFlags,
+        offset_bytes: usize,
+        value: T,
+    ) -> Result<(), vk::Result> {
+        self.inner
+            .top_level_encoder
+            .set_push_constants(stages, offset_bytes, value)
     }
 }

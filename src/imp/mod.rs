@@ -59,6 +59,18 @@ macro_rules! handle_traits {
                 state.write_u64(self.handle.as_raw())
             }
         }
+
+        impl PartialOrd for $Name {
+            fn partial_cmp(&self, other: &$Name) -> Option<std::cmp::Ordering> {
+                self.handle.partial_cmp(&other.handle)
+            }
+        }
+
+        impl Ord for $Name {
+            fn cmp(&self, other: &$Name) -> std::cmp::Ordering {
+                self.handle.cmp(&other.handle)
+            }
+        }
     };
 }
 
