@@ -186,7 +186,7 @@ impl From<Error> for FenceError {
         match e.kind {
             ErrorKind::Code(vk::Result::TIMEOUT) => FenceError::Timeout,
             ErrorKind::Code(code) => FenceError::Other(Error::from(code)),
-            ErrorKind::Message(msg) => FenceError::Other(Error::from(msg))
+            ErrorKind::Message(msg) => FenceError::Other(Error::from(msg)),
         }
     }
 }

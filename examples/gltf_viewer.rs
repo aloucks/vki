@@ -1,7 +1,7 @@
 #[macro_use]
 pub mod util;
 
-use cgmath::{ElementWise, EuclideanSpace, InnerSpace, Matrix, Matrix4, Point3, SquareMatrix, Vector3, VectorSpace};
+use cgmath::{EuclideanSpace, InnerSpace, Matrix, Matrix4, Point3, SquareMatrix, Vector1, Vector3, VectorSpace, Quaternion};
 
 use crate::util::{App, EventHandlers};
 
@@ -9,9 +9,9 @@ use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use smallvec::SmallVec;
-use std::any::Any;
+
 use std::borrow::Cow;
-use std::sync::Arc;
+
 use std::time::{Duration, Instant};
 use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
@@ -20,18 +20,14 @@ use vki::{
     InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     PushConstantRange, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, Sampler,
-    SamplerDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp, Texture,
-    TextureFormat, TextureView, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor, SwapchainError
+    SamplerDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp, SwapchainError,
+    TextureFormat, TextureView, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
 };
 
 const MAX_MORPH_TARGETS: usize = 2;
 const MAX_JOINTS: usize = 128;
 
 fn mat4(mat: &Matrix4<f32>) -> &[[f32; 4]; 4] {
-    mat.as_ref()
-}
-
-fn vec3(mat: &Vector3<f32>) -> &[f32; 3] {
     mat.as_ref()
 }
 
@@ -54,6 +50,7 @@ struct TextureSampler {
 }
 
 struct Node {
+    #[allow(dead_code)]
     name: Option<String>,
     local_transform: gltf::scene::Transform,
     children_indices: Vec<usize>,
@@ -245,6 +242,7 @@ struct Primitive {
 }
 
 pub struct Mesh {
+    #[allow(dead_code)]
     name: Option<String>,
     primitives: Vec<Primitive>,
     morph_weights: Option<Vec<f32>>,
@@ -279,6 +277,7 @@ pub struct MeshPipelineKey {
 
 #[derive(Debug, Default)]
 pub struct Material {
+    #[allow(dead_code)]
     pub name: Option<String>,
     pub alpha_cutoff: f32,
     pub alpha_mode: AlphaMode,
@@ -423,6 +422,7 @@ impl From<gltf::mesh::BoundingBox> for BoundingBox {
 
 struct Animation {
     channels: Vec<Channel>,
+    #[allow(dead_code)]
     name: Option<String>,
 }
 
@@ -442,14 +442,6 @@ impl Animation {
     fn process(&mut self, now: Instant, nodes: &mut [Node], meshes: &[Mesh]) {
         for channel in self.channels.iter_mut() {
             channel.process(now, nodes, meshes);
-        }
-    }
-
-    fn toggle(&mut self, now: Instant) {
-        if self.channels.first().and_then(|channel| channel.start_time).is_some() {
-            self.stop();
-        } else {
-            self.start(now);
         }
     }
 }
@@ -530,7 +522,6 @@ impl Channel {
     }
 
     fn process(&mut self, now: Instant, nodes: &mut [Node], meshes: &[Mesh]) {
-        use cgmath::{One, Quaternion, Vector1, Vector3, Zero};
         use gltf::animation::Interpolation;
 
         if let Some(time) = self.time(now) {
@@ -864,7 +855,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut encoder = app.device.create_command_encoder()?;
 
-    let mut buffers: HashMap<usize, Buffer> = HashMap::with_capacity(import.buffers.len());
+    let _buffers: HashMap<usize, Buffer> = HashMap::with_capacity(import.buffers.len());
     let mut images = Vec::with_capacity(import.doc.images().len());
     let mut samplers = Vec::with_capacity(import.doc.samplers().len());
     let mut textures = Vec::with_capacity(import.doc.textures().len());
@@ -900,7 +891,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Loading images: {}", import.images.len());
     for image in import.images.iter().chain(Some(&missing_texture_image)) {
         use gltf::image::Format;
-        use image::{Bgr, Bgra, ConvertBuffer, ImageBuffer, Rgb, Rgba};
+        use image::{ConvertBuffer, ImageBuffer, Rgb, Rgba};
 
         type RgbaImage = ImageBuffer<Rgba<u8>, Vec<u8>>;
         type BgraImage = ImageBuffer<Rgba<u8>, Vec<u8>>;
@@ -1384,8 +1375,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     // add an additional skin to bind for meshes that aren't skinned
     skin_settings.push(SkinSettings::default());
-    let default_skin_index = skin_settings.len();
-    let mut skin_settings_buffer = util::create_buffer_with_data(
+    let skin_settings_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
         BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
@@ -1393,7 +1383,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     )?;
 
     // set 2, binding 0
-    let mut material_settings: Vec<MaterialSettings> = materials.iter().map(|m| m.settings()).collect();
+    let material_settings: Vec<MaterialSettings> = materials.iter().map(|m| m.settings()).collect();
     let material_settings_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
@@ -1419,7 +1409,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     type PipelineKey = (MaterialPipelineKey, MeshPipelineKey);
 
-    let mut pipeline_keys = Vec::new();
+    let mut pipeline_keys: Vec<PipelineKey> = Vec::new();
 
     let mut mesh_pipeline_keys = Vec::new();
 
@@ -1895,7 +1885,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let model_matrix = node.get_global_transform(&nodes);
             let normal_matrix = Matrix4::from(model_matrix).invert().unwrap().transpose();
             let mvp_matrix = app.camera.projection * app.camera.view * Matrix4::from(model_matrix);
-            let joint_matrices = node.get_joint_matrices(&skins, &nodes);
             let morph_weights = node.get_morph_weights(&meshes).unwrap_or(&[]);
 
             let settings = &mut mesh_settings[mesh_index];
@@ -1982,7 +1971,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 if last_pipeline_key != Some(pipeline_key) {
                     last_pipeline_key = Some(pipeline_key);
                     if let Some(pipeline) = pipelines.get(&pipeline_key) {
-                        let pipeline = &pipelines[&pipeline_key];
                         render_pass.set_pipeline(pipeline);
                     } else {
                         println!("Skipping primitive due to missing pipeline. TODO default material");
@@ -2024,6 +2012,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         Ok(())
     });
-
-    Ok(())
 }

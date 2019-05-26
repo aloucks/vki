@@ -1,6 +1,7 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
+use crate::error::Error;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{render_pass, util};
 use crate::imp::{DeviceInner, TextureInner, TextureViewInner};
@@ -8,7 +9,6 @@ use crate::{
     Extent3D, Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView,
     TextureViewDescriptor, TextureViewDimension,
 };
-use crate::error::Error;
 
 use ash::vk::MemoryPropertyFlags;
 use parking_lot::Mutex;

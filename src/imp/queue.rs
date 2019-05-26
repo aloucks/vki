@@ -1,7 +1,7 @@
 use ash::vk;
 
 use crate::imp::FenceInner;
-use crate::{CommandBuffer, Fence, Queue, SwapchainImage, Error, SwapchainError};
+use crate::{CommandBuffer, Error, Fence, Queue, SwapchainError, SwapchainImage};
 
 impl Queue {
     pub fn present(&self, frame: SwapchainImage) -> Result<(), SwapchainError> {

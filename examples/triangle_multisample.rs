@@ -1,12 +1,12 @@
 use vki::{
-    BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags, Color,
-    ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, Extent3D, FrontFace, IndexFormat,
+    AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
+    BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
+    Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, Extent3D, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
     PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
-    RenderPipelineDescriptor, AdapterOptions, ShaderModuleDescriptor, ShaderStageFlags, StoreOp,
-    SwapchainDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
-    VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
+    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor,
+    TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor, VertexFormat,
+    VertexInputDescriptor,
 };
 
 use winit::dpi::LogicalSize;

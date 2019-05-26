@@ -1,4 +1,4 @@
-use vki::{DeviceDescriptor, Instance, PowerPreference, AdapterOptions};
+use vki::{AdapterOptions, DeviceDescriptor, Instance, PowerPreference};
 
 #[test]
 fn instance_new() {

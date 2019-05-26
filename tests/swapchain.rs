@@ -1,5 +1,5 @@
 use vki::winit_surface_descriptor;
-use vki::{DeviceDescriptor, Instance, AdapterOptions};
+use vki::{AdapterOptions, DeviceDescriptor, Instance};
 
 use winit::dpi::LogicalSize;
 use winit::event::{Event, WindowEvent};

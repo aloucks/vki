@@ -5,7 +5,7 @@
 
 use vki::winit_surface_descriptor;
 use vki::{
-    Adapter, Device, DeviceDescriptor, Instance, AdapterOptions, Surface, Swapchain, SwapchainDescriptor,
+    Adapter, AdapterOptions, Device, DeviceDescriptor, Instance, Surface, Swapchain, SwapchainDescriptor,
     TextureFormat, TextureUsageFlags,
 };
 
