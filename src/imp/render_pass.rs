@@ -4,7 +4,7 @@ use ash::vk;
 use smallvec::SmallVec;
 
 use crate::imp::texture;
-use crate::{LoadOp, TextureFormat, Error};
+use crate::{Error, LoadOp, TextureFormat};
 
 use crate::imp::DeviceInner;
 

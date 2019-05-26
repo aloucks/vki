@@ -35,9 +35,9 @@ mod polyfill;
 pub use crate::imp::debug::validate;
 
 use crate::{
-    BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions, Limits,
-    PipelineLayoutDescriptor, RenderPipelineDescriptor, AdapterOptions, SamplerDescriptor, TextureDescriptor,
-    TextureUsageFlags, TextureViewDescriptor,
+    AdapterOptions, BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions, Limits,
+    PipelineLayoutDescriptor, RenderPipelineDescriptor, SamplerDescriptor, TextureDescriptor, TextureUsageFlags,
+    TextureViewDescriptor,
 };
 
 use std::collections::HashMap;

@@ -8,10 +8,10 @@ use ash::vk;
 use std::slice;
 
 use vki::{
-    Adapter, Buffer, BufferCopyView, BufferDescriptor, BufferUsageFlags, CommandEncoder, Device, DeviceDescriptor,
-    Extensions, Extent3D, FilterMode, Instance, Origin3D, PowerPreference, AdapterOptions, Surface, Swapchain,
+    Adapter, AdapterOptions, Buffer, BufferCopyView, BufferDescriptor, BufferUsageFlags, CommandEncoder, Device,
+    DeviceDescriptor, Error, Extensions, Extent3D, FilterMode, Instance, Origin3D, PowerPreference, Surface, Swapchain,
     SwapchainDescriptor, Texture, TextureBlitView, TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat,
-    TextureUsageFlags, TextureView, Error
+    TextureUsageFlags, TextureView,
 };
 
 use std::time::{Duration, Instant};

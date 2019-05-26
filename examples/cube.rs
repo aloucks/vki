@@ -1,5 +1,3 @@
-use ash::vk;
-
 #[macro_use]
 pub mod util;
 
@@ -17,7 +15,7 @@ use vki::{
     PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
     RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor,
     RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp,
-    VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor, SwapchainError
+    SwapchainError, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
 };
 
 #[repr(C)]

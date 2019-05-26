@@ -1,7 +1,7 @@
 use crate::imp::serial::Serial;
 use crate::imp::{DeviceInner, FenceInner};
-use crate::{Fence, Error, FenceError};
-use ash::vk;
+use crate::{Error, Fence, FenceError};
+
 use parking_lot::Mutex;
 use std::sync::Arc;
 use std::time::{Duration, Instant};

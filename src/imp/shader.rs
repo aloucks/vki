@@ -1,10 +1,10 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
+use crate::error::Error;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{DeviceInner, ShaderModuleInner};
 use crate::{ShaderModule, ShaderModuleDescriptor};
-use crate::error::Error;
 
 use std::sync::Arc;
 use std::{mem, ptr};

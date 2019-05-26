@@ -11,7 +11,7 @@ use std::mem;
 use std::sync::Arc;
 
 use crate::imp::{debug, AdapterInner, InstanceExt, InstanceInner, SurfaceInner};
-use crate::{Adapter, Error, Instance, AdapterOptions, Surface, SurfaceDescriptor};
+use crate::{Adapter, AdapterOptions, Error, Instance, Surface, SurfaceDescriptor};
 
 use std::fmt::Debug;
 use std::sync::atomic::Ordering;

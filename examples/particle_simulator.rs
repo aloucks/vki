@@ -1,5 +1,3 @@
-use ash::vk;
-
 #[macro_use]
 pub mod util;
 
@@ -18,8 +16,8 @@ use vki::{
     ColorStateDescriptor, ColorWriteFlags, ComputePipelineDescriptor, CullMode, Fence, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
-    ShaderModuleDescriptor, ShaderStageFlags, StoreOp, TextureFormat, VertexAttributeDescriptor, VertexFormat,
-    VertexInputDescriptor, SwapchainError
+    ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainError, TextureFormat, VertexAttributeDescriptor,
+    VertexFormat, VertexInputDescriptor,
 };
 
 use rand::Rng;

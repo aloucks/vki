@@ -1,6 +1,6 @@
+use crate::error::Error;
 use crate::imp::{InstanceInner, SurfaceInner};
 use crate::Surface;
-use crate::error::Error;
 
 use ash::vk;
 
@@ -37,10 +37,7 @@ impl SurfaceInner {
     }
 
     #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
-    pub fn new(
-        instance: Arc<InstanceInner>,
-        descriptor: &crate::SurfaceDescriptorUnix,
-    ) -> Result<SurfaceInner, Error> {
+    pub fn new(instance: Arc<InstanceInner>, descriptor: &crate::SurfaceDescriptorUnix) -> Result<SurfaceInner, Error> {
         let supported_formats = Mutex::new(HashMap::default());
 
         if let (Some(xlib_window), Some(xlib_display)) = (descriptor.xlib_window, descriptor.xlib_display) {

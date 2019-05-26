@@ -1,13 +1,13 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
+use crate::error::Error;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{BindGroupInner, BindGroupLayoutInner, DeviceInner};
 use crate::{
     BindGroup, BindGroupBinding, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutBinding,
     BindGroupLayoutDescriptor, BindingResource, BindingType, ShaderStageFlags,
 };
-use crate::error::Error;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -39,10 +39,7 @@ pub fn shader_stage_flags(visibility: ShaderStageFlags) -> vk::ShaderStageFlags 
 }
 
 impl BindGroupLayoutInner {
-    pub fn new(
-        device: Arc<DeviceInner>,
-        descriptor: BindGroupLayoutDescriptor,
-    ) -> Result<BindGroupLayoutInner, Error> {
+    pub fn new(device: Arc<DeviceInner>, descriptor: BindGroupLayoutDescriptor) -> Result<BindGroupLayoutInner, Error> {
         let bindings: Vec<_> = descriptor
             .bindings
             .iter()

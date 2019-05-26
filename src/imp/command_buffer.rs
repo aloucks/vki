@@ -9,7 +9,7 @@ use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery}
 use crate::imp::{binding, pipeline};
 use crate::imp::{render_pass, sampler, texture, util, DeviceInner, PipelineLayoutInner};
 use crate::imp::{CommandBufferInner, RenderPipelineInner};
-use crate::{BufferUsageFlags, Extent3D, IndexFormat, ShaderStageFlags, TextureUsageFlags, Error};
+use crate::{BufferUsageFlags, Error, Extent3D, IndexFormat, ShaderStageFlags, TextureUsageFlags};
 
 use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::device::DeviceState;
@@ -118,11 +118,7 @@ fn image_blit(src: &TextureBlit, dst: &TextureBlit) -> vk::ImageBlit {
 }
 
 impl CommandBufferInner {
-    pub fn record_commands(
-        &self,
-        command_buffer: vk::CommandBuffer,
-        state: &mut DeviceState,
-    ) -> Result<(), Error> {
+    pub fn record_commands(&self, command_buffer: vk::CommandBuffer, state: &mut DeviceState) -> Result<(), Error> {
         let mut pass = 0;
         let mut command_index = 0;
         while let Some(command) = self.state.commands.get(command_index) {
@@ -596,11 +592,7 @@ impl CommandBufferInner {
         unreachable!()
     }
 
-    fn record_compute_pass(
-        &self,
-        command_buffer: vk::CommandBuffer,
-        mut command_index: usize,
-    ) -> Result<usize, Error> {
+    fn record_compute_pass(&self, command_buffer: vk::CommandBuffer, mut command_index: usize) -> Result<usize, Error> {
         let mut descriptor_sets = DescriptorSetTracker::default();
 
         while let Some(command) = self.state.commands.get(command_index) {

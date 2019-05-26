@@ -1,5 +1,5 @@
 use crate::imp::{AdapterInner, DeviceInner, InstanceInner, SurfaceInner};
-use crate::{Adapter, Device, DeviceDescriptor, Extensions, PowerPreference, AdapterOptions};
+use crate::{Adapter, AdapterOptions, Device, DeviceDescriptor, Extensions, PowerPreference};
 
 use crate::error::Error;
 

@@ -4,9 +4,9 @@ use ash::vk::{DependencyFlags, MemoryPropertyFlags};
 
 use vk_mem::{AllocationCreateFlags, AllocationCreateInfo, MemoryUsage};
 
+use crate::error::Error;
 use crate::imp::{pipeline, texture, BufferInner, BufferState, BufferViewInner, DeviceInner};
 use crate::{Buffer, BufferDescriptor, BufferUsageFlags, BufferView, BufferViewDescriptor, MappedBuffer};
-use crate::error::Error;
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use parking_lot::Mutex;

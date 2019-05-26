@@ -13,7 +13,7 @@ mod macros;
 mod error;
 mod imp;
 
-pub use crate::error::{Error, SwapchainError, FenceError};
+pub use crate::error::{Error, FenceError, SwapchainError};
 pub use crate::imp::validate;
 
 use std::borrow::Cow;

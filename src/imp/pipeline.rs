@@ -4,11 +4,11 @@ use ash::vk;
 use std::ffi::CString;
 use std::sync::Arc;
 
+use crate::error::Error;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::render_pass::{self, ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
 use crate::imp::{binding, sampler};
 use crate::imp::{ComputePipelineInner, DeviceInner, PipelineLayoutInner, RenderPipelineInner};
-use crate::error::Error;
 use crate::{
     BlendFactor, BlendOperation, ColorStateDescriptor, ColorWriteFlags, CompareFunction, ComputePipeline,
     ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, FrontFace, InputStepMode, LoadOp, PipelineLayout,
@@ -20,10 +20,7 @@ use crate::{
 pub const MAX_PUSH_CONSTANTS_SIZE: usize = 128;
 
 impl PipelineLayoutInner {
-    pub fn new(
-        device: Arc<DeviceInner>,
-        descriptor: PipelineLayoutDescriptor,
-    ) -> Result<PipelineLayoutInner, Error> {
+    pub fn new(device: Arc<DeviceInner>, descriptor: PipelineLayoutDescriptor) -> Result<PipelineLayoutInner, Error> {
         let push_constant_ranges: Vec<_> = descriptor
             .push_constant_ranges
             .iter()
@@ -70,10 +67,7 @@ impl Drop for PipelineLayoutInner {
 }
 
 impl ComputePipelineInner {
-    pub fn new(
-        device: Arc<DeviceInner>,
-        descriptor: ComputePipelineDescriptor,
-    ) -> Result<ComputePipelineInner, Error> {
+    pub fn new(device: Arc<DeviceInner>, descriptor: ComputePipelineDescriptor) -> Result<ComputePipelineInner, Error> {
         // TODO: inspect push constants
 
         let entry_point = CString::new(&*descriptor.compute_stage.entry_point).map_err(|e| {
@@ -398,10 +392,7 @@ pub fn vertex_input_binding_description(descriptor: &VertexInputDescriptor) -> v
 }
 
 impl RenderPipelineInner {
-    pub fn new(
-        device: Arc<DeviceInner>,
-        descriptor: RenderPipelineDescriptor,
-    ) -> Result<RenderPipelineInner, Error> {
+    pub fn new(device: Arc<DeviceInner>, descriptor: RenderPipelineDescriptor) -> Result<RenderPipelineInner, Error> {
         // TODO: inspect push constants
 
         let vertex_entry_point = CString::new(&*descriptor.vertex_stage.entry_point).map_err(|e| {

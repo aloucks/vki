@@ -2,8 +2,8 @@ use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{texture, AdapterInner, SurfaceInner, TextureViewInner};
 use crate::imp::{DeviceInner, InstanceInner, SwapchainInner, TextureInner};
 use crate::{
-    Extent3D, PowerPreference, Swapchain, SwapchainDescriptor, SwapchainImage, Texture, TextureDescriptor,
-    TextureDimension, TextureUsageFlags, TextureView, SwapchainError, Error
+    Error, Extent3D, PowerPreference, Swapchain, SwapchainDescriptor, SwapchainError, SwapchainImage, Texture,
+    TextureDescriptor, TextureDimension, TextureUsageFlags, TextureView,
 };
 
 use ash::prelude::VkResult;
@@ -304,7 +304,10 @@ pub fn surface_image_usage_check(
         log::debug!("selected image usage: {:?}", usage_flags);
         Ok(())
     } else {
-        Err(Error::from(format!("Unsupported surface image usage flags: {:?}", usage_flags)))
+        Err(Error::from(format!(
+            "Unsupported surface image usage flags: {:?}",
+            usage_flags
+        )))
     }
 }
 
@@ -317,7 +320,10 @@ pub fn surface_image_transform_check(
         log::debug!("selected image transform: {:?}", transform_flags);
         Ok(())
     } else {
-        Err(Error::from(format!("Unsupported surface image transform flags: {:?}", transform_flags)))
+        Err(Error::from(format!(
+            "Unsupported surface image transform flags: {:?}",
+            transform_flags
+        )))
     }
 }
 
@@ -334,6 +340,9 @@ fn surface_format_check(
         );
         Ok(())
     } else {
-        Err(Error::from(format!("Unsupported surface format: {:?}", requested_format)))
+        Err(Error::from(format!(
+            "Unsupported surface format: {:?}",
+            requested_format
+        )))
     }
 }
