@@ -1,8 +1,6 @@
 use vki::{
-    BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BufferDescriptor, BufferUsageFlags, Color, Extent3D, LoadOp, PipelineLayoutDescriptor,
-    RenderPassColorAttachmentDescriptor, RenderPassDescriptor, SamplerDescriptor, ShaderStageFlags, StoreOp,
-    TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
+    Color, Extent3D, LoadOp, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, StoreOp, TextureDescriptor,
+    TextureDimension, TextureFormat, TextureUsageFlags,
 };
 
 pub mod support;
