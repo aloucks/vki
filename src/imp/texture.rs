@@ -8,6 +8,7 @@ use crate::{
     Extent3D, Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView,
     TextureViewDescriptor, TextureViewDimension,
 };
+use crate::error::Error;
 
 use ash::vk::MemoryPropertyFlags;
 use parking_lot::Mutex;
@@ -318,12 +319,12 @@ pub fn default_texture_view_descriptor(texture: &TextureInner) -> TextureViewDes
 }
 
 impl Texture {
-    pub fn create_view(&self, descriptor: TextureViewDescriptor) -> Result<TextureView, vk::Result> {
+    pub fn create_view(&self, descriptor: TextureViewDescriptor) -> Result<TextureView, Error> {
         let texture_view = TextureViewInner::new(self.inner.clone(), descriptor)?;
         Ok(texture_view.into())
     }
 
-    pub fn create_default_view(&self) -> Result<TextureView, vk::Result> {
+    pub fn create_default_view(&self) -> Result<TextureView, Error> {
         let descriptor = default_texture_view_descriptor(&self.inner);
         log::trace!("default image_view descriptor: {:?}", descriptor);
         self.create_view(descriptor)
@@ -339,7 +340,7 @@ impl Texture {
 }
 
 impl TextureInner {
-    pub fn new(device: Arc<DeviceInner>, descriptor: TextureDescriptor) -> Result<TextureInner, vk::Result> {
+    pub fn new(device: Arc<DeviceInner>, descriptor: TextureDescriptor) -> Result<TextureInner, Error> {
         let flags = if descriptor.array_layer_count >= 6 && descriptor.size.width == descriptor.size.height {
             vk::ImageCreateFlags::CUBE_COMPATIBLE
         } else {
@@ -392,7 +393,7 @@ impl TextureInner {
                 unsafe {
                     let dummy = device.raw.create_image(&create_info, None)?;
                     device.raw.destroy_image(dummy, None);
-                    return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+                    return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
                 }
             }
         }
@@ -423,7 +424,7 @@ impl TextureInner {
         command_buffer: vk::CommandBuffer,
         usage: TextureUsageFlags,
         subresource: Option<Subresource>,
-    ) -> Result<(), vk::Result> {
+    ) -> Result<(), Error> {
         let format = self.descriptor.format;
 
         // log2(32768) + 1 = 16; enough barriers on the stack for a non-array image with mipmaps, up to 32768 x 32768
@@ -543,7 +544,7 @@ impl Drop for TextureInner {
 }
 
 impl TextureViewInner {
-    pub fn new(texture: Arc<TextureInner>, descriptor: TextureViewDescriptor) -> Result<TextureViewInner, vk::Result> {
+    pub fn new(texture: Arc<TextureInner>, descriptor: TextureViewDescriptor) -> Result<TextureViewInner, Error> {
         let aspect_mask = unsafe { std::mem::transmute(descriptor.aspect) };
         let base_mip_level = descriptor.base_mip_level;
         let level_count = descriptor.mip_level_count;

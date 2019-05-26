@@ -1,5 +1,7 @@
 use std::time::Duration;
 
+use vki::FenceError;
+
 pub mod support;
 
 #[test]
@@ -58,7 +60,7 @@ fn timeout() {
 
         let result = fence.wait(Duration::from_millis(100));
 
-        assert_eq!(Err(ash::vk::Result::TIMEOUT), result);
+        assert_eq!(Err(FenceError::Timeout), result);
 
         assert_eq!(false, fence.is_signaled());
 

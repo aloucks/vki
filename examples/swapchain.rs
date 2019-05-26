@@ -1,4 +1,4 @@
-use vki::{DeviceDescriptor, Instance, RequestAdapterOptions, SwapchainDescriptor, TextureFormat, TextureUsageFlags};
+use vki::{DeviceDescriptor, Instance, AdapterOptions, SwapchainDescriptor, TextureFormat, TextureUsageFlags, SwapchainError};
 
 use winit::dpi::LogicalSize;
 use winit::event::{Event, StartCause, WindowEvent};
@@ -6,8 +6,6 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit::platform::desktop::EventLoopExtDesktop;
 
 use std::time::{Duration, Instant};
-
-const VK_ERROR_OUT_OF_DATE_KHR: ash::vk::Result = ash::vk::Result::ERROR_OUT_OF_DATE_KHR;
 
 fn main() -> Result<(), Box<std::error::Error>> {
     if std::env::var("VK_INSTANCE_LAYERS").is_err() {
@@ -25,9 +23,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
         .build(&event_loop)?;
 
     let instance = Instance::new()?;
-    let adapter_options = RequestAdapterOptions::default();
-    let adapter = instance.request_adaptor(adapter_options)?;
-    println!("Adapter: {}", adapter.name());
+    let adapter_options = AdapterOptions::default();
+    let adapter = instance.get_adapter(adapter_options)?;
+    println!("Adapter: {:#?}", adapter.properties());
 
     // The winit_surface_descriptor macro is optional. It creates the platform specific
     // descriptor without vki requiring a dependency on winit (or a specific version of winit).
@@ -93,7 +91,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     // End the frame early if the swapchain is out of date and hasn't been re-created yet
                     let frame = match swapchain.acquire_next_image() {
                         Ok(frame) => frame,
-                        Err(VK_ERROR_OUT_OF_DATE_KHR) => return Ok(()),
+                        Err(SwapchainError::OutOfDate) => return Ok(()),
                         Err(e) => return Err(e)?,
                     };
 
@@ -106,7 +104,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     // Drop the frame if the swapchain is out of date and hasn't been re-created yet
                     match queue.present(frame) {
                         Ok(()) => {}
-                        Err(VK_ERROR_OUT_OF_DATE_KHR) => return Ok(()),
+                        Err(SwapchainError::OutOfDate) => return Ok(()),
                         Err(e) => return Err(e)?,
                     }
                 }

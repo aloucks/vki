@@ -4,6 +4,8 @@ use ash::vk;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{DeviceInner, SamplerInner};
 use crate::{AddressMode, CompareFunction, FilterMode, Sampler, SamplerDescriptor};
+use crate::error::Error;
+
 use std::sync::Arc;
 
 pub fn address_mode(mode: AddressMode) -> vk::SamplerAddressMode {
@@ -42,7 +44,7 @@ pub fn compare_op(func: CompareFunction) -> vk::CompareOp {
 }
 
 impl SamplerInner {
-    pub fn new(device: Arc<DeviceInner>, descriptor: SamplerDescriptor) -> Result<SamplerInner, vk::Result> {
+    pub fn new(device: Arc<DeviceInner>, descriptor: SamplerDescriptor) -> Result<SamplerInner, Error> {
         let create_info = vk::SamplerCreateInfo {
             address_mode_u: address_mode(descriptor.address_mode_u),
             address_mode_v: address_mode(descriptor.address_mode_v),

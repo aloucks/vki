@@ -1,4 +1,6 @@
 use crate::imp::{BufferInner, BufferUsageFlags, TextureInner, TextureUsageFlags};
+use crate::Error;
+
 use ash::vk;
 use std::sync::Arc;
 
@@ -11,7 +13,7 @@ pub struct PassResourceUsage {
 }
 
 impl PassResourceUsage {
-    pub fn transition_for_pass(&self, command_buffer: vk::CommandBuffer) -> Result<(), vk::Result> {
+    pub fn transition_for_pass(&self, command_buffer: vk::CommandBuffer) -> Result<(), Error> {
         for (buffer, usage) in self.buffers.iter() {
             buffer.transition_usage_now(command_buffer, *usage)?;
         }

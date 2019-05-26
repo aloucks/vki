@@ -1,10 +1,9 @@
-use crate::error::SurfaceError;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{texture, AdapterInner, SurfaceInner, TextureViewInner};
 use crate::imp::{DeviceInner, InstanceInner, SwapchainInner, TextureInner};
 use crate::{
     Extent3D, PowerPreference, Swapchain, SwapchainDescriptor, SwapchainImage, Texture, TextureDescriptor,
-    TextureDimension, TextureUsageFlags, TextureView,
+    TextureDimension, TextureUsageFlags, TextureView, SwapchainError, Error
 };
 
 use ash::prelude::VkResult;
@@ -23,7 +22,7 @@ use std::time::Duration;
 pub const COLOR_SPACE: vk::ColorSpaceKHR = vk::ColorSpaceKHR::SRGB_NONLINEAR;
 
 impl Swapchain {
-    pub fn acquire_next_image(&self) -> Result<SwapchainImage, vk::Result> {
+    pub fn acquire_next_image(&self) -> Result<SwapchainImage, SwapchainError> {
         let image_index = self.inner.acquire_next_image_index()?;
         Ok(SwapchainImage {
             swapchain: Arc::clone(&self.inner),
@@ -44,7 +43,7 @@ impl SwapchainInner {
         device: Arc<DeviceInner>,
         descriptor: SwapchainDescriptor,
         old_swapchain: Option<&SwapchainInner>,
-    ) -> Result<SwapchainInner, SurfaceError> {
+    ) -> Result<SwapchainInner, Error> {
         unsafe {
             let instance = &device.adapter.instance;
             let physical_device = device.adapter.physical_device;
@@ -161,7 +160,7 @@ impl SwapchainInner {
         }
     }
 
-    fn acquire_next_image_index(&self) -> Result<u32, vk::Result> {
+    fn acquire_next_image_index(&self) -> Result<u32, SwapchainError> {
         unsafe {
             let timeout = Duration::from_millis(100);
             let timeout = timeout.as_nanos() as u64;
@@ -191,11 +190,14 @@ impl SwapchainInner {
                         log::warn!("acquire_next_image_index: timeout");
                         continue;
                     }
+                    Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => {
+                        return Err(SwapchainError::OutOfDate);
+                    }
                     Err(err) => {
                         let mut state = self.device.state.lock();
                         let serial = state.get_next_pending_serial();
                         state.get_fenced_deleter().delete_when_unused(semaphore, serial);
-                        return Err(err);
+                        return Err(SwapchainError::Other(Error::from(err)));
                     }
                 }
             }
@@ -297,12 +299,12 @@ pub fn surface_image_extent(
 pub fn surface_image_usage_check(
     surface_caps: &vk::SurfaceCapabilitiesKHR,
     usage_flags: vk::ImageUsageFlags,
-) -> Result<(), SurfaceError> {
+) -> Result<(), Error> {
     if surface_caps.supported_usage_flags.contains(usage_flags) {
         log::debug!("selected image usage: {:?}", usage_flags);
         Ok(())
     } else {
-        Err(SurfaceError::UnsupportedImageUsageFlags(usage_flags))
+        Err(Error::from(format!("Unsupported surface image usage flags: {:?}", usage_flags)))
     }
 }
 
@@ -310,12 +312,12 @@ pub fn surface_image_usage_check(
 pub fn surface_image_transform_check(
     surface_caps: &vk::SurfaceCapabilitiesKHR,
     transform_flags: vk::SurfaceTransformFlagsKHR,
-) -> Result<(), SurfaceError> {
+) -> Result<(), Error> {
     if surface_caps.supported_transforms.contains(transform_flags) {
         log::debug!("selected image transform: {:?}", transform_flags);
         Ok(())
     } else {
-        Err(SurfaceError::UnsupportedImageTransformFlags(transform_flags))
+        Err(Error::from(format!("Unsupported surface image transform flags: {:?}", transform_flags)))
     }
 }
 
@@ -323,7 +325,7 @@ fn surface_format_check(
     surface: &SurfaceInner,
     physical_device: vk::PhysicalDevice,
     requested_format: vk::SurfaceFormatKHR,
-) -> Result<(), SurfaceError> {
+) -> Result<(), Error> {
     if surface.is_supported_format(physical_device, requested_format)? {
         log::debug!(
             "selected format: {:?}, color_space: {:?}",
@@ -332,6 +334,6 @@ fn surface_format_check(
         );
         Ok(())
     } else {
-        Err(SurfaceError::UnsupportedFormat(requested_format))
+        Err(Error::from(format!("Unsupported surface format: {:?}", requested_format)))
     }
 }

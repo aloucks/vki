@@ -1,5 +1,6 @@
 use crate::imp::{InstanceInner, SurfaceInner};
 use crate::Surface;
+use crate::error::Error;
 
 use ash::vk;
 
@@ -13,7 +14,7 @@ impl SurfaceInner {
     pub fn new(
         instance: Arc<InstanceInner>,
         descriptor: &crate::SurfaceDescriptorWin32,
-    ) -> Result<SurfaceInner, vk::Result> {
+    ) -> Result<SurfaceInner, Error> {
         let create_info = vk::Win32SurfaceCreateInfoKHR {
             hwnd: descriptor.hwnd,
             ..Default::default()
@@ -39,7 +40,7 @@ impl SurfaceInner {
     pub fn new(
         instance: Arc<InstanceInner>,
         descriptor: &crate::SurfaceDescriptorUnix,
-    ) -> Result<SurfaceInner, vk::Result> {
+    ) -> Result<SurfaceInner, Error> {
         let supported_formats = Mutex::new(HashMap::default());
 
         if let (Some(xlib_window), Some(xlib_display)) = (descriptor.xlib_window, descriptor.xlib_display) {
@@ -97,7 +98,7 @@ impl SurfaceInner {
         }
 
         log::error!("invalid surface descriptor: {:?}", descriptor);
-        Err(vk::Result::ERROR_INITIALIZATION_FAILED)
+        Err(Error::from("Invalid surface descriptor"))
     }
 
     /// Recipe: _Selecting a format of swapchain images_ (page `101`)
@@ -105,7 +106,7 @@ impl SurfaceInner {
         &self,
         physical_device: vk::PhysicalDevice,
         requested_format: vk::SurfaceFormatKHR,
-    ) -> Result<bool, vk::Result> {
+    ) -> Result<bool, Error> {
         let supported_formats = self.get_physical_device_surface_formats(physical_device)?;
         let valid_formats = [requested_format.format, vk::Format::UNDEFINED];
         for format in supported_formats.iter().cloned() {
@@ -119,7 +120,7 @@ impl SurfaceInner {
     pub fn get_physical_device_surface_formats(
         &self,
         physical_device: vk::PhysicalDevice,
-    ) -> Result<Vec<vk::SurfaceFormatKHR>, vk::Result> {
+    ) -> Result<Vec<vk::SurfaceFormatKHR>, Error> {
         // Querying the supported formats is slow and causes swapchain re-creation to stutter,
         // so we cache these after initial lookup
         let mut supported_formats_guard = self.supported_formats.lock();

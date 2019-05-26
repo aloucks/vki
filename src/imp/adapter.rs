@@ -1,5 +1,7 @@
 use crate::imp::{AdapterInner, DeviceInner, InstanceInner, SurfaceInner};
-use crate::{Adapter, Device, DeviceDescriptor, Extensions, PowerPreference, RequestAdapterOptions};
+use crate::{Adapter, Device, DeviceDescriptor, Extensions, PowerPreference, AdapterOptions};
+
+use crate::error::Error;
 
 use ash::version::InstanceV1_0;
 use ash::vk;
@@ -17,7 +19,11 @@ impl Adapter {
         &self.inner.extensions
     }
 
-    pub fn create_device(&self, descriptor: DeviceDescriptor) -> Result<Device, vk::Result> {
+    pub fn properties(&self) -> AdapterProperties {
+        self.inner.properties()
+    }
+
+    pub fn create_device(&self, descriptor: DeviceDescriptor) -> Result<Device, Error> {
         let device = DeviceInner::new(self.inner.clone(), descriptor)?;
         Ok(device.into())
     }
@@ -30,7 +36,7 @@ impl Into<Adapter> for AdapterInner {
 }
 
 impl AdapterInner {
-    pub fn new(instance: Arc<InstanceInner>, options: RequestAdapterOptions) -> Result<AdapterInner, vk::Result> {
+    pub fn new(instance: Arc<InstanceInner>, options: AdapterOptions) -> Result<AdapterInner, Error> {
         let new_inner = |physical_device: vk::PhysicalDevice,
                          physical_device_properties: vk::PhysicalDeviceProperties| {
             let instance = instance.clone();
@@ -109,7 +115,7 @@ impl AdapterInner {
                 Ok(physical_devices) => physical_devices,
                 Err(e) => {
                     log::error!("failed to enumerate physical devices: {:?}", e);
-                    return Err(e)?;
+                    return Err(Error::from(e))?;
                 }
             };
             let physical_device_properties = &mut Vec::with_capacity(physical_devices.len());
@@ -140,12 +146,12 @@ impl AdapterInner {
             physical_devices
                 .first()
                 .cloned()
-                .ok_or(vk::Result::ERROR_INITIALIZATION_FAILED)
+                .ok_or(Error::from(vk::Result::ERROR_INITIALIZATION_FAILED))
                 .and_then(|physical_device| new_inner(physical_device, physical_device_properties[0]))
         }
     }
 
-    pub fn get_surface_support(&self, surface: &SurfaceInner, queue_index: u32) -> Result<bool, vk::Result> {
+    pub fn get_surface_support(&self, surface: &SurfaceInner, queue_index: u32) -> Result<bool, Error> {
         unsafe {
             Ok(self.instance.raw_ext.surface.get_physical_device_surface_support(
                 self.physical_device,
@@ -154,6 +160,40 @@ impl AdapterInner {
             ))
         }
     }
+
+    pub fn properties(&self) -> AdapterProperties {
+        let api_major = ash::vk_version_major!(self.physical_device_properties.api_version);
+        let api_minor = ash::vk_version_minor!(self.physical_device_properties.api_version);
+        let api_patch = ash::vk_version_patch!(self.physical_device_properties.api_version);
+        let driver_major = ash::vk_version_major!(self.physical_device_properties.driver_version);
+        let driver_minor = ash::vk_version_minor!(self.physical_device_properties.driver_version);
+        let driver_patch = ash::vk_version_patch!(self.physical_device_properties.driver_version);
+        let device_name = unsafe {
+            std::ffi::CStr::from_ptr(self.physical_device_properties.device_name.as_ptr())
+                .to_str()
+                .unwrap_or("<unknown>")
+        };
+        AdapterProperties {
+            api_version: (api_major, api_minor, api_patch),
+            driver_version: (driver_major, driver_minor, driver_patch),
+            vender_id: self.physical_device_properties.vendor_id,
+            device_id: self.physical_device_properties.device_id,
+            device_type: self.physical_device_properties.device_type,
+            device_name,
+            limits: self.physical_device_properties.limits,
+        }
+    }
+}
+
+#[derive(Debug, Copy, Clone)]
+pub struct AdapterProperties<'a> {
+    pub device_name: &'a str,
+    pub api_version: (u32, u32, u32),
+    pub driver_version: (u32, u32, u32),
+    pub vender_id: u32,
+    pub device_id: u32,
+    pub device_type: ash::vk::PhysicalDeviceType,
+    pub limits: ash::vk::PhysicalDeviceLimits,
 }
 
 impl Debug for Adapter {
@@ -167,9 +207,9 @@ impl Debug for Adapter {
     }
 }
 
-impl RequestAdapterOptions {
-    pub fn new() -> RequestAdapterOptions {
-        RequestAdapterOptions::default()
+impl AdapterOptions {
+    pub fn new() -> AdapterOptions {
+        AdapterOptions::default()
     }
 
     pub fn high_performance(mut self) -> Self {

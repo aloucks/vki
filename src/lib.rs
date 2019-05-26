@@ -13,7 +13,7 @@ mod macros;
 mod error;
 mod imp;
 
-pub use crate::error::{EncoderError, InitError};
+pub use crate::error::{Error, SwapchainError, FenceError};
 pub use crate::imp::validate;
 
 use std::borrow::Cow;
@@ -39,7 +39,7 @@ impl Default for PowerPreference {
 }
 
 #[derive(Clone, Copy, Debug, Default)]
-pub struct RequestAdapterOptions {
+pub struct AdapterOptions {
     pub power_preference: PowerPreference,
 }
 

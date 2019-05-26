@@ -17,7 +17,7 @@ use vki::{
     PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
     RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor,
     RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp,
-    VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
+    VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor, SwapchainError
 };
 
 #[repr(C)]
@@ -212,7 +212,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let frame = match app.swapchain.acquire_next_image() {
             Ok(frame) => frame,
-            Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => return Ok(()),
+            Err(SwapchainError::OutOfDate) => return Ok(()),
             Err(e) => return Err(e)?,
         };
 
@@ -261,7 +261,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         match queue.present(frame) {
             Ok(frame) => frame,
-            Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => return Ok(()),
+            Err(SwapchainError::OutOfDate) => return Ok(()),
             Err(e) => return Err(e)?,
         }
 

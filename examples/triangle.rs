@@ -4,7 +4,7 @@ use vki::{
     ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStateDescriptor,
     InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
-    RequestAdapterOptions, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor, TextureFormat,
+    AdapterOptions, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor, TextureFormat,
     TextureUsageFlags, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
 };
 
@@ -44,8 +44,8 @@ fn main() -> Result<(), Box<std::error::Error>> {
         .build(&event_loop)?;
 
     let instance = Instance::new()?;
-    let adapter_options = RequestAdapterOptions::default();
-    let adapter = instance.request_adaptor(adapter_options)?;
+    let adapter_options = AdapterOptions::default();
+    let adapter = instance.get_adapter(adapter_options)?;
     println!("Adapter: {}", adapter.name());
 
     let surface_descriptor = vki::winit_surface_descriptor!(&window);

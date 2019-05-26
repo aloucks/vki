@@ -7,6 +7,8 @@ use crate::{
     BindGroup, BindGroupBinding, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutBinding,
     BindGroupLayoutDescriptor, BindingResource, BindingType, ShaderStageFlags,
 };
+use crate::error::Error;
+
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -40,7 +42,7 @@ impl BindGroupLayoutInner {
     pub fn new(
         device: Arc<DeviceInner>,
         descriptor: BindGroupLayoutDescriptor,
-    ) -> Result<BindGroupLayoutInner, vk::Result> {
+    ) -> Result<BindGroupLayoutInner, Error> {
         let bindings: Vec<_> = descriptor
             .bindings
             .iter()
@@ -101,7 +103,7 @@ pub fn find_layout_binding(
 }
 
 impl BindGroupInner {
-    pub fn new(descriptor: BindGroupDescriptor) -> Result<BindGroupInner, vk::Result> {
+    pub fn new(descriptor: BindGroupDescriptor) -> Result<BindGroupInner, Error> {
         // TODO: DescriptorPool management. Dawn specifically calls out that this is inefficient
 
         let device = Arc::clone(&descriptor.layout.inner.device);
@@ -141,7 +143,7 @@ impl BindGroupInner {
                 &mut bind_group.descriptor_pool,
             );
             if result != vk::Result::SUCCESS {
-                return Err(result);
+                return Err(Error::from(result));
             }
         }
 
@@ -159,7 +161,7 @@ impl BindGroupInner {
                 &mut bind_group.handle,
             );
             if result != vk::Result::SUCCESS {
-                return Err(result);
+                return Err(Error::from(result));
             }
         }
 

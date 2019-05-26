@@ -6,6 +6,7 @@ use vk_mem::{AllocationCreateFlags, AllocationCreateInfo, MemoryUsage};
 
 use crate::imp::{pipeline, texture, BufferInner, BufferState, BufferViewInner, DeviceInner};
 use crate::{Buffer, BufferDescriptor, BufferUsageFlags, BufferView, BufferViewDescriptor, MappedBuffer};
+use crate::error::Error;
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use parking_lot::Mutex;
@@ -146,7 +147,7 @@ pub fn access_flags(usage: BufferUsageFlags) -> vk::AccessFlags {
 }
 
 impl BufferInner {
-    pub fn new(device: Arc<DeviceInner>, descriptor: BufferDescriptor) -> Result<BufferInner, vk::Result> {
+    pub fn new(device: Arc<DeviceInner>, descriptor: BufferDescriptor) -> Result<BufferInner, Error> {
         let create_info = vk::BufferCreateInfo {
             size: descriptor.size as u64,
             usage: usage_flags(descriptor.usage),
@@ -181,7 +182,7 @@ impl BufferInner {
                 unsafe {
                     let dummy = device.raw.create_buffer(&create_info, None)?;
                     device.raw.destroy_buffer(dummy, None);
-                    return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+                    return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
                 }
             }
         }
@@ -207,7 +208,7 @@ impl BufferInner {
         &self,
         command_buffer: vk::CommandBuffer,
         usage: BufferUsageFlags,
-    ) -> Result<(), vk::Result> {
+    ) -> Result<(), Error> {
         let mut last_usage = self.last_usage.lock();
 
         log::trace!(
@@ -284,12 +285,12 @@ impl BufferInner {
         Ok(())
     }
 
-    pub unsafe fn get_mapped_ptr(&self) -> Result<*mut u8, vk::Result> {
+    pub unsafe fn get_mapped_ptr(&self) -> Result<*mut u8, Error> {
         let mut buffer_state = self.buffer_state.lock();
         match *buffer_state {
             BufferState::Mapped(_) => {
                 log::warn!("buffer already mapped: {:?}", self.handle);
-                Err(vk::Result::ERROR_VALIDATION_FAILED_EXT)
+                Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
             }
             BufferState::Unmapped => {
                 let mut state = self.device.state.lock();
@@ -303,14 +304,14 @@ impl BufferInner {
         }
     }
 
-    fn unmap(&self) -> Result<(), vk::Result> {
+    fn unmap(&self) -> Result<(), Error> {
         let mut buffer_state = self.buffer_state.lock();
         match *buffer_state {
             BufferState::Mapped(_) => {
                 let mut state = self.device.state.lock();
                 state.allocator_mut().unmap_memory(&self.allocation).map_err(|e| {
                     log::error!("failed to unmap buffer: {:?}", e);
-                    vk::Result::ERROR_VALIDATION_FAILED_EXT // TODO
+                    Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT) // TODO
                 })?;
                 *buffer_state = BufferState::Unmapped;
                 Ok(())
@@ -340,7 +341,7 @@ impl Drop for BufferInner {
 }
 
 impl MappedBuffer {
-    pub fn write<T: Copy>(&self, offset: usize, data: &[T]) -> Result<(), vk::Result> {
+    pub fn write<T: Copy>(&self, offset: usize, data: &[T]) -> Result<(), Error> {
         let count = data.len();
         let element_size = mem::size_of::<T>();
         let data_size = element_size * count;
@@ -348,7 +349,7 @@ impl MappedBuffer {
         let offset_bytes = element_size * offset;
         if !self.inner.descriptor.usage.intersects(BufferUsageFlags::MAP_WRITE) {
             log::error!("buffer not write mapped: {:?}", self.inner.handle);
-            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
         }
         if buffer_size < offset_bytes + data_size {
             log::error!(
@@ -357,7 +358,7 @@ impl MappedBuffer {
                 data_size,
                 buffer_size
             );
-            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
         }
         log::trace!(
             "map write data_size: offset_bytes: {}, {}, buffer_size: {}",
@@ -376,19 +377,19 @@ impl MappedBuffer {
                 .flush_allocation(&self.inner.allocation, offset_bytes, data_size)
                 .map_err(|e| {
                     log::error!("failed to flush allocation: {:?}", e);
-                    vk::Result::ERROR_VALIDATION_FAILED_EXT // TODO
+                    Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT) // TODO
                 })
         }
     }
 
-    pub fn read<T: Copy>(&self, offset: usize, count: usize) -> Result<&[T], vk::Result> {
+    pub fn read<T: Copy>(&self, offset: usize, count: usize) -> Result<&[T], Error> {
         let element_size = mem::size_of::<T>();
         let data_size = element_size * count;
         let buffer_size = self.inner.descriptor.size as usize;
         let offset_bytes = element_size * offset;
         if !self.inner.descriptor.usage.intersects(BufferUsageFlags::MAP_READ) {
             log::error!("buffer not read mapped: {:?}", self.inner.handle);
-            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
         }
         if buffer_size < offset_bytes + data_size {
             log::error!(
@@ -397,7 +398,7 @@ impl MappedBuffer {
                 data_size,
                 buffer_size
             );
-            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
         }
         unsafe {
             let src_ptr = self.data.add(offset_bytes);
@@ -437,7 +438,7 @@ impl Buffer {
     ///
     /// The content of `data` is read immediately, but the upload is deferred until the next
     /// command buffer submission.
-    pub fn set_sub_data<T: Copy>(&self, offset: usize, data: &[T]) -> Result<(), vk::Result> {
+    pub fn set_sub_data<T: Copy>(&self, offset: usize, data: &[T]) -> Result<(), Error> {
         // Dawn uses a ring buffer of staging buffers to perform the copy, but this is easier for now
 
         let element_size = std::mem::size_of::<T>();
@@ -449,7 +450,7 @@ impl Buffer {
                 std::u16::MAX,
                 data_size
             );
-            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
         }
         let buffer_size = self.inner.descriptor.size as usize;
         if offset_bytes + data_size > buffer_size {
@@ -459,7 +460,7 @@ impl Buffer {
                 data_size,
                 buffer_size
             );
-            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
         }
 
         let mut state = self.inner.device.state.lock();
@@ -470,7 +471,6 @@ impl Buffer {
                 .transition_usage_now(command_buffer, BufferUsageFlags::TRANSFER_DST)?;
         }
         unsafe {
-            use std::slice;
             let offset_bytes = offset_bytes as u64;
             let data: &[u8] = slice::from_raw_parts(data.as_ptr() as *const u8, data_size);
             self.inner
@@ -491,10 +491,10 @@ impl Buffer {
         self.inner.descriptor.usage
     }
 
-    pub fn map_read(&self) -> Result<MappedBuffer, vk::Result> {
+    pub fn map_read(&self) -> Result<MappedBuffer, Error> {
         if !self.inner.descriptor.usage.contains(BufferUsageFlags::MAP_READ) {
             log::warn!("buffer not created with MAP_READ");
-            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
         }
         let data = unsafe { self.inner.get_mapped_ptr()? };
         Ok(MappedBuffer {
@@ -503,10 +503,10 @@ impl Buffer {
         })
     }
 
-    pub fn map_write(&self) -> Result<MappedBuffer, vk::Result> {
+    pub fn map_write(&self) -> Result<MappedBuffer, Error> {
         if !self.inner.descriptor.usage.contains(BufferUsageFlags::MAP_WRITE) {
             log::warn!("buffer not created with MAP_WRITE");
-            return Err(vk::Result::ERROR_VALIDATION_FAILED_EXT);
+            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
         }
         let data = unsafe { self.inner.get_mapped_ptr()? };
         Ok(MappedBuffer {
@@ -515,14 +515,14 @@ impl Buffer {
         })
     }
 
-    pub fn create_view(&self, descriptor: BufferViewDescriptor) -> Result<BufferView, vk::Result> {
+    pub fn create_view(&self, descriptor: BufferViewDescriptor) -> Result<BufferView, Error> {
         let buffer_view = BufferViewInner::new(self.inner.clone(), descriptor)?;
         Ok(buffer_view.into())
     }
 }
 
 impl BufferViewInner {
-    pub fn new(buffer: Arc<BufferInner>, descriptor: BufferViewDescriptor) -> Result<BufferViewInner, vk::Result> {
+    pub fn new(buffer: Arc<BufferInner>, descriptor: BufferViewDescriptor) -> Result<BufferViewInner, Error> {
         let format = descriptor.format.either(texture::image_format, pipeline::vertex_format);
         let create_info = vk::BufferViewCreateInfo {
             buffer: buffer.handle,

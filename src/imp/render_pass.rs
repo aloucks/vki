@@ -4,7 +4,7 @@ use ash::vk;
 use smallvec::SmallVec;
 
 use crate::imp::texture;
-use crate::{LoadOp, TextureFormat};
+use crate::{LoadOp, TextureFormat, Error};
 
 use crate::imp::DeviceInner;
 
@@ -148,7 +148,7 @@ pub fn depth_stencil_attachment_description(
     }
 }
 
-pub fn sample_count(sample_count: u32) -> Result<vk::SampleCountFlags, vk::Result> {
+pub fn sample_count(sample_count: u32) -> Result<vk::SampleCountFlags, Error> {
     match sample_count {
         1 => Ok(vk::SampleCountFlags::TYPE_1),
         2 => Ok(vk::SampleCountFlags::TYPE_2),
@@ -159,7 +159,7 @@ pub fn sample_count(sample_count: u32) -> Result<vk::SampleCountFlags, vk::Resul
         64 => Ok(vk::SampleCountFlags::TYPE_64),
         _ => {
             log::error!("invalid sample count: {}", sample_count);
-            Err(vk::Result::ERROR_VALIDATION_FAILED_EXT)
+            Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
         }
     }
 }
@@ -169,7 +169,7 @@ impl RenderPassCache {
         &mut self,
         query: RenderPassCacheQuery,
         device: &DeviceInner,
-    ) -> Result<vk::RenderPass, vk::Result> {
+    ) -> Result<vk::RenderPass, Error> {
         if let Some(handle) = self.cache.get(&query).cloned() {
             Ok(handle)
         } else {
@@ -181,7 +181,7 @@ impl RenderPassCache {
         &mut self,
         query: RenderPassCacheQuery,
         device: &DeviceInner,
-    ) -> Result<vk::RenderPass, vk::Result> {
+    ) -> Result<vk::RenderPass, Error> {
         let sample_count = sample_count(query.sample_count)?;
 
         let color_attachments = query
