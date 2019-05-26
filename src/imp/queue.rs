@@ -1,10 +1,10 @@
 use ash::vk;
 
 use crate::imp::FenceInner;
-use crate::{CommandBuffer, Fence, Queue, SwapchainImage};
+use crate::{CommandBuffer, Fence, Queue, SwapchainImage, Error, SwapchainError};
 
 impl Queue {
-    pub fn present(&self, frame: SwapchainImage) -> Result<(), vk::Result> {
+    pub fn present(&self, frame: SwapchainImage) -> Result<(), SwapchainError> {
         {
             let device = &frame.swapchain.device;
             let mut state = frame.swapchain.device.state.lock();
@@ -35,10 +35,12 @@ impl Queue {
             }
         }
 
-        frame.swapchain.device.tick()
+        frame.swapchain.device.tick()?;
+
+        Ok(())
     }
 
-    pub fn submit(&self, command_buffers: &[CommandBuffer]) -> Result<(), vk::Result> {
+    pub fn submit(&self, command_buffers: &[CommandBuffer]) -> Result<(), Error> {
         let device = &self.inner.device;
 
         device.tick()?;
@@ -61,7 +63,7 @@ impl Queue {
     ///
     /// Waiting for the fence to be signaled guarantees that all command buffers submitted
     /// to the queue, prior to the fence's creation, have completed.
-    pub fn create_fence(&self) -> Result<Fence, vk::Result> {
+    pub fn create_fence(&self) -> Result<Fence, Error> {
         let fence = FenceInner::new(self.inner.device.clone())?;
         Ok(fence.into())
     }

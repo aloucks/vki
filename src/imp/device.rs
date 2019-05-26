@@ -4,7 +4,7 @@ use ash::vk;
 use parking_lot::Mutex;
 use vk_mem::{Allocator, AllocatorCreateInfo};
 
-use crate::error::SurfaceError;
+use crate::error::Error;
 
 use crate::imp::fenced_deleter::{DeleteWhenUnused, FencedDeleter};
 use crate::imp::render_pass::{RenderPassCache, RenderPassCacheQuery};
@@ -63,7 +63,7 @@ impl Device {
         &self,
         descriptor: SwapchainDescriptor,
         old_swapchain: Option<&Swapchain>,
-    ) -> Result<Swapchain, SurfaceError> {
+    ) -> Result<Swapchain, Error> {
         let swapchain = SwapchainInner::new(self.inner.clone(), descriptor, old_swapchain.map(|s| &*s.inner))?;
 
         self.inner.tick()?;
@@ -71,7 +71,7 @@ impl Device {
         Ok(swapchain.into())
     }
 
-    pub fn get_supported_swapchain_formats(&self, surface: &Surface) -> Result<Vec<TextureFormat>, vk::Result> {
+    pub fn get_supported_swapchain_formats(&self, surface: &Surface) -> Result<Vec<TextureFormat>, Error> {
         let physical_device = self.inner.adapter.physical_device;
         let formats = surface
             .inner
@@ -94,12 +94,12 @@ impl Device {
         }
     }
 
-    pub fn create_buffer(&self, descriptor: BufferDescriptor) -> Result<Buffer, vk::Result> {
+    pub fn create_buffer(&self, descriptor: BufferDescriptor) -> Result<Buffer, Error> {
         let buffer = BufferInner::new(self.inner.clone(), descriptor)?;
         Ok(buffer.into())
     }
 
-    pub fn create_buffer_mapped(&self, descriptor: BufferDescriptor) -> Result<MappedBuffer, vk::Result> {
+    pub fn create_buffer_mapped(&self, descriptor: BufferDescriptor) -> Result<MappedBuffer, Error> {
         let buffer = BufferInner::new(self.inner.clone(), descriptor)?;
         let data = unsafe { buffer.get_mapped_ptr()? };
         Ok(MappedBuffer {
@@ -108,12 +108,12 @@ impl Device {
         })
     }
 
-    pub fn create_texture(&self, descriptor: TextureDescriptor) -> Result<Texture, vk::Result> {
+    pub fn create_texture(&self, descriptor: TextureDescriptor) -> Result<Texture, Error> {
         let texture = TextureInner::new(self.inner.clone(), descriptor)?;
         Ok(texture.into())
     }
 
-    pub fn create_sampler(&self, descriptor: SamplerDescriptor) -> Result<Sampler, vk::Result> {
+    pub fn create_sampler(&self, descriptor: SamplerDescriptor) -> Result<Sampler, Error> {
         let sampler = SamplerInner::new(self.inner.clone(), descriptor)?;
         Ok(sampler.into())
     }
@@ -121,22 +121,22 @@ impl Device {
     pub fn create_bind_group_layout(
         &self,
         descriptor: BindGroupLayoutDescriptor,
-    ) -> Result<BindGroupLayout, vk::Result> {
+    ) -> Result<BindGroupLayout, Error> {
         let bind_group_layout = BindGroupLayoutInner::new(self.inner.clone(), descriptor)?;
         Ok(bind_group_layout.into())
     }
 
-    pub fn create_bind_group(&self, descriptor: BindGroupDescriptor) -> Result<BindGroup, vk::Result> {
+    pub fn create_bind_group(&self, descriptor: BindGroupDescriptor) -> Result<BindGroup, Error> {
         let bind_group = BindGroupInner::new(descriptor)?;
         Ok(bind_group.into())
     }
 
-    pub fn create_shader_module(&self, descriptor: ShaderModuleDescriptor) -> Result<ShaderModule, vk::Result> {
+    pub fn create_shader_module(&self, descriptor: ShaderModuleDescriptor) -> Result<ShaderModule, Error> {
         let shader_module = ShaderModuleInner::new(self.inner.clone(), descriptor)?;
         Ok(shader_module.into())
     }
 
-    pub fn create_pipeline_layout(&self, descriptor: PipelineLayoutDescriptor) -> Result<PipelineLayout, vk::Result> {
+    pub fn create_pipeline_layout(&self, descriptor: PipelineLayoutDescriptor) -> Result<PipelineLayout, Error> {
         let pipeline_layout = PipelineLayoutInner::new(self.inner.clone(), descriptor)?;
         Ok(pipeline_layout.into())
     }
@@ -144,24 +144,24 @@ impl Device {
     pub fn create_compute_pipeline(
         &self,
         descriptor: ComputePipelineDescriptor,
-    ) -> Result<ComputePipeline, vk::Result> {
+    ) -> Result<ComputePipeline, Error> {
         let compute_pipeline = ComputePipelineInner::new(self.inner.clone(), descriptor)?;
         Ok(compute_pipeline.into())
     }
 
-    pub fn create_render_pipeline(&self, descriptor: RenderPipelineDescriptor) -> Result<RenderPipeline, vk::Result> {
+    pub fn create_render_pipeline(&self, descriptor: RenderPipelineDescriptor) -> Result<RenderPipeline, Error> {
         let render_pipeline = RenderPipelineInner::new(self.inner.clone(), descriptor)?;
         Ok(render_pipeline.into())
     }
 
-    pub fn create_command_encoder(&self) -> Result<CommandEncoder, vk::Result> {
+    pub fn create_command_encoder(&self) -> Result<CommandEncoder, Error> {
         let command_encoder = CommandEncoderInner::new(self.inner.clone())?;
         Ok(command_encoder.into())
     }
 }
 
 impl DeviceInner {
-    pub fn new(adapter: Arc<AdapterInner>, descriptor: DeviceDescriptor) -> Result<DeviceInner, vk::Result> {
+    pub fn new(adapter: Arc<AdapterInner>, descriptor: DeviceDescriptor) -> Result<DeviceInner, Error> {
         let extension_names = if descriptor.surface_support.is_some() {
             vec![c_str!("VK_KHR_swapchain")]
         } else {
@@ -242,7 +242,7 @@ impl DeviceInner {
         }
     }
 
-    pub fn tick(&self) -> Result<(), vk::Result> {
+    pub fn tick(&self) -> Result<(), Error> {
         let mut state = self.state.lock();
         state.tick(self)?;
         Ok(())
@@ -342,7 +342,7 @@ impl Drop for DeviceInner {
 }
 
 impl DeviceState {
-    fn tick(&mut self, device: &DeviceInner) -> Result<(), vk::Result> {
+    fn tick(&mut self, device: &DeviceInner) -> Result<(), Error> {
         log::trace!("device.tick; last_submitted_serial: {:?}", self.last_submitted_serial);
         log::trace!("device.tick; last_completed_serial: {:?}", self.last_completed_serial);
         log::trace!("device.tick; unused_commands.len: {}", self.unused_commands.len());
@@ -361,7 +361,7 @@ impl DeviceState {
         Ok(())
     }
 
-    fn check_passed_fences(&mut self, device: &DeviceInner) -> Result<(), vk::Result> {
+    fn check_passed_fences(&mut self, device: &DeviceInner) -> Result<(), Error> {
         let mut last_completed_serial = None;
         let mut result = Ok(());
         for (fence, serial) in self.fences_in_flight.iter().cloned() {
@@ -398,10 +398,10 @@ impl DeviceState {
             self.fences_in_flight
         );
 
-        result
+        Ok(result?)
     }
 
-    fn recycle_completed_commands(&mut self, device: &DeviceInner) -> Result<(), vk::Result> {
+    fn recycle_completed_commands(&mut self, device: &DeviceInner) -> Result<(), Error> {
         let serial = self.last_completed_serial;
         for (commands, serial) in self.commands_in_flight.drain_up_to(serial) {
             unsafe {
@@ -416,7 +416,7 @@ impl DeviceState {
         Ok(())
     }
 
-    pub fn get_pending_command_buffer(&mut self, device: &DeviceInner) -> Result<vk::CommandBuffer, vk::Result> {
+    pub fn get_pending_command_buffer(&mut self, device: &DeviceInner) -> Result<vk::CommandBuffer, Error> {
         if self.pending_commands.is_none() {
             let pending_commands = self.get_unused_commands(device)?;
             let begin_info = vk::CommandBufferBeginInfo {
@@ -440,7 +440,7 @@ impl DeviceState {
         &mut self.fenced_deleter
     }
 
-    pub fn submit_pending_commands(&mut self, device: &DeviceInner, queue: &QueueInfo) -> Result<(), vk::Result> {
+    pub fn submit_pending_commands(&mut self, device: &DeviceInner, queue: &QueueInfo) -> Result<(), Error> {
         let pending_commands = match self.pending_commands.take() {
             None => {
                 // If there are no pending commands and everything in flight has resolved,
@@ -501,7 +501,7 @@ impl DeviceState {
         self.wait_semaphores.clear();
     }
 
-    fn get_unused_commands(&mut self, device: &DeviceInner) -> Result<CommandPoolAndBuffer, vk::Result> {
+    fn get_unused_commands(&mut self, device: &DeviceInner) -> Result<CommandPoolAndBuffer, Error> {
         if !self.unused_commands.is_empty() {
             return self.unused_commands.pop().ok_or_else(|| unreachable!());
         }
@@ -535,18 +535,19 @@ impl DeviceState {
         };
 
         if result != vk::Result::SUCCESS {
-            return Err(result);
+            return Err(Error::from(result));
         }
 
         Ok(commands)
     }
 
-    fn get_unused_fence(&mut self, device: &DeviceInner) -> Result<vk::Fence, vk::Result> {
+    fn get_unused_fence(&mut self, device: &DeviceInner) -> Result<vk::Fence, Error> {
         match self.unused_fences.pop() {
             Some(fence) => Ok(fence),
             None => {
                 let create_info = vk::FenceCreateInfo::default();
-                unsafe { device.raw.create_fence(&create_info, None) }
+                let fence = unsafe { device.raw.create_fence(&create_info, None)? };
+                Ok(fence)
             }
         }
     }
@@ -579,7 +580,7 @@ impl DeviceState {
         &mut self,
         query: RenderPassCacheQuery,
         device: &DeviceInner,
-    ) -> Result<vk::RenderPass, vk::Result> {
+    ) -> Result<vk::RenderPass, Error> {
         self.renderpass_cache.get_render_pass(query, device)
     }
 }
@@ -591,7 +592,7 @@ pub fn select_queue_family_index(
     adapter: &AdapterInner,
     queue_flags: vk::QueueFlags,
     surface: Option<&SurfaceInner>,
-) -> Result<u32, vk::Result> {
+) -> Result<u32, Error> {
     for (queue_family_index, queue_family) in adapter.queue_family_properties.iter().enumerate() {
         let queue_family_index = queue_family_index as u32;
         if let Some(surface) = surface {
@@ -604,5 +605,5 @@ pub fn select_queue_family_index(
         }
     }
 
-    Err(vk::Result::ERROR_INCOMPATIBLE_DISPLAY_KHR)
+    Err(Error::from(vk::Result::ERROR_INCOMPATIBLE_DISPLAY_KHR))
 }

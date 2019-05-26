@@ -9,15 +9,16 @@ use std::slice;
 
 use vki::{
     Adapter, Buffer, BufferCopyView, BufferDescriptor, BufferUsageFlags, CommandEncoder, Device, DeviceDescriptor,
-    Extensions, Extent3D, FilterMode, Instance, Origin3D, PowerPreference, RequestAdapterOptions, Surface, Swapchain,
+    Extensions, Extent3D, FilterMode, Instance, Origin3D, PowerPreference, AdapterOptions, Surface, Swapchain,
     SwapchainDescriptor, Texture, TextureBlitView, TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat,
-    TextureUsageFlags, TextureView,
+    TextureUsageFlags, TextureView, Error
 };
 
 use std::time::{Duration, Instant};
 use winit::dpi::{LogicalPosition, LogicalSize};
 use winit::event::{
-    ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, StartCause, VirtualKeyCode, WindowEvent,
+    DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, StartCause, VirtualKeyCode,
+    WindowEvent,
 };
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
@@ -45,7 +46,7 @@ fn create_swapchain_and_depth_view_and_color_view(
     width: u32,
     height: u32,
     old_swapchain: Option<&Swapchain>,
-) -> Result<(Swapchain, TextureView, TextureView), vk::Result> {
+) -> Result<(Swapchain, TextureView, TextureView), Error> {
     let swap_chain = device
         .create_swapchain(
             SwapchainDescriptor {
@@ -152,7 +153,7 @@ impl<T: 'static> App<T> {
         window_width: u32,
         window_height: u32,
         event_handlers: EventHandlers<T>,
-    ) -> Result<App<T>, vk::Result>
+    ) -> Result<App<T>, Error>
     where
         T: Default,
     {
@@ -173,7 +174,7 @@ impl<T: 'static> App<T> {
         })?;
 
         let surface = instance.create_surface(&vki::winit_surface_descriptor!(&window))?;
-        let adapter = instance.request_adaptor(RequestAdapterOptions {
+        let adapter = instance.get_adapter(AdapterOptions {
             power_preference: PowerPreference::HighPerformance,
         })?;
         let device = adapter.create_device(DeviceDescriptor {
@@ -264,7 +265,7 @@ impl<T: 'static> App<T> {
         }
     }
 
-    pub fn set_sample_count(&mut self, sample_count: u32) -> Result<(), vk::Result> {
+    pub fn set_sample_count(&mut self, sample_count: u32) -> Result<(), Error> {
         let (window_width, window_height): (u32, u32) = self.window.get_inner_size().unwrap().into();
         if self.sample_count != sample_count {
             let (swapchain, depth_view, color_view) = create_swapchain_and_depth_view_and_color_view(
@@ -338,7 +339,7 @@ impl<T: 'static> App<T> {
 }
 
 /// Convenience function for submitting a command buffer and creating a new encoder
-pub fn submit(device: &Device, encoder: CommandEncoder) -> Result<CommandEncoder, vki::EncoderError> {
+pub fn submit(device: &Device, encoder: CommandEncoder) -> Result<CommandEncoder, vki::Error> {
     device.get_queue().submit(&[encoder.finish()?])?;
     Ok(device.create_command_encoder()?)
 }
@@ -350,7 +351,7 @@ pub fn create_buffer_with_data<U: Copy + 'static>(
     encoder: &mut CommandEncoder,
     mut usage: BufferUsageFlags,
     data: &[U],
-) -> Result<Buffer, vk::Result> {
+) -> Result<Buffer, Error> {
     let size_bytes = self::byte_length(&data);
     let is_write_mapped = usage.contains(BufferUsageFlags::MAP_WRITE);
 
@@ -374,7 +375,7 @@ pub fn create_buffer_with_data<U: Copy + 'static>(
     }
 }
 
-pub fn create_staging_buffer<U: Copy + 'static>(device: &Device, data: &[U]) -> Result<Buffer, vk::Result> {
+pub fn create_staging_buffer<U: Copy + 'static>(device: &Device, data: &[U]) -> Result<Buffer, Error> {
     let descriptor = BufferDescriptor {
         usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,
         size: byte_length(data),
@@ -390,7 +391,7 @@ pub fn copy_to_buffer<T: Copy + 'static>(
     encoder: &mut CommandEncoder,
     data: &[T],
     destination: &Buffer,
-) -> Result<(), vk::Result> {
+) -> Result<(), Error> {
     let staging_buffer = create_staging_buffer(device, data)?;
     encoder.copy_buffer_to_buffer(&staging_buffer, 0, destination, 0, self::byte_length(data));
     Ok(())
@@ -406,7 +407,7 @@ pub fn create_texture_with_data(
     format: TextureFormat,
     width: u32,
     height: u32,
-) -> Result<Texture, vk::Result> {
+) -> Result<Texture, Error> {
     let size = Extent3D {
         width,
         height,
@@ -458,7 +459,7 @@ pub fn create_texture(
     encoder: &mut CommandEncoder,
     img: image::DynamicImage,
     has_mipmaps: bool,
-) -> Result<Texture, vk::Result> {
+) -> Result<Texture, Error> {
     use image::DynamicImage;
     use image::GenericImageView;
 
@@ -473,7 +474,7 @@ pub fn create_texture(
     create_texture_with_data(device, encoder, data, has_mipmaps, format, width, height)
 }
 
-pub fn generate_mipmaps(encoder: &mut CommandEncoder, texture: &Texture) -> Result<(), vk::Result> {
+pub fn generate_mipmaps(encoder: &mut CommandEncoder, texture: &Texture) -> Result<(), Error> {
     let mut mip_width = texture.size().width;
     let mut mip_height = texture.size().height;
 
@@ -702,7 +703,6 @@ struct MouseState {
 
 impl<T> EventHandler<T> for MouseState {
     fn on_event(&mut self, _: &mut App<T>, event: &Event<()>) -> bool {
-        use winit::event::{DeviceEvent, ElementState, Event, MouseButton, WindowEvent};
         let mut consume = false;
         match event {
             Event::WindowEvent {
@@ -884,11 +884,13 @@ impl<T: 'static> EventHandler<T> for ArcBallCameraControlHandler {
                     },
                 ..
             } => {
-                let dir: Vector3<f32> = (app.camera.eye - app.camera.center).normalize();
-
-                app.camera.eye += (-*y) * dir;
-
-                app.camera.update_view_matrix();
+                let v: Vector3<f32> = app.camera.eye - app.camera.center;
+                let y = *y;
+                if v.magnitude() - y > 0.0 {
+                    let dir: Vector3<f32> = v.normalize();
+                    app.camera.eye += dir * -y;
+                    app.camera.update_view_matrix();
+                }
             }
             _ => {}
         }

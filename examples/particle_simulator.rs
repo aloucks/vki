@@ -19,7 +19,7 @@ use vki::{
     InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
     ShaderModuleDescriptor, ShaderStageFlags, StoreOp, TextureFormat, VertexAttributeDescriptor, VertexFormat,
-    VertexInputDescriptor,
+    VertexInputDescriptor, SwapchainError
 };
 
 use rand::Rng;
@@ -382,7 +382,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let frame = match app.swapchain.acquire_next_image() {
             Ok(frame) => frame,
-            Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => return Ok(()),
+            Err(SwapchainError::OutOfDate) => return Ok(()),
             Err(e) => return Err(e)?,
         };
 
@@ -443,7 +443,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         match queue.present(frame) {
             Ok(frame) => frame,
-            Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => return Ok(()),
+            Err(SwapchainError::OutOfDate) => return Ok(()),
             Err(e) => return Err(e)?,
         }
 

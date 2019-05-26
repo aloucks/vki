@@ -11,17 +11,17 @@ use std::mem;
 use std::sync::Arc;
 
 use crate::imp::{debug, AdapterInner, InstanceExt, InstanceInner, SurfaceInner};
-use crate::{Adapter, InitError, Instance, RequestAdapterOptions, Surface, SurfaceDescriptor};
+use crate::{Adapter, Error, Instance, AdapterOptions, Surface, SurfaceDescriptor};
 
 use std::fmt::Debug;
 use std::sync::atomic::Ordering;
 
 lazy_static! {
-    static ref ENTRY: RwLock<Result<ash::Entry, InitError>> = {
+    static ref ENTRY: RwLock<Result<ash::Entry, Error>> = {
         unsafe {
             extern "C" fn unload() {
                 let mut entry_guard = ENTRY.write();
-                *entry_guard = Err(InitError::Library(String::from("unload")));
+                *entry_guard = Err(Error::from(String::from("Vulkan library unloaded")));
             }
             libc::atexit(unload);
             RwLock::new(ash::Entry::new().map_err(Into::into))
@@ -30,17 +30,17 @@ lazy_static! {
 }
 
 impl Instance {
-    pub fn new() -> Result<Instance, InitError> {
+    pub fn new() -> Result<Instance, Error> {
         let inner = InstanceInner::new()?;
         Ok(inner.into())
     }
 
-    pub fn request_adaptor(&self, options: RequestAdapterOptions) -> Result<Adapter, vk::Result> {
+    pub fn get_adapter(&self, options: AdapterOptions) -> Result<Adapter, Error> {
         let adapter = AdapterInner::new(self.inner.clone(), options)?;
         Ok(adapter.into())
     }
 
-    pub fn create_surface(&self, descriptor: &SurfaceDescriptor) -> Result<Surface, vk::Result> {
+    pub fn create_surface(&self, descriptor: &SurfaceDescriptor) -> Result<Surface, Error> {
         let surface = SurfaceInner::new(self.inner.clone(), descriptor)?;
         Ok(surface.into())
     }
@@ -48,11 +48,11 @@ impl Instance {
 
 impl InstanceInner {
     #[rustfmt::skip]
-    fn new() -> Result<InstanceInner, InitError> {
+    fn new() -> Result<InstanceInner, Error> {
         let init_debug_report = debug::TEST_VALIDATION_HOOK.load(Ordering::Acquire);
 
         unsafe {
-            let entry_guard: RwLockReadGuard<Result<ash::Entry, InitError>> = ENTRY.read();
+            let entry_guard: RwLockReadGuard<Result<ash::Entry, Error>> = ENTRY.read();
             let entry: &ash::Entry = entry_guard.as_ref()?;
 
             let mut extension_names = vec![];

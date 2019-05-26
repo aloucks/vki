@@ -18,7 +18,7 @@ use crate::imp::{
     TextureViewInner,
 };
 
-use crate::error::EncoderError;
+use crate::error::Error;
 
 #[derive(Debug, Clone)]
 pub struct RenderPassColorAttachmentInfo {
@@ -88,7 +88,7 @@ impl CommandEncoderState {
 }
 
 impl CommandEncoderInner {
-    pub fn new(device: Arc<DeviceInner>) -> Result<CommandEncoderInner, vk::Result> {
+    pub fn new(device: Arc<DeviceInner>) -> Result<CommandEncoderInner, Error> {
         let state = CommandEncoderState::new();
         Ok(CommandEncoderInner { device, state })
     }
@@ -102,14 +102,14 @@ impl CommandEncoderInner {
         stages: ShaderStageFlags,
         offset_bytes: usize,
         value: T,
-    ) -> Result<(), vk::Result> {
+    ) -> Result<(), Error> {
         let size_bytes = std::mem::size_of::<T>();
         if size_bytes + offset_bytes > pipeline::MAX_PUSH_CONSTANTS_SIZE {
             log::error!(
                 "push constants offset + value size may not exceed {} bytes",
                 pipeline::MAX_PUSH_CONSTANTS_SIZE
             );
-            Err(vk::Result::ERROR_VALIDATION_FAILED_EXT)
+            Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
         } else {
             let mut values = vec![0_u8; pipeline::MAX_PUSH_CONSTANTS_SIZE];
             let src = &value as *const _ as *const u8;
@@ -311,7 +311,7 @@ impl CommandEncoder {
         top_level_textures.insert(dst.texture.inner.clone());
     }
 
-    pub fn finish(self) -> Result<CommandBuffer, EncoderError> {
+    pub fn finish(self) -> Result<CommandBuffer, Error> {
         let mut command_index = 0;
         while let Some(command) = self.inner.state.commands.get(command_index) {
             match command {
@@ -335,7 +335,7 @@ impl CommandEncoder {
 }
 
 // TODO: validate_render_pass
-fn validate_render_pass(encoder: &CommandEncoder, mut command_index: usize) -> Result<usize, EncoderError> {
+fn validate_render_pass(encoder: &CommandEncoder, mut command_index: usize) -> Result<usize, Error> {
     let begin_render_pass_command_index = command_index;
 
     //let mut state_tracker = .. ;
@@ -359,7 +359,7 @@ fn validate_render_pass(encoder: &CommandEncoder, mut command_index: usize) -> R
 }
 
 // TODO: validate_compute_pass
-fn validate_compute_pass(encoder: &CommandEncoder, mut command_index: usize) -> Result<usize, EncoderError> {
+fn validate_compute_pass(encoder: &CommandEncoder, mut command_index: usize) -> Result<usize, Error> {
     let begin_compute_pass_command_index = command_index;
     while let Some(command) = encoder.inner.state.commands.get(command_index) {
         match command {
@@ -424,7 +424,7 @@ impl<'a> ComputePassEncoder<'a> {
         stages: ShaderStageFlags,
         offset_bytes: usize,
         value: T,
-    ) -> Result<(), vk::Result> {
+    ) -> Result<(), Error> {
         self.inner
             .top_level_encoder
             .set_push_constants(stages, offset_bytes, value)
@@ -649,7 +649,7 @@ impl<'a> RenderPassEncoder<'a> {
         stages: ShaderStageFlags,
         offset_bytes: usize,
         value: T,
-    ) -> Result<(), vk::Result> {
+    ) -> Result<(), Error> {
         self.inner
             .top_level_encoder
             .set_push_constants(stages, offset_bytes, value)

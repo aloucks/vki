@@ -9,7 +9,7 @@ use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery}
 use crate::imp::{binding, pipeline};
 use crate::imp::{render_pass, sampler, texture, util, DeviceInner, PipelineLayoutInner};
 use crate::imp::{CommandBufferInner, RenderPipelineInner};
-use crate::{BufferUsageFlags, Extent3D, IndexFormat, ShaderStageFlags, TextureUsageFlags};
+use crate::{BufferUsageFlags, Extent3D, IndexFormat, ShaderStageFlags, TextureUsageFlags, Error};
 
 use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::device::DeviceState;
@@ -122,7 +122,7 @@ impl CommandBufferInner {
         &self,
         command_buffer: vk::CommandBuffer,
         state: &mut DeviceState,
-    ) -> Result<(), vk::Result> {
+    ) -> Result<(), Error> {
         let mut pass = 0;
         let mut command_index = 0;
         while let Some(command) = self.state.commands.get(command_index) {
@@ -283,7 +283,7 @@ impl CommandBufferInner {
         height: u32,
         state: &mut DeviceState,
         sample_count: u32,
-    ) -> Result<(), vk::Result> {
+    ) -> Result<(), Error> {
         let mut query = RenderPassCacheQuery::default();
 
         query.set_sample_count(sample_count);
@@ -419,7 +419,7 @@ impl CommandBufferInner {
         height: u32,
         sample_count: u32,
         state: &mut DeviceState,
-    ) -> Result<usize, vk::Result> {
+    ) -> Result<usize, Error> {
         self.record_render_pass_begin(
             command_buffer,
             color_attachments,
@@ -600,7 +600,7 @@ impl CommandBufferInner {
         &self,
         command_buffer: vk::CommandBuffer,
         mut command_index: usize,
-    ) -> Result<usize, vk::Result> {
+    ) -> Result<usize, Error> {
         let mut descriptor_sets = DescriptorSetTracker::default();
 
         while let Some(command) = self.state.commands.get(command_index) {

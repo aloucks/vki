@@ -1,6 +1,6 @@
 use crate::imp::serial::Serial;
 use crate::imp::{DeviceInner, FenceInner};
-use crate::Fence;
+use crate::{Fence, Error, FenceError};
 use ash::vk;
 use parking_lot::Mutex;
 use std::sync::Arc;
@@ -11,18 +11,18 @@ use std::time::{Duration, Instant};
 //       so we'll use this gimmick implementation for now.
 
 impl Fence {
-    pub fn reset(&self) -> Result<(), vk::Result> {
+    pub fn reset(&self) -> Result<(), Error> {
         *self.inner.serial.lock() = get_last_submitted_serial(&self.inner.device);
         Ok(())
     }
 
-    pub fn wait(&self, timeout: Duration) -> Result<(), vk::Result> {
+    pub fn wait(&self, timeout: Duration) -> Result<(), FenceError> {
         let timeout = Instant::now() + timeout;
         let serial = *self.inner.serial.lock();
         while serial > get_last_completed_serial(&self.inner.device) {
             self.inner.device.tick()?;
             if Instant::now() >= timeout {
-                return Err(vk::Result::TIMEOUT);
+                return Err(FenceError::Timeout);
             }
         }
         Ok(())
@@ -35,7 +35,7 @@ impl Fence {
 }
 
 impl FenceInner {
-    pub fn new(device: Arc<DeviceInner>) -> Result<FenceInner, vk::Result> {
+    pub fn new(device: Arc<DeviceInner>) -> Result<FenceInner, Error> {
         let serial = { Mutex::new(get_last_submitted_serial(&device)) };
         Ok(FenceInner { serial, device })
     }

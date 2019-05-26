@@ -5,7 +5,7 @@
 
 use vki::winit_surface_descriptor;
 use vki::{
-    Adapter, Device, DeviceDescriptor, Instance, RequestAdapterOptions, Surface, Swapchain, SwapchainDescriptor,
+    Adapter, Device, DeviceDescriptor, Instance, AdapterOptions, Surface, Swapchain, SwapchainDescriptor,
     TextureFormat, TextureUsageFlags,
 };
 
@@ -26,7 +26,7 @@ pub fn init_environment() {
 pub fn init() -> Result<(Instance, Adapter, Device), Box<std::error::Error>> {
     init_environment();
     let instance = Instance::new()?;
-    let adapter = instance.request_adaptor(RequestAdapterOptions::default())?;
+    let adapter = instance.get_adapter(AdapterOptions::default())?;
     let device = adapter.create_device(DeviceDescriptor::default())?;
 
     Ok((instance, adapter, device))
@@ -37,7 +37,7 @@ pub fn init_with_window(
 ) -> Result<(Instance, Adapter, Device, Surface, Swapchain), Box<std::error::Error>> {
     init_environment();
     let instance = Instance::new()?;
-    let adapter = instance.request_adaptor(RequestAdapterOptions::default())?;
+    let adapter = instance.get_adapter(AdapterOptions::default())?;
     let surface_descriptor = winit_surface_descriptor!(window);
     let surface = instance.create_surface(&surface_descriptor)?;
     let device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;

@@ -5,3 +5,7 @@ edition = "2018"
 
 #struct_field_align_threshold = 25
 #struct_lit_single_line = false
+
+#binop_separator = "Back"
+#unstable_features = true
+#struct_field_align_threshold = 30
