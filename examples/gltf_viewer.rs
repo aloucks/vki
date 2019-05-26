@@ -1,7 +1,9 @@
 #[macro_use]
 pub mod util;
 
-use cgmath::{EuclideanSpace, InnerSpace, Matrix, Matrix4, Point3, SquareMatrix, Vector1, Vector3, VectorSpace, Quaternion};
+use cgmath::{
+    EuclideanSpace, InnerSpace, Matrix, Matrix4, Point3, Quaternion, SquareMatrix, Vector1, Vector3, VectorSpace,
+};
 
 use crate::util::{App, EventHandlers};
 
