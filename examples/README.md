@@ -45,3 +45,43 @@ controls:
 |`F3`|Reset position values|
 
 ![particle_simulator.rs](screenshots/particle_simulator.png)
+
+## gltf_viewer.rs
+
+https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
+
+### Usage
+
+```
+cargo run --example gltf_viewer <FILE>
+```
+
+### Features
+
+- [ ] Image Based Lighting (IBL)
+- [X] Physically Based Rendering
+- [X] Animation
+- [X] Morph Targets (maximum of 2)
+
+
+### Additional Controls
+
+|Key|Action| 
+|---|---| 
+|`1` - `9`|Toggle animation channel|
+
+### Examples
+
+Note that the examples will look rather dark until IBL is implemented.
+
+#### [FlightHelment.gltf](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/FlightHelmet)
+
+![gltf_viewer.rs](screenshots/gltf_viewer-FlightHelmet.png)
+
+#### [DamagedHelmet.gltf](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/DamagedHelmet)
+
+![gltf_viewer.rs](screenshots/gltf_viewer-DamagedHelmet.png)
+
+#### [BrainStem.gltf](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/BrainStem)
+
+![gltf_viewer.rs](screenshots/gltf_viewer-BrainStem.gif | width=800)
