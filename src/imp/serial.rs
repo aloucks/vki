@@ -1,4 +1,4 @@
-use crate::imp::polyfill;
+use crate::imp::vec;
 
 use std::cmp;
 use std::ops::RangeBounds;
@@ -81,7 +81,7 @@ impl<T> SerialQueue<T> {
 
     /// Drain up to and including the given serial
     pub fn drain_up_to(&mut self, serial: Serial) -> impl Iterator<Item = (T, Serial)> + '_ {
-        polyfill::drain_filter(&mut self.storage, move |item| item.1 <= serial)
+        vec::drain_filter(&mut self.storage, move |item| item.1 <= serial)
     }
 
     pub fn drain<R: RangeBounds<usize>>(&mut self, range: R) -> impl Iterator<Item = (T, Serial)> + '_ {
@@ -89,7 +89,7 @@ impl<T> SerialQueue<T> {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.len() == 0
+        self.storage.is_empty()
     }
 
     pub fn len(&self) -> usize {
@@ -120,7 +120,7 @@ mod tests {
 
         let a: Vec<_> = queue.iter_up_to(Serial(2)).map(|item| item.0).collect();
 
-        assert_eq!(a, &["0", "1", "2"])
+        assert_eq!(a, &["0", "1", "2"]);
     }
 
     #[test]
@@ -134,8 +134,10 @@ mod tests {
 
         queue.drain_up_to(Serial(2)).count();
 
+        assert_eq!(&queue.storage, &[("3", Serial(3)), ("4", Serial(4))]);
+
         let a: Vec<_> = queue.iter_up_to(Serial(4)).map(|item| item.0).collect();
 
-        assert_eq!(a, &["3", "4"])
+        assert_eq!(a, &["3", "4"]);
     }
 }

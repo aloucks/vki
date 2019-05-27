@@ -30,7 +30,7 @@ mod texture;
 mod util;
 
 mod cookbook;
-mod polyfill;
+mod vec;
 
 pub use crate::imp::debug::validate;
 
