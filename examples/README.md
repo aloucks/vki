@@ -1,5 +1,12 @@
 # Examples
 
+* [triangle](#trianglers)
+* [triangle_multisample](#triangle_multisamplers)
+* [cube](#cubers)
+* [cube_texture](#cube_texturers)
+* [particle_simulator](#particle_simulatorrs)
+* [gltf_viewer](#gltf_viewerrs)
+
 The triangle examples demonstrate initialization and basic event
 handling, where as the remaining examples use a common framework to
 manage these tasks. The examples framework has the following camera
@@ -48,6 +55,8 @@ controls:
 
 ## gltf_viewer.rs
 
+Sample models can be found here:
+
 https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
 
 ### Usage
@@ -74,6 +83,10 @@ cargo run --example gltf_viewer <FILE>
 
 Note that the examples will look rather dark until IBL is implemented.
 
+#### [BrainStem.gltf](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/BrainStem)
+
+<img src="screenshots/gltf_viewer-BrainStem.gif" width="800"/>
+
 #### [FlightHelment.gltf](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/FlightHelmet)
 
 ![gltf_viewer.rs](screenshots/gltf_viewer-FlightHelmet.png)
@@ -81,7 +94,3 @@ Note that the examples will look rather dark until IBL is implemented.
 #### [DamagedHelmet.gltf](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/DamagedHelmet)
 
 ![gltf_viewer.rs](screenshots/gltf_viewer-DamagedHelmet.png)
-
-#### [BrainStem.gltf](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/BrainStem)
-
-<img src="screenshots/gltf_viewer-BrainStem.gif" width="800"/>

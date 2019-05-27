@@ -2,12 +2,12 @@
 
 VKI is _currently_ a [WebGPU](https://github.com/gpuweb/gpuweb)
 implementation, inspired by [WGPU](https://github.com/gfx-rs/wgpu) and
-[Dawn](https://dawn.googlesource.com/dawn). 
+modeled after [Dawn](https://dawn.googlesource.com/dawn).
 
 ## Should I use this?
 
-VKI is hobby project for learning how to build a sane
-abstraction layer over the Vulkan API. You probably want to use
+VKI is hobby project for learning how to build a sane abstraction layer
+over the Vulkan API. You probably want to use
 [WGPU-RS](https://github.com/gfx-rs/wgpu-rs) or
 [Rendy](https://github.com/amethyst/rendy).
 
