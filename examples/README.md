@@ -84,4 +84,4 @@ Note that the examples will look rather dark until IBL is implemented.
 
 #### [BrainStem.gltf](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/BrainStem)
 
-![gltf_viewer.rs](screenshots/gltf_viewer-BrainStem.gif | width=800)
+<img src="screenshots/gltf_viewer-BrainStem.gif" width="800"/>
