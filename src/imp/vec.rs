@@ -1,10 +1,10 @@
-//! Unstable functionality from the standard library
+//! # Unstable functions from `std::vec::Vec`
 
 use std::ptr;
 use std::slice;
 
-/// See: `Vec::drain_filter`
-//#[unstable(feature = "drain_filter", reason = "recently added", issue = "43244")]
+/// `Vec::drain_filter`
+/// #[unstable(feature = "drain_filter", reason = "recently added", issue = "43244")]
 pub fn drain_filter<T, F>(this: &mut Vec<T>, filter: F) -> DrainFilter<T, F>
 where
     F: FnMut(&mut T) -> bool,
@@ -26,7 +26,7 @@ where
 }
 
 /// An iterator produced by calling `drain_filter` on Vec.
-//#[unstable(feature = "drain_filter", reason = "recently added", issue = "43244")]
+/// #[unstable(feature = "drain_filter", reason = "recently added", issue = "43244")]
 #[derive(Debug)]
 pub struct DrainFilter<'a, T: 'a, F>
 where
@@ -39,7 +39,7 @@ where
     pred: F,
 }
 
-//#[unstable(feature = "drain_filter", reason = "recently added", issue = "43244")]
+/// #[unstable(feature = "drain_filter", reason = "recently added", issue = "43244")]
 impl<'a, T, F> Iterator for DrainFilter<'a, T, F>
 where
     F: FnMut(&mut T) -> bool,
@@ -74,7 +74,7 @@ where
     }
 }
 
-//#[unstable(feature = "drain_filter", reason = "recently added", issue = "43244")]
+/// #[unstable(feature = "drain_filter", reason = "recently added", issue = "43244")]
 impl<'a, T, F> Drop for DrainFilter<'a, T, F>
 where
     F: FnMut(&mut T) -> bool,
