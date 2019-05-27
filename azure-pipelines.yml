@@ -1,31 +1,31 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
-strategy:
-  matrix:
-    linux:
-      imageName: ubuntu-latest
-    windows:
-      imageName: vs2017-win2016
-    stable:
-      rustup_toolchain: stable
-    nightly:
-      rustup_toolchain: nightly
-    
 trigger:
-- master
+  - master
 
-pool:
-  vmImage: $(imageName)
+jobs:
+#  - job: Windows
+#    pool:
+#      vmImage: vs2017-win2016
+#    steps:
+#      - template: ci/azure-install-rust.yml
+#      - template: ci/azure-test-all.yml
+#    strategy:
+#      matrix:
+#        stable:
+#          TOOLCHAIN: stable
+#        nightly:
+#          TOOLCHAIN: nightly
 
-steps:
-- script: |
-    curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $RUSTUP_TOOLCHAIN
-    echo "##vso[task.setvariable variable=PATH;]$PATH:$HOME/.cargo/bin"
-  displayName: install rust
+  - job: Linux
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+#      - template: ci/azure-install-vulkan-ubuntu-16.yml
+      - template: ci/azure-install-rust.yml
+      - template: ci/azure-test-all.yml
+    strategy:
+      matrix:
+        stable:
+          TOOLCHAIN: stable
+#        nightly:
+#          TOOLCHAIN: nightly
 
-- script: |
-    cargo build --all
-  displayName: cargo build

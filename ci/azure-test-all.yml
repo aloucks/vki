@@ -1,0 +1,10 @@
+steps:
+  - script: |
+      cargo build --lib
+    displayName: Cargo build --lib
+#  - script: |
+#      echo ##vso[task.setvariable variable=rust_backtrace]1
+  # The integration tests don't work in virtualized environments :(
+  - script: |
+      RUST_BACKTRACE=1 cargo test --lib
+    displayName: Cargo test --lib
