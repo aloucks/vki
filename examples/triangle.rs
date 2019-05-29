@@ -3,9 +3,10 @@ use vki::{
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
     Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
-    PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
-    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor, TextureFormat,
-    TextureUsageFlags, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
+    PowerPreference, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
+    RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp,
+    SwapchainDescriptor, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor, VertexFormat,
+    VertexInputDescriptor,
 };
 
 use winit::dpi::LogicalSize;
@@ -44,7 +45,10 @@ fn main() -> Result<(), Box<std::error::Error>> {
         .build(&event_loop)?;
 
     let instance = Instance::new()?;
-    let adapter_options = AdapterOptions::default();
+    let adapter_options = AdapterOptions {
+        power_preference: PowerPreference::HighPerformance,
+    };
+
     let adapter = instance.get_adapter(adapter_options)?;
     println!("Adapter: {}", adapter.name());
 

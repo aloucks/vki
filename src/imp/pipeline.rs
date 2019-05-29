@@ -422,8 +422,12 @@ impl RenderPipelineInner {
 
         let input_assembly_state_create_info = vk::PipelineInputAssemblyStateCreateInfo {
             topology: primitive_topology(descriptor.primitive_topology),
-            // Dawn notes that this must always be enabled because of Metal
-            primitive_restart_enable: vk::TRUE,
+            // Dawn notes that this must always be enabled because of Metal, but Vulkan forbids
+            // it for 'list' topologies.
+            primitive_restart_enable: match descriptor.primitive_topology {
+                PrimitiveTopology::LineStrip | PrimitiveTopology::TriangleStrip => vk::TRUE,
+                _ => vk::FALSE,
+            },
             ..Default::default()
         };
 
