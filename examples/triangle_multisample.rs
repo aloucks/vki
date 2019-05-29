@@ -1,13 +1,4 @@
-use vki::{
-    AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
-    BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
-    Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, Extent3D, FrontFace, IndexFormat,
-    InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
-    PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
-    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor,
-    TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor, VertexFormat,
-    VertexInputDescriptor,
-};
+use vki::{AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags, Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, Extent3D, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor, SwapchainError};
 
 use winit::dpi::LogicalSize;
 use winit::event::{Event, KeyboardInput, StartCause, VirtualKeyCode, WindowEvent};
@@ -308,7 +299,11 @@ fn main() -> Result<(), Box<std::error::Error>> {
                         last_fps_time = Instant::now();
                     }
 
-                    let frame = swapchain.acquire_next_image()?;
+                    let frame = match swapchain.acquire_next_image() {
+                        Ok(frame) => frame,
+                        Err(SwapchainError::OutOfDate) => return Ok(()),
+                        Err(e) => return Err(e)?,
+                    };
 
                     uniforms.time = (start.elapsed().as_millis() as f32) / 1000.0;
                     uniform_buffer.set_sub_data(0, &[uniforms])?;
@@ -340,7 +335,11 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
                     queue.submit(&[encoder.finish()?])?;
 
-                    queue.present(frame)?;
+                    match queue.present(frame) {
+                        Ok(frame) => frame,
+                        Err(SwapchainError::OutOfDate) => return Ok(()),
+                        Err(e) => return Err(e)?,
+                    }
                 }
                 _ => {}
             }

@@ -1,13 +1,4 @@
-use vki::{
-    AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
-    BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
-    Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat,
-    InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
-    PowerPreference, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
-    RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp,
-    SwapchainDescriptor, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor, VertexFormat,
-    VertexInputDescriptor,
-};
+use vki::{AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags, Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PowerPreference, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor, SwapchainError};
 
 use winit::dpi::LogicalSize;
 use winit::event::{Event, StartCause, WindowEvent};
@@ -264,7 +255,11 @@ fn main() -> Result<(), Box<std::error::Error>> {
                         last_fps_time = Instant::now();
                     }
 
-                    let frame = swapchain.acquire_next_image()?;
+                    let frame = match swapchain.acquire_next_image() {
+                        Ok(frame) => frame,
+                        Err(SwapchainError::OutOfDate) => return Ok(()),
+                        Err(e) => return Err(e)?,
+                    };
                     let frame_time = Instant::now();
                     //println!("new frame; time: {:?}", frame_time);
 
@@ -298,7 +293,11 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
                     queue.submit(&[encoder.finish()?])?;
 
-                    queue.present(frame)?;
+                    match queue.present(frame) {
+                        Ok(frame) => frame,
+                        Err(SwapchainError::OutOfDate) => return Ok(()),
+                        Err(e) => return Err(e)?,
+                    }
 
                     *control_flow = ControlFlow::WaitUntil(last_frame_time + Duration::from_millis(0));
                     last_frame_time = frame_time;
