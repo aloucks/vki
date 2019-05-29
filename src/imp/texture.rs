@@ -125,6 +125,8 @@ pub fn texture_format(format: vk::Format) -> TextureFormat {
     match format {
         vk::Format::B8G8R8A8_SRGB => TextureFormat::B8G8R8A8UnormSRGB,
         vk::Format::B8G8R8A8_UNORM => TextureFormat::B8G8R8A8Unorm,
+        vk::Format::R8G8B8A8_SRGB => TextureFormat::R8G8B8A8UnormSRGB,
+        vk::Format::R8G8B8A8_UNORM => TextureFormat::R8G8B8A8Unorm,
         _ => unimplemented!("todo: missing format conversion: {:?}", format), // TODO
     }
 }
