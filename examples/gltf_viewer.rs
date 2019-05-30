@@ -843,14 +843,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let window = &app.window;
 
-    let monitor = window.get_current_monitor();
-    let dpi_factor = window.get_hidpi_factor();
-    let monitor_physical_size = monitor.get_dimensions();
+    let monitor = window.current_monitor();
+    let dpi_factor = window.hidpi_factor();
+    let monitor_physical_size = monitor.dimensions();
     let monitor_logical_size = monitor_physical_size.to_logical(dpi_factor);
-    let window_size = window.get_outer_size().unwrap();
+    let window_size = window.outer_size();
     let pos_x = (monitor_logical_size.width / 2.0) - (window_size.width / 2.0);
     let pos_y = (monitor_logical_size.height / 2.0) - (window_size.height / 2.0);
-    window.set_position(winit::dpi::LogicalPosition::from((pos_x, pos_y)));
+    window.set_outer_position(winit::dpi::LogicalPosition::from((pos_x, pos_y)));
 
     println!("Importing file: {}", path);
     let import = Import::load(&path)?;

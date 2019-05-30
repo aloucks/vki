@@ -58,7 +58,7 @@ pub fn swapchain_descriptor<'a>(surface: &'a Surface) -> SwapchainDescriptor<'a>
 pub fn headless_window() -> Result<(EventLoop<()>, Window), Box<dyn std::error::Error>> {
     let event_loop = winit::event_loop::EventLoop::new();
     let window = winit::window::WindowBuilder::new()
-        .with_dimensions(LogicalSize {
+        .with_inner_size(LogicalSize {
             width: 1024 as _,
             height: 768 as _,
         })

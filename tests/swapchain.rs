@@ -96,7 +96,7 @@ fn recreate_after_resize() {
             height: 600 as _,
         };
 
-        let old_size = window.get_inner_size().expect("window size");
+        let old_size = window.inner_size();
         assert_ne!(new_size, old_size);
 
         let mut resized = false;

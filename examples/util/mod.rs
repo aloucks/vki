@@ -17,7 +17,7 @@ use vki::{
 use std::time::{Duration, Instant};
 use winit::dpi::{LogicalPosition, LogicalSize};
 use winit::event::{
-    DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, StartCause, VirtualKeyCode,
+    DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, VirtualKeyCode,
     WindowEvent,
 };
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -141,6 +141,10 @@ pub struct App<T> {
     pub should_close: bool,
     pub camera: Camera,
     pub state: T,
+    /// Throttle the frame rate to reduce CPU usage for low complexity scenes. Values greater than
+    /// `1000` are interpreted as `unlimited`. The default is `60`.
+    pub max_fps: u64,
+    last_frame_time: Instant,
     window_mode: WindowMode,
     sample_count: u32,
     event_handlers: Option<Vec<Box<dyn EventHandler<T>>>>,
@@ -159,7 +163,7 @@ impl<T: 'static> App<T> {
     {
         let event_loop = EventLoop::new();
         let window = WindowBuilder::new()
-            .with_dimensions(LogicalSize::from((window_width, window_height)))
+            .with_inner_size(LogicalSize::from((window_width, window_height)))
             .with_title(title)
             .with_visibility(false)
             .build(&event_loop)
@@ -201,6 +205,8 @@ impl<T: 'static> App<T> {
         let event_handlers = Some(event_handlers.into());
         let camera = Camera::new(window_width, window_height);
         let window_mode = WindowMode::Windowed;
+        let last_frame_time = Instant::now();
+        let max_fps = 60;
 
         log::debug!("{:#?}", adapter);
 
@@ -220,30 +226,32 @@ impl<T: 'static> App<T> {
             event_handlers,
             sample_count,
             window_mode,
+            last_frame_time,
+            max_fps,
         })
     }
 
     pub fn toggle_window_mode(&mut self) {
         match self.window_mode {
             WindowMode::Windowed => {
-                let last_position = self.window.get_position().unwrap();
-                let last_size = self.window.get_inner_size().unwrap();
-                let monitor = self.window.get_current_monitor();
-                let dpi_factor = monitor.get_hidpi_factor();
-                let x = monitor.get_position().x as _;
+                let last_position = self.window.outer_position().unwrap();
+                let last_size = self.window.inner_size();
+                let monitor = self.window.current_monitor();
+                let dpi_factor = monitor.hidpi_factor();
+                let x = monitor.position().x as _;
 
                 // If the window is wider than the current monitor, stretch it across all monitors
-                let mut inner_physical_size = monitor.get_dimensions();
+                let mut inner_physical_size = monitor.dimensions();
                 if last_size.to_physical(dpi_factor).width > inner_physical_size.width {
-                    let monitor_count = self.window.get_available_monitors().count();
+                    let monitor_count = self.window.available_monitors().count();
                     inner_physical_size.width *= monitor_count as f64;
                 }
 
-                self.window.hide();
+                self.window.set_visible(false);
                 self.window.set_decorations(false);
-                self.window.set_position(LogicalPosition::from((x, 0)));
+                self.window.set_outer_position(LogicalPosition::from((x, 0)));
                 self.window.set_inner_size(inner_physical_size.to_logical(dpi_factor));
-                self.window.show();
+                self.window.set_visible(true);
 
                 self.window_mode = WindowMode::Fullscreen {
                     last_position,
@@ -254,11 +262,11 @@ impl<T: 'static> App<T> {
                 last_position,
                 last_size,
             } => {
-                self.window.hide();
+                self.window.set_visible(false);
                 self.window.set_decorations(true);
                 self.window.set_inner_size(last_size);
-                self.window.set_position(last_position);
-                self.window.show();
+                self.window.set_outer_position(last_position);
+                self.window.set_visible(true);
 
                 self.window_mode = WindowMode::Windowed;
             }
@@ -266,7 +274,7 @@ impl<T: 'static> App<T> {
     }
 
     pub fn set_sample_count(&mut self, sample_count: u32) -> Result<(), Error> {
-        let (window_width, window_height): (u32, u32) = self.window.get_inner_size().unwrap().into();
+        let (window_width, window_height): (u32, u32) = self.window.inner_size().into();
         if self.sample_count != sample_count {
             let (swapchain, depth_view, color_view) = create_swapchain_and_depth_view_and_color_view(
                 &self.device,
@@ -298,37 +306,39 @@ impl<T: 'static> App<T> {
         self.camera.update_view_matrix();
         self.camera.update_projection_matrix();
 
-        self.window.show();
+        self.window.set_visible(true);
 
         event_loop.run(move |event, _, control_flow| {
-            let mut redraw = false;
             for event_handler in event_handlers.iter_mut() {
-                match event {
-                    Event::NewEvents(StartCause::Init) | Event::NewEvents(StartCause::ResumeTimeReached { .. }) => {
-                        *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(16));
-                        self.window.request_redraw();
-                    }
-                    _ => {}
-                }
                 let consume = event_handler.on_event(&mut self, &event);
                 if consume {
                     break;
                 }
-                if let Event::WindowEvent {
-                    event: WindowEvent::RedrawRequested,
-                    ..
-                } = event
-                {
-                    redraw = true;
-                }
             }
 
-            if redraw {
-                for event_handler in event_handlers.iter_mut() {
-                    event_handler.on_frame(&mut self);
-                }
+            let min_duration = Duration::from_millis(1000 / self.max_fps);
 
-                on_frame(&mut self).expect("on_frame error");
+            match event {
+                Event::EventsCleared => {
+                    if Instant::now() - min_duration >= self.last_frame_time {
+                        self.window.request_redraw();
+                    }
+                }
+                Event::WindowEvent {
+                    event: WindowEvent::RedrawRequested,
+                    ..
+                } => {
+                    self.last_frame_time = Instant::now();
+
+                    *control_flow = ControlFlow::WaitUntil(self.last_frame_time + min_duration);
+
+                    for event_handler in event_handlers.iter_mut() {
+                        event_handler.on_frame(&mut self);
+                    }
+
+                    on_frame(&mut self).expect("on_frame error");
+                }
+                _ => {}
             }
 
             if self.should_close {
@@ -809,12 +819,12 @@ impl<T: 'static> EventHandler<T> for ArcBallCameraControlHandler {
                 event: WindowEvent::MouseInput { button, state, .. },
                 ..
             } => match (button, state) {
-                (MouseButton::Left, ElementState::Pressed) => app.window.hide_cursor(true),
+                (MouseButton::Left, ElementState::Pressed) => app.window.set_cursor_visible(false),
                 (MouseButton::Left, ElementState::Released) => {
                     app.window
                         .set_cursor_position(self.show_cursor_position)
                         .expect("failed to set cursor position");
-                    app.window.hide_cursor(false);
+                    app.window.set_cursor_visible(true);
                 }
                 _ => {}
             },

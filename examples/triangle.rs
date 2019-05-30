@@ -1,7 +1,16 @@
-use vki::{AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags, Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PowerPreference, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor, SwapchainError};
+use vki::{
+    AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
+    BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
+    Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat,
+    InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
+    PowerPreference, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
+    RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp,
+    SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor, VertexFormat,
+    VertexInputDescriptor,
+};
 
 use winit::dpi::LogicalSize;
-use winit::event::{Event, StartCause, WindowEvent};
+use winit::event::{Event, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::platform::desktop::EventLoopExtDesktop;
 
@@ -31,7 +40,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let window = winit::window::WindowBuilder::new()
         .with_title("triangle.rs")
-        .with_dimensions(LogicalSize::from((800, 600)))
+        .with_inner_size(LogicalSize::from((800, 600)))
         .with_visibility(false)
         .build(&event_loop)?;
 
@@ -63,8 +72,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
     };
 
     let mut swapchain = device.create_swapchain(swapchain_desc, None)?;
-    let mut last_frame_time = Instant::now();
-    window.show();
+    window.set_visible(true);
 
     let vertex_shader = device.create_shader_module(ShaderModuleDescriptor {
         code: Cow::Borrowed(include_bytes!("shaders/triangle.vert.spv")),
@@ -224,14 +232,19 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let start = Instant::now();
 
+    const MIN_DURATION: Duration = Duration::from_millis(0);
+
+    let mut last_frame_time = Instant::now();
     let mut last_fps_time = Instant::now();
     let mut frame_count = 0;
 
     event_loop.run_return(|event, _target, control_flow| {
         let mut handle_event = || {
             match event {
-                Event::NewEvents(StartCause::Init) | Event::NewEvents(StartCause::ResumeTimeReached { .. }) => {
-                    window.request_redraw();
+                Event::EventsCleared => {
+                    if Instant::now() - MIN_DURATION >= last_frame_time {
+                        window.request_redraw();
+                    }
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
@@ -247,6 +260,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     event: WindowEvent::RedrawRequested,
                     ..
                 } => {
+                    last_frame_time = Instant::now();
+                    *control_flow = ControlFlow::WaitUntil(last_frame_time + MIN_DURATION);
+
                     frame_count += 1;
 
                     if last_fps_time.elapsed() > Duration::from_millis(1000) {

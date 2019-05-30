@@ -20,7 +20,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let window = winit::window::WindowBuilder::new()
         .with_title("swapchain.rs")
-        .with_dimensions(LogicalSize::from((800, 600)))
+        .with_inner_size(LogicalSize::from((800, 600)))
         .with_visibility(false)
         .build(&event_loop)?;
 
@@ -58,7 +58,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let mut swapchain = device.create_swapchain(swapchain_desc, None)?;
 
-    window.show();
+    window.set_visible(true);
 
     event_loop.run_return(|event, _target, control_flow| {
         let mut handle_event = || {

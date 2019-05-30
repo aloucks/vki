@@ -15,7 +15,7 @@ macro_rules! winit_surface_descriptor (
         use winit::os::windows::WindowExt;
 
         $crate::SurfaceDescriptorWin32 {
-            hwnd: $window.get_hwnd(),
+            hwnd: $window.hwnd(),
         }
     });
 );
@@ -31,12 +31,12 @@ macro_rules! winit_surface_descriptor {
         use winit::os::unix::WindowExt;
 
         $crate::SurfaceDescriptorUnix {
-            xlib_window: $window.get_xlib_window(),
-            xlib_display: $window.get_xlib_display(),
-            xcb_connection: $window.get_xcb_connection(),
-            xcb_window: $window.get_xlib_window(),
-            wayland_surface: $window.get_wayland_surface(),
-            wayland_display: $window.get_wayland_display(),
+            xlib_window: $window.xlib_window(),
+            xlib_display: $window.xlib_display(),
+            xcb_connection: $window.xcb_connection(),
+            xcb_window: $window.xlib_window(),
+            wayland_surface: $window.wayland_surface(),
+            wayland_display: $window.wayland_display(),
         }
     }};
 }

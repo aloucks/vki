@@ -1,7 +1,16 @@
-use vki::{AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags, Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, Extent3D, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor, SwapchainError};
+use vki::{
+    AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
+    BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
+    Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, Extent3D, FrontFace, IndexFormat,
+    InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
+    PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
+    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor, SwapchainError,
+    TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor, VertexFormat,
+    VertexInputDescriptor,
+};
 
 use winit::dpi::LogicalSize;
-use winit::event::{Event, KeyboardInput, StartCause, VirtualKeyCode, WindowEvent};
+use winit::event::{Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::platform::desktop::EventLoopExtDesktop;
 
@@ -33,7 +42,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let window = winit::window::WindowBuilder::new()
         .with_title("triangle_multisample.rs")
-        .with_dimensions(LogicalSize::from((window_width, window_height)))
+        .with_inner_size(LogicalSize::from((window_width, window_height)))
         .with_visibility(false)
         .build(&event_loop)?;
 
@@ -238,17 +247,22 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let start = Instant::now();
 
+    // Throttle to ~ 60 fps
+    const MIN_DURATION: Duration = Duration::from_millis(1000 / 60);
+
+    let mut last_frame_time = Instant::now();
     let mut last_fps_time = Instant::now();
     let mut frame_count = 0;
 
-    window.show();
+    window.set_visible(true);
 
     event_loop.run_return(|event, _target, control_flow| {
         let mut handle_event = || {
             match event {
-                Event::NewEvents(StartCause::Init) | Event::NewEvents(StartCause::ResumeTimeReached { .. }) => {
-                    *control_flow = ControlFlow::WaitUntil(Instant::now() + Duration::from_millis(16));
-                    window.request_redraw();
+                Event::EventsCleared => {
+                    if Instant::now() - MIN_DURATION >= last_frame_time {
+                        window.request_redraw();
+                    }
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
@@ -287,6 +301,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
                     event: WindowEvent::RedrawRequested,
                     ..
                 } => {
+                    last_frame_time = Instant::now();
+                    *control_flow = ControlFlow::WaitUntil(last_frame_time + MIN_DURATION);
+
                     if window_width <= 0 || window_height <= 0 {
                         return Ok(());
                     }
