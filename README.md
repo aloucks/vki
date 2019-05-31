@@ -15,6 +15,9 @@ over the Vulkan API. You probably want to use
 
 Yes! See the [examples](examples) directory for more interesting things.
 
+The examples enable the vulkan validation layers which requires the
+[Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to be installed.
+
 ## What does VKI mean?
 
 The `VK` is for Vulkan and the `I` was chosen randomly! I'll probably
