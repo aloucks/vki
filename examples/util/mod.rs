@@ -247,7 +247,7 @@ impl<T: 'static> App<T> {
                 // Use windowed mode on windows and support fullscreen
                 // across multiple monitors. This assumes the monitors
                 // are all the same size.
-                if cfg!(target_os="windows") {
+                if cfg!(target_os = "windows") {
                     let dpi_factor = monitor.hidpi_factor();
                     let x = monitor.position().x as _;
 
