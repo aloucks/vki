@@ -9,14 +9,14 @@ use winit::platform::desktop::EventLoopExtDesktop;
 pub mod support;
 
 // TODO: Concurrent EventLoop creation hangs or segfaults in winit on x11
-#[cfg(target_os="linux")]
+#[cfg(target_os = "linux")]
 lazy_static::lazy_static! {
     static ref LOCK: std::sync::Mutex::<()> = std::sync::Mutex::new(());
 }
 
 #[test]
 fn create_swapchain() {
-    #[cfg(target_os="linux")]
+    #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 
     vki::validate(|| {
@@ -37,7 +37,7 @@ fn create_swapchain() {
 
 #[test]
 fn recreate_swapchain_without_old() {
-    #[cfg(target_os="linux")]
+    #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 
     vki::validate(|| {
@@ -66,7 +66,7 @@ fn recreate_swapchain_without_old() {
 
 #[test]
 fn acquire_next_image() {
-    #[cfg(target_os="linux")]
+    #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 
     vki::validate(|| {
@@ -81,7 +81,7 @@ fn acquire_next_image() {
 
 #[test]
 fn present() {
-    #[cfg(target_os="linux")]
+    #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 
     vki::validate(|| {
@@ -98,9 +98,9 @@ fn present() {
 }
 
 #[test]
-#[cfg_attr(target_os="linux", ignore)] // TODO: winit eventloop-2.0 is eating events right now
+#[cfg_attr(target_os = "linux", ignore)] // TODO: winit eventloop-2.0 is eating events right now
 fn recreate_after_resize() {
-    #[cfg(target_os="linux")]
+    #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 
     vki::validate(|| {
@@ -149,7 +149,7 @@ fn recreate_after_resize() {
 
 #[test]
 fn keep_surface_alive() {
-    #[cfg(target_os="linux")]
+    #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 
     vki::validate(|| {
