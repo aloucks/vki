@@ -1,0 +1,34 @@
+trigger:
+  - master
+
+pr:
+  branches:
+    include:
+      - master
+
+jobs:
+  - job: Windows
+    pool:
+      vmImage: vs2017-win2016
+    steps:
+      - template: ci/azure-install-rust.yml
+      - template: ci/azure-test-all.yml
+    strategy:
+      matrix:
+        stable:
+          TOOLCHAIN: stable
+        nightly:
+          TOOLCHAIN: nightly
+
+  - job: Linux
+    pool:
+      vmImage: ubuntu-16.04
+    steps:
+      - template: ci/azure-install-rust.yml
+      - template: ci/azure-test-all.yml
+    strategy:
+      matrix:
+        stable:
+          TOOLCHAIN: stable
+        nightly:
+          TOOLCHAIN: nightly
