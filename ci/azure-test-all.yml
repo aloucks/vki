@@ -1,15 +1,19 @@
 steps:
-  - script: |
+  - bash: |
+      set -e
       cargo fmt --all -- --check
     displayName: Check formatting
-  - script: |
-      cargo test --no-run
+  - bash: |
+      set -e
+      RUST_BACKTRACE=1 cargo test --no-run
     displayName: Build everything
-  - script: |
+  - bash: |
+      set -e
       RUST_BACKTRACE=1 cargo test --lib --examples
     displayName: Run unit tests
   # Needs GPU or emulation
-  - script: |
+  - bash: |
+      set -e
       RUST_BACKTRACE=1 cargo test --tests
     displayName: Run integration tests (disabled)
     condition: False
