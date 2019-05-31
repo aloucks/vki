@@ -191,6 +191,9 @@ impl SwapchainInner {
                         continue;
                     }
                     Err(vk::Result::ERROR_OUT_OF_DATE_KHR) => {
+                        let mut state = self.device.state.lock();
+                        let serial = state.get_next_pending_serial();
+                        state.get_fenced_deleter().delete_when_unused(semaphore, serial);
                         return Err(SwapchainError::OutOfDate);
                     }
                     Err(err) => {
