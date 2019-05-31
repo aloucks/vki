@@ -17,8 +17,7 @@ use vki::{
 use std::time::{Duration, Instant};
 use winit::dpi::{LogicalPosition, LogicalSize};
 use winit::event::{
-    DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, VirtualKeyCode,
-    WindowEvent,
+    DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, VirtualKeyCode, WindowEvent,
 };
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::window::{Window, WindowBuilder};
@@ -206,7 +205,14 @@ impl<T: 'static> App<T> {
         let camera = Camera::new(window_width, window_height);
         let window_mode = WindowMode::Windowed;
         let last_frame_time = Instant::now();
-        let max_fps = 60;
+        let max_fps = if cfg!(target_os = "linux") {
+            // Winit on X11 is eating events with eventloop-2.0.
+            // Limiting the FPS seems to help mitigate the issue.
+            println!("FIXME (Winit/X11): FPS Limit: 15");
+            15
+        } else {
+            60
+        };
 
         log::debug!("{:#?}", adapter);
 
