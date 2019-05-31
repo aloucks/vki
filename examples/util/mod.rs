@@ -243,21 +243,29 @@ impl<T: 'static> App<T> {
                 let last_position = self.window.outer_position().unwrap();
                 let last_size = self.window.inner_size();
                 let monitor = self.window.current_monitor();
-                let dpi_factor = monitor.hidpi_factor();
-                let x = monitor.position().x as _;
 
-                // If the window is wider than the current monitor, stretch it across all monitors
-                let mut inner_physical_size = monitor.dimensions();
-                if last_size.to_physical(dpi_factor).width > inner_physical_size.width {
-                    let monitor_count = self.window.available_monitors().count();
-                    inner_physical_size.width *= monitor_count as f64;
+                // Use windowed mode on windows and support fullscreen
+                // across multiple monitors. This assumes the monitors
+                // are all the same size.
+                if cfg!(target_os="windows") {
+                    let dpi_factor = monitor.hidpi_factor();
+                    let x = monitor.position().x as _;
+
+                    // If the window is wider than the current monitor, stretch it across all monitors
+                    let mut inner_physical_size = monitor.dimensions();
+                    if last_size.to_physical(dpi_factor).width > inner_physical_size.width {
+                        let monitor_count = self.window.available_monitors().count();
+                        inner_physical_size.width *= monitor_count as f64;
+                    }
+
+                    self.window.set_visible(false);
+                    self.window.set_decorations(false);
+                    self.window.set_outer_position(LogicalPosition::from((x, 0)));
+                    self.window.set_inner_size(inner_physical_size.to_logical(dpi_factor));
+                    self.window.set_visible(true);
+                } else {
+                    self.window.set_fullscreen(Some(monitor));
                 }
-
-                self.window.set_visible(false);
-                self.window.set_decorations(false);
-                self.window.set_outer_position(LogicalPosition::from((x, 0)));
-                self.window.set_inner_size(inner_physical_size.to_logical(dpi_factor));
-                self.window.set_visible(true);
 
                 self.window_mode = WindowMode::Fullscreen {
                     last_position,
@@ -268,11 +276,15 @@ impl<T: 'static> App<T> {
                 last_position,
                 last_size,
             } => {
-                self.window.set_visible(false);
-                self.window.set_decorations(true);
-                self.window.set_inner_size(last_size);
-                self.window.set_outer_position(last_position);
-                self.window.set_visible(true);
+                if cfg!(target_os = "windows") {
+                    self.window.set_visible(false);
+                    self.window.set_decorations(true);
+                    self.window.set_inner_size(last_size);
+                    self.window.set_outer_position(last_position);
+                    self.window.set_visible(true);
+                } else {
+                    self.window.set_fullscreen(None);
+                }
 
                 self.window_mode = WindowMode::Windowed;
             }
