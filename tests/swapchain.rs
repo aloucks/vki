@@ -8,8 +8,17 @@ use winit::platform::desktop::EventLoopExtDesktop;
 
 pub mod support;
 
+// TODO: Concurrent EventLoop creation hangs or segfaults in winit on x11
+#[cfg(target_os="linux")]
+lazy_static::lazy_static! {
+    static ref LOCK: std::sync::Mutex::<()> = std::sync::Mutex::new(());
+}
+
 #[test]
 fn create_swapchain() {
+    #[cfg(target_os="linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         support::init_environment();
         let (_event_loop, window) = support::headless_window()?;
@@ -28,6 +37,9 @@ fn create_swapchain() {
 
 #[test]
 fn recreate_swapchain_without_old() {
+    #[cfg(target_os="linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         support::init_environment();
         let (_event_loop, window) = support::headless_window()?;
@@ -54,6 +66,9 @@ fn recreate_swapchain_without_old() {
 
 #[test]
 fn acquire_next_image() {
+    #[cfg(target_os="linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (_event_loop, window) = support::headless_window()?;
         let (instance, _adapter, _device, _surface, swapchain) = support::init_with_window(&window)?;
@@ -66,6 +81,9 @@ fn acquire_next_image() {
 
 #[test]
 fn present() {
+    #[cfg(target_os="linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (_event_loop, window) = support::headless_window()?;
         let (instance, _adapter, device, _surface, swapchain) = support::init_with_window(&window)?;
@@ -80,7 +98,11 @@ fn present() {
 }
 
 #[test]
+#[cfg_attr(target_os="linux", ignore)] // TODO: winit eventloop-2.0 is eating events right now
 fn recreate_after_resize() {
+    #[cfg(target_os="linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (mut event_loop, window) = support::headless_window()?;
         let (instance, _adapter, device, surface, mut swapchain) = support::init_with_window(&window)?;
@@ -127,6 +149,9 @@ fn recreate_after_resize() {
 
 #[test]
 fn keep_surface_alive() {
+    #[cfg(target_os="linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (_event_loop, window) = support::headless_window()?;
         let (instance, _adapter, device, surface, swapchain) = support::init_with_window(&window)?;
