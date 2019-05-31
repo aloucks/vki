@@ -3,19 +3,18 @@ steps:
       set -e
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TOOLCHAIN
       echo "##vso[task.prependpath]$HOME/.cargo/bin"
+      rustup component add rustfmt --toolchain $TOOLCHAIN
     displayName: Install rust (unix)
     condition: ne(variables['Agent.OS'], 'Windows_NT')
   - script: |
       curl -sSf -o rustup-init.exe https://win.rustup.rs
-      rustup-init.exe -y --default-toolchain stable-%TARGET%
+      rustup-init.exe -y --default-toolchain $TOOLCHAIN
       echo ##vso[task.prependpath]%USERPROFILE%\.cargo\bin
+      rustup component add rustfmt --toolchain $TOOLCHAIN
     displayName: Install rust (windows)
     condition: eq(variables['Agent.OS'], 'Windows_NT')
-  - bash: |
-      set -e
-      rustup component add rustfmt --toolchain $TOOLCHAIN
-    displayName: Install rustfmt
   - script: |
       rustc -Vv
-      cargo -V
-    displayName: Query rust and cargo versions
+      cargo -Vv
+      rustfmt --V
+    displayName: Query versions
