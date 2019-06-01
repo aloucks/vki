@@ -35,7 +35,7 @@ fn select_power_preference() -> PowerPreference {
     }
 }
 
-pub fn init() -> Result<(Instance, Adapter, Device), Box<std::error::Error>> {
+pub fn init() -> Result<(Instance, Adapter, Device), Box<dyn std::error::Error>> {
     init_environment();
     let power_preference = select_power_preference();
     log::debug!("power_preference: {:?}", power_preference);
@@ -48,7 +48,7 @@ pub fn init() -> Result<(Instance, Adapter, Device), Box<std::error::Error>> {
 
 pub fn init_with_window(
     window: &Window,
-) -> Result<(Instance, Adapter, Device, Surface, Swapchain), Box<std::error::Error>> {
+) -> Result<(Instance, Adapter, Device, Surface, Swapchain), Box<dyn std::error::Error>> {
     init_environment();
     let instance = Instance::new()?;
     let adapter = instance.get_adapter(AdapterOptions::default())?;
