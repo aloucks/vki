@@ -3,7 +3,7 @@
 //       reported as unused.
 #![allow(dead_code)]
 
-use vki::winit_surface_descriptor;
+use vki::{winit_surface_descriptor, PowerPreference};
 use vki::{
     Adapter, AdapterOptions, Device, DeviceDescriptor, Instance, Surface, Swapchain, SwapchainDescriptor,
     TextureFormat, TextureUsageFlags,
@@ -16,17 +16,31 @@ use winit::window::Window;
 /// Setup validation and logging. This is called automatically
 /// by `init` and `init_with_window`.
 pub fn init_environment() {
-    // NOTE: This is currently *also* set via instance creation, however, that should probably
+    // NOTE: This is currently *also* set via instance creation, but that should probably
     //       be configurable. However, we *always* want it enabled for tests.
     std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
 
     let _ = pretty_env_logger::try_init();
 }
 
+fn select_power_preference() -> PowerPreference {
+    use std::str::FromStr;
+    let test_integrated_gpu = std::env::var("TEST_INTEGRATED_GPU").unwrap_or("false".to_owned());
+    if bool::from_str(test_integrated_gpu.as_str()).unwrap_or(false) {
+        PowerPreference::LowPower
+    } else if i32::from_str(test_integrated_gpu.as_str()).unwrap_or(0) > 0 {
+        PowerPreference::LowPower
+    } else {
+        PowerPreference::HighPerformance
+    }
+}
+
 pub fn init() -> Result<(Instance, Adapter, Device), Box<std::error::Error>> {
     init_environment();
+    let power_preference = select_power_preference();
+    log::debug!("power_preference: {:?}", power_preference);
     let instance = Instance::new()?;
-    let adapter = instance.get_adapter(AdapterOptions::default())?;
+    let adapter = instance.get_adapter(AdapterOptions { power_preference })?;
     let device = adapter.create_device(DeviceDescriptor::default())?;
 
     Ok((instance, adapter, device))
