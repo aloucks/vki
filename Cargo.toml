@@ -23,7 +23,7 @@ default = ["winit-eventloop-2"]
 winit-eventloop-2 = []
 
 [patch.crates-io]
-# ash = { git = "https://github.com/MaikKlein/ash.git", rev = "61d1049" }
+ash = { git = "https://github.com/MaikKlein/ash.git", rev = "455adc6" }
 # vk-mem = { path = "../vk-mem-rs" }
 
 [dev-dependencies]

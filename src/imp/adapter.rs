@@ -146,18 +146,18 @@ impl AdapterInner {
             physical_devices
                 .first()
                 .cloned()
-                .ok_or(Error::from(vk::Result::ERROR_INITIALIZATION_FAILED))
+                .ok_or_else(|| Error::from("No adapters were found"))
                 .and_then(|physical_device| new_inner(physical_device, physical_device_properties[0]))
         }
     }
 
     pub fn get_surface_support(&self, surface: &SurfaceInner, queue_index: u32) -> Result<bool, Error> {
         unsafe {
-            Ok(self.instance.raw_ext.surface.get_physical_device_surface_support(
-                self.physical_device,
-                queue_index as u32,
-                surface.handle,
-            ))
+            self.instance
+                .raw_ext
+                .surface
+                .get_physical_device_surface_support(self.physical_device, queue_index as u32, surface.handle)
+                .map_err(Error::from)
         }
     }
 
