@@ -25,22 +25,22 @@ controls:
 
 ## triangle.rs
 
-![triangle.rs](screenshots/triangle.png)
+![triangle.rs](https://i.imgur.com/zLaZFtP.png)
 
 
 ## triangle_multisample.rs
 
-![triangle_multisample.rs](screenshots/triangle_multisample.png)
+![triangle_multisample.rs](https://i.imgur.com/IhuCDAP.png)
 
 
 ## cube.rs
 
-![cube.rs](screenshots/cube.png)
+![cube.rs](https://i.imgur.com/vCiPGOe.png)
 
 
 ## cube_texture.rs
 
-![cube_texture.rs](screenshots/cube_texture.png)
+![cube_texture.rs](https://i.imgur.com/dwURfDC.png)
 
 ## particle_simulator.rs
 
@@ -51,7 +51,7 @@ controls:
 |`F2`|Reset position and velocity values|
 |`F3`|Reset position values|
 
-![particle_simulator.rs](screenshots/particle_simulator.png)
+![particle_simulator.rs](https://i.imgur.com/kzx2qzL.png)
 
 ## gltf_viewer.rs
 
@@ -85,12 +85,12 @@ Note that the examples will look rather dark until IBL is implemented.
 
 #### [BrainStem.gltf](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/BrainStem)
 
-<img src="screenshots/gltf_viewer-BrainStem.gif" width="800"/>
+<img src="https://i.imgur.com/uuNt99b.gif" width="800"/>
 
 #### [FlightHelment.gltf](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/FlightHelmet)
 
-![gltf_viewer.rs](screenshots/gltf_viewer-FlightHelmet.png)
+![gltf_viewer.rs](https://i.imgur.com/8VmN5O2.png)
 
 #### [DamagedHelmet.gltf](https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0/DamagedHelmet)
 
-![gltf_viewer.rs](screenshots/gltf_viewer-DamagedHelmet.png)
+![gltf_viewer.rs](https://i.imgur.com/Jc1FOcK.png)
