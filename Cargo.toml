@@ -23,12 +23,12 @@ default = ["winit-eventloop-2"]
 winit-eventloop-2 = []
 
 [patch.crates-io]
-ash = { git = "https://github.com/MaikKlein/ash.git", rev = "455adc6" }
+ash = { git = "https://github.com/MaikKlein/ash.git", rev = "6d7e4bf" }
 # vk-mem = { path = "../vk-mem-rs" }
 
 [dev-dependencies]
 pretty_env_logger = "0.3.0"
-winit = { git = "https://github.com/rust-windowing/winit.git", rev = "0eefa3b" } # branch = "eventloop-2.0" # rev = "e5aa906"  # rev = "674bf04"
+winit = { git = "https://github.com/rust-windowing/winit.git", rev = "07356b9" } # branch = "eventloop-2.0" # rev = "e5aa906"  # rev = "674bf04"
 #winit = { path = "../winit" } # branch = "eventloop-2.0" # rev = "674bf04"
 num-traits = "0.2.6"
 cgmath = "0.17.0"

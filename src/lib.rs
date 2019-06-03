@@ -106,6 +106,8 @@ pub struct SurfaceDescriptorWin32 {
     pub hwnd: *const std::ffi::c_void,
 }
 
+unsafe impl Send for SurfaceDescriptorWin32 {}
+
 #[derive(Debug)]
 pub struct SurfaceDescriptorUnix {
     pub xlib_window: Option<std::os::raw::c_ulong>,
@@ -115,6 +117,8 @@ pub struct SurfaceDescriptorUnix {
     pub wayland_surface: Option<*mut std::ffi::c_void>,
     pub wayland_display: Option<*mut std::ffi::c_void>,
 }
+
+unsafe impl Send for SurfaceDescriptorUnix {}
 
 #[cfg(windows)]
 pub type SurfaceDescriptor = SurfaceDescriptorWin32;

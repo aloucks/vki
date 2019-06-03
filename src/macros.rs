@@ -40,3 +40,41 @@ macro_rules! winit_surface_descriptor {
         }
     }};
 }
+
+#[macro_export]
+#[cfg(target_os = "windows")]
+macro_rules! glfw_surface_descriptor (
+    ($window:expr) => ({
+        $crate::SurfaceDescriptorWin32 {
+            hwnd: $window.get_win32_window() as _,
+        }
+    });
+);
+
+#[macro_export]
+#[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+macro_rules! glfw_surface_descriptor {
+    ($window:expr) => {{
+        $crate::SurfaceDescriptorUnix {
+            xlib_window: Some($window.get_x11_window() as _),
+            xlib_display: Some($window.get_x11_display() as _),
+            xcb_connection: None,
+            xcb_window: None,
+            wayland_surface: None,
+            wayland_display: None,
+        }
+    }};
+}
+
+#[macro_export]
+macro_rules! offset_of {
+    ($base:path, $field:ident) => {{
+        #[allow(unused_unsafe)]
+        unsafe {
+            let b: $base = std::mem::uninitialized();
+            let offset = (&b.$field as *const _ as isize) - (&b as *const _ as isize);
+            std::mem::forget(b);
+            offset as _
+        }
+    }};
+}
