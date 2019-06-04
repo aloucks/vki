@@ -1,22 +1,31 @@
 steps:
+#  - bash: |
+#      set -e
+#      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TOOLCHAIN
+#      source $HOME/.cargo/env
+#      rustup component add rustfmt --toolchain $TOOLCHAIN
+#      echo "##vso[task.prependpath]$HOME/.cargo/bin"
+#    displayName: Install rust (unix)
+#    condition: ne(variables['Agent.OS'], 'Windows_NT')
+#  - script: |
+#      echo %TOOLCHAIN%
+#      curl -sSf -o rustup-init.exe https://win.rustup.rs
+#      rustup-init.exe -v -y --default-toolchain %TOOLCHAIN%
+#      echo ##vso[task.prependpath]%USERPROFILE%\.cargo\bin
+#      rustup default %TOOLCHAIN%
+#      rustup component add rustfmt
+#    displayName: Install rust (windows)
+#    condition: eq(variables['Agent.OS'], 'Windows_NT')
   - bash: |
-      set -e
-      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TOOLCHAIN
-      source $HOME/.cargo/env
-      rustup component add rustfmt --toolchain $TOOLCHAIN
-      echo "##vso[task.prependpath]$HOME/.cargo/bin"
-    displayName: Install rust (unix)
-    condition: ne(variables['Agent.OS'], 'Windows_NT')
-  - script: |
-      echo %TOOLCHAIN%
-      curl -sSf -o rustup-init.exe https://win.rustup.rs
-      rustup-init.exe -v -y --default-toolchain %TOOLCHAIN%
-      echo ##vso[task.prependpath]%USERPROFILE%\.cargo\bin
-      rustup default %TOOLCHAIN%
+      set -x
+      rustup --version
+      rustup component remove --toolchain $TOOLCHAIN rust-docs || true
+      rustup default $TOOLCHAIN
+      rustup update --no-self-update $TOOLCHAIN
       rustup component add rustfmt
-    displayName: Install rust (windows)
-    condition: eq(variables['Agent.OS'], 'Windows_NT')
+    displayName: Configure rust
   - script: |
+      set -x
       rustc -Vv
       cargo -Vv
       rustfmt -V
