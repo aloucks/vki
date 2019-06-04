@@ -55,9 +55,7 @@ macro_rules! glfw_surface_descriptor (
 #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
 macro_rules! glfw_surface_descriptor {
     ($window:expr) => {{
-        let xlib_display = unsafe {
-            glfw::ffi::glfwGetX11Display()
-        };
+        let xlib_display = unsafe { glfw::ffi::glfwGetX11Display() };
         $crate::SurfaceDescriptorUnix {
             xlib_window: Some($window.get_x11_window() as _),
             xlib_display: Some(xlib_display as _),
