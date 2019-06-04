@@ -138,7 +138,7 @@ lazy_static::lazy_static! {
 
 pub fn validate<F>(f: F)
 where
-    F: FnOnce() -> Result<Instance, Box<std::error::Error>>,
+    F: FnOnce() -> Result<Instance, Box<dyn std::error::Error>>,
 {
     TEST_VALIDATION_HOOK.store(true, Ordering::Release);
     let instance = f().unwrap();

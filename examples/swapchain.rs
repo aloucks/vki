@@ -9,7 +9,7 @@ use winit::platform::desktop::EventLoopExtDesktop;
 
 use std::time::{Duration, Instant};
 
-fn main() -> Result<(), Box<std::error::Error>> {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     if std::env::var("VK_INSTANCE_LAYERS").is_err() {
         std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
     }
@@ -114,7 +114,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
             }
             Ok(())
         };
-        let result: Result<(), Box<std::error::Error>> = handle_event();
+        let result: Result<(), Box<dyn std::error::Error>> = handle_event();
         result.expect("event loop error");
     });
 
