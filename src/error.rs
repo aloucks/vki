@@ -28,6 +28,22 @@ impl From<ash::LoadingError> for Error {
     }
 }
 
+impl From<vk_mem::Error> for Error {
+    fn from(e: vk_mem::Error) -> Error {
+        match e.kind() {
+            vk_mem::ErrorKind::Vulkan(r) => Error::from(*r),
+            vk_mem::ErrorKind::Memory(s) => Error::from(s.clone()),
+            vk_mem::ErrorKind::Parse(s) => Error::from(s.clone()),
+            vk_mem::ErrorKind::Path(p) => Error::from(format!("{:?}", p)),
+            vk_mem::ErrorKind::Bug(s) => Error::from(s.clone()),
+            vk_mem::ErrorKind::Config(s) => Error::from(s.clone()),
+            vk_mem::ErrorKind::Io => Error::from("VMA: I/O error"),
+            vk_mem::ErrorKind::Number => Error::from("VMA: number parse error"),
+            _ => Error::from("VMA: unknown memory operation error"),
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Error {
     kind: ErrorKind,

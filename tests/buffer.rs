@@ -148,7 +148,7 @@ fn create_buffer_mapped_write_data() {
         assert_eq!(write_data.len(), data.len());
         write_data.copy_from_slice(data);
 
-        drop(write_data);
+        write_data.flush()?;
 
         let read_buffer = device.create_buffer(BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,

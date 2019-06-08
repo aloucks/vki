@@ -308,6 +308,11 @@ pub struct MappedBuffer {
     data: *mut u8,
 }
 
+/// Provides write access to a slice of a `MappedBuffer`.
+///
+/// The data is implicitly flushed on drop. Any elements not written to
+/// are undefined. Note that although `Deref` is implemented, reading
+/// from a write-only buffer will return undefined results.
 pub struct WriteData<'a, T> {
     mapped: &'a mut MappedBuffer,
     offset_bytes: isize,

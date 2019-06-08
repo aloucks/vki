@@ -474,10 +474,11 @@ impl Drop for MappedBuffer {
 impl<'a, T: Copy> Deref for WriteData<'a, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
-        unsafe {
-            let data = self.mapped.data.offset(self.offset_bytes);
-            std::slice::from_raw_parts(data as *const T, self.element_count)
-        }
+//        unsafe {
+//            let data = self.mapped.data.offset(self.offset_bytes);
+//            std::slice::from_raw_parts(data as *const T, self.element_count)
+//        }
+        panic!("buffer is mapped for write-only operations");
     }
 }
 
@@ -490,21 +491,39 @@ impl<'a, T: Copy> DerefMut for WriteData<'a, T> {
     }
 }
 
-impl<'a, T> Drop for WriteData<'a, T> {
-    fn drop(&mut self) {
+impl<'a, T> WriteData<'a, T> {
+    fn _flush(&mut self) -> Result<(), Error> {
         let length_bytes = self.element_count as _;
         let offset_bytes = self.offset_bytes as _;
-        self.mapped
-            .inner
-            .device
-            .state
-            .lock()
-            .allocator_mut()
-            .invalidate_allocation(&self.mapped.inner.allocation, offset_bytes, length_bytes)
-            .map_err(|e| {
-                log::error!("WriteData::drop: failed to invalidate allocation: {:?}", e);
-            })
-            .ok();
+        self.mapped.inner.device.state.lock().allocator_mut().flush_allocation(
+            &self.mapped.inner.allocation,
+            offset_bytes,
+            length_bytes,
+        )?;
+        Ok(())
+    }
+
+    pub fn flush(mut self) -> Result<(), Error> {
+        let result = self._flush();
+        self.element_count = 0;
+        result
+    }
+
+    /// Returns the number of elements `T` in the slice
+    pub fn len(&self) -> usize {
+        return self.element_count
+    }
+}
+
+impl<'a, T> Drop for WriteData<'a, T> {
+    fn drop(&mut self) {
+        if self.element_count > 0 {
+            self._flush()
+                .map_err(|e| {
+                    log::error!("failed to flush allocation: {:?}", e);
+                })
+                .ok();
+        }
     }
 }
 
