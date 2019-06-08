@@ -9,13 +9,21 @@ macro_rules! c_str {
 macro_rules! winit_surface_descriptor (
     ($window:expr) => ({
         #[cfg(feature="winit-eventloop-2")]
-        use winit::platform::windows::WindowExtWindows;
+        {
+            use winit::platform::windows::WindowExtWindows;
+
+            $crate::SurfaceDescriptorWin32 {
+                hwnd: $window.hwnd(),
+            }
+        }
 
         #[cfg(not(feature="winit-eventloop-2"))]
-        use winit::os::windows::WindowExt;
+        {
+            use winit::os::windows::WindowExt;
 
-        $crate::SurfaceDescriptorWin32 {
-            hwnd: $window.hwnd(),
+            $crate::SurfaceDescriptorWin32 {
+                hwnd: $window.get_hwnd(),
+            }
         }
     });
 );
@@ -25,18 +33,30 @@ macro_rules! winit_surface_descriptor (
 macro_rules! winit_surface_descriptor {
     ($window:expr) => {{
         #[cfg(feature = "winit-eventloop-2")]
-        use winit::platform::unix::WindowExtUnix;
+        {
+            use winit::platform::unix::WindowExtUnix;
+            $crate::SurfaceDescriptorUnix {
+                xlib_window: $window.xlib_window(),
+                xlib_display: $window.xlib_display(),
+                xcb_connection: $window.xcb_connection(),
+                xcb_window: $window.xlib_window(),
+                wayland_surface: $window.wayland_surface(),
+                wayland_display: $window.wayland_display(),
+            }
+        }
 
         #[cfg(not(feature = "winit-eventloop-2"))]
-        use winit::os::unix::WindowExt;
+        {
+            use winit::os::unix::WindowExt;
 
-        $crate::SurfaceDescriptorUnix {
-            xlib_window: $window.xlib_window(),
-            xlib_display: $window.xlib_display(),
-            xcb_connection: $window.xcb_connection(),
-            xcb_window: $window.xlib_window(),
-            wayland_surface: $window.wayland_surface(),
-            wayland_display: $window.wayland_display(),
+            $crate::SurfaceDescriptorUnix {
+                xlib_window: $window.get_xlib_window(),
+                xlib_display: $window.get_xlib_display(),
+                xcb_connection: $window.get_xcb_connection(),
+                xcb_window: $window.get_xlib_window(),
+                wayland_surface: $window.get_wayland_surface(),
+                wayland_display: $window.get_wayland_display(),
+            }
         }
     }};
 }
