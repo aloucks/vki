@@ -18,6 +18,7 @@ pub use crate::imp::validate;
 
 use std::borrow::Cow;
 use std::hash::{Hash, Hasher};
+use std::marker::PhantomData;
 use std::ops::Range;
 
 #[derive(Clone, Debug)]
@@ -305,6 +306,13 @@ pub struct BufferView {
 pub struct MappedBuffer {
     inner: Arc<imp::BufferInner>,
     data: *mut u8,
+}
+
+pub struct WriteData<'a, T> {
+    mapped: &'a mut MappedBuffer,
+    offset_bytes: isize,
+    element_count: usize,
+    _phantom: PhantomData<T>,
 }
 
 #[derive(Debug)]

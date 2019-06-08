@@ -128,6 +128,53 @@ fn create_buffer_mapped() {
 }
 
 #[test]
+fn create_buffer_mapped_write_data() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let mut encoder = device.create_command_encoder()?;
+
+        let data: &[u32] = &[1, 2, 3, 4, 5];
+        let data_byte_size = std::mem::size_of::<u32>() * data.len();
+        let data_byte_size = data_byte_size;
+
+        let mut write_buffer_mapped = device.create_buffer_mapped(BufferDescriptor {
+            usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,
+            size: data_byte_size,
+        })?;
+
+        let mut write_data = write_buffer_mapped.write_data::<u32>(0, data.len())?;
+
+        assert_eq!(write_data.len(), data.len());
+        write_data.copy_from_slice(data);
+
+        drop(write_data);
+
+        let read_buffer = device.create_buffer(BufferDescriptor {
+            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
+            size: data_byte_size,
+        })?;
+
+        encoder.copy_buffer_to_buffer(&write_buffer_mapped.unmap(), 0, &read_buffer, 0, data_byte_size);
+
+        let queue = device.get_queue();
+
+        queue.submit(&[encoder.finish()?])?;
+
+        let fence = queue.create_fence()?;
+
+        fence.wait(Duration::from_millis(1_000_000_000))?;
+
+        let read_buffer_mapped = read_buffer.map_read()?;
+
+        let read: &[u32] = read_buffer_mapped.read(0, data.len())?;
+        assert_eq!(data, read);
+
+        Ok(instance)
+    });
+}
+
+#[test]
 fn set_sub_data() {
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;

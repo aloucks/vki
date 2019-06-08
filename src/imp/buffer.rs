@@ -6,11 +6,13 @@ use vk_mem::{AllocationCreateFlags, AllocationCreateInfo, MemoryUsage};
 
 use crate::error::Error;
 use crate::imp::{pipeline, texture, BufferInner, BufferState, BufferViewInner, DeviceInner};
-use crate::{Buffer, BufferDescriptor, BufferUsageFlags, BufferView, BufferViewDescriptor, MappedBuffer};
+use crate::{Buffer, BufferDescriptor, BufferUsageFlags, BufferView, BufferViewDescriptor, MappedBuffer, WriteData};
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use parking_lot::Mutex;
 
+use std::marker::PhantomData;
+use std::ops::{Deref, DerefMut};
 use std::sync::atomic::AtomicPtr;
 use std::sync::Arc;
 use std::{mem, ptr, slice};
@@ -341,12 +343,51 @@ impl Drop for BufferInner {
 }
 
 impl MappedBuffer {
-    pub fn write<T: Copy>(&self, offset: usize, data: &[T]) -> Result<(), Error> {
+    fn validate_write_mapping<T: Copy>(&self, element_offset: usize, element_count: usize) -> Result<(), Error> {
+        let element_size = mem::size_of::<T>();
+        let data_size = element_size * element_count;
+        let buffer_size = self.inner.descriptor.size as usize;
+        let offset_bytes = element_size * element_offset;
+        if !self.inner.descriptor.usage.intersects(BufferUsageFlags::MAP_WRITE) {
+            log::error!("buffer not write mapped: {:?}", self.inner.handle);
+            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
+        }
+        if buffer_size < offset_bytes + data_size {
+            log::error!(
+                "write data range exceeds buffer size: offset_bytes: {}, data_size: {}, buffer_size: {}",
+                offset_bytes,
+                data_size,
+                buffer_size
+            );
+            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
+        }
+        Ok(())
+    }
+
+    pub fn write_data<T: Copy>(
+        &mut self,
+        element_offset: usize,
+        element_count: usize,
+    ) -> Result<WriteData<'_, T>, Error> {
+        let element_size = mem::size_of::<T>();
+        let offset_bytes = element_size * element_offset;
+
+        self.validate_write_mapping::<T>(element_offset, element_count)?;
+
+        Ok(WriteData {
+            mapped: self,
+            offset_bytes: offset_bytes as isize,
+            element_count,
+            _phantom: PhantomData,
+        })
+    }
+
+    pub fn write<T: Copy>(&self, element_offset: usize, data: &[T]) -> Result<(), Error> {
         let count = data.len();
         let element_size = mem::size_of::<T>();
         let data_size = element_size * count;
         let buffer_size = self.inner.descriptor.size as usize;
-        let offset_bytes = element_size * offset;
+        let offset_bytes = element_size * element_offset;
         if !self.inner.descriptor.usage.intersects(BufferUsageFlags::MAP_WRITE) {
             log::error!("buffer not write mapped: {:?}", self.inner.handle);
             return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
@@ -382,11 +423,11 @@ impl MappedBuffer {
         }
     }
 
-    pub fn read<T: Copy>(&self, offset: usize, count: usize) -> Result<&[T], Error> {
+    pub fn read<T: Copy>(&self, element_offset: usize, element_count: usize) -> Result<&[T], Error> {
         let element_size = mem::size_of::<T>();
-        let data_size = element_size * count;
+        let data_size = element_size * element_count;
         let buffer_size = self.inner.descriptor.size as usize;
-        let offset_bytes = element_size * offset;
+        let offset_bytes = element_size * element_offset;
         if !self.inner.descriptor.usage.intersects(BufferUsageFlags::MAP_READ) {
             log::error!("buffer not read mapped: {:?}", self.inner.handle);
             return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
@@ -402,7 +443,7 @@ impl MappedBuffer {
         }
         unsafe {
             let src_ptr = self.data.add(offset_bytes);
-            let data = slice::from_raw_parts(src_ptr as *const T, count);
+            let data = slice::from_raw_parts(src_ptr as *const T, element_count);
             self.inner
                 .device
                 .state
@@ -427,6 +468,43 @@ impl MappedBuffer {
 impl Drop for MappedBuffer {
     fn drop(&mut self) {
         *self.inner.buffer_state.lock() = BufferState::Unmapped;
+    }
+}
+
+impl<'a, T: Copy> Deref for WriteData<'a, T> {
+    type Target = [T];
+    fn deref(&self) -> &[T] {
+        unsafe {
+            let data = self.mapped.data.offset(self.offset_bytes);
+            std::slice::from_raw_parts(data as *const T, self.element_count)
+        }
+    }
+}
+
+impl<'a, T: Copy> DerefMut for WriteData<'a, T> {
+    fn deref_mut(&mut self) -> &mut [T] {
+        unsafe {
+            let data = self.mapped.data.offset(self.offset_bytes);
+            std::slice::from_raw_parts_mut(data as *mut T, self.element_count)
+        }
+    }
+}
+
+impl<'a, T> Drop for WriteData<'a, T> {
+    fn drop(&mut self) {
+        let length_bytes = self.element_count as _;
+        let offset_bytes = self.offset_bytes as _;
+        self.mapped
+            .inner
+            .device
+            .state
+            .lock()
+            .allocator_mut()
+            .invalidate_allocation(&self.mapped.inner.allocation, offset_bytes, length_bytes)
+            .map_err(|e| {
+                log::error!("WriteData::drop: failed to invalidate allocation: {:?}", e);
+            })
+            .ok();
     }
 }
 
