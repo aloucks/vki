@@ -61,8 +61,11 @@ https://github.com/KhronosGroup/glTF-Sample-Models/tree/master/2.0
 
 ### Usage
 
+Note that compile optimizations greatly impact the performance of glTF
+file loading. Using **release** mode is recommended. 
+
 ```
-cargo run --example gltf_viewer <FILE>
+cargo run --release --example gltf_viewer <FILE>
 ```
 
 ### Features

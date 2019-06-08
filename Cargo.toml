@@ -28,15 +28,11 @@ ash = { git = "https://github.com/MaikKlein/ash.git", rev = "6d7e4bf" }
 
 [dev-dependencies]
 pretty_env_logger = "0.3.0"
-winit = { git = "https://github.com/rust-windowing/winit.git", rev = "07356b9" } # branch = "eventloop-2.0" # rev = "e5aa906"  # rev = "674bf04"
-#winit = { path = "../winit" } # branch = "eventloop-2.0" # rev = "674bf04"
+winit = { git = "https://github.com/rust-windowing/winit.git", rev = "07356b9" } # branch = "eventloop-2.0"
+# winit = { path = "../winit" }
 num-traits = "0.2.6"
 cgmath = "0.17.0"
 image = "0.21.1"
-rand = "0.6.5"
+rand = "0.6.5" # note: only used directly by the particle simulator
 
 gltf = { version  = "0.12", features = ["utils", "import", "names"] }
-gltf-json = { version  = "0.12" }
-
-[profile.dev]
-opt-level = 2
