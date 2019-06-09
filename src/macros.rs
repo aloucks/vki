@@ -118,7 +118,7 @@ macro_rules! glfw_surface_descriptor (
         // TODO: Verify that this works!
         let ns_object: *mut $crate::objc::runtime::Object = $window.get_cocoa_window() as *mut _;
         let ns_view: *mut $crate::objc::runtime::Object = $crate::objc::msg_send![ns_object, contentView];
-        assert_ne!(ns_view, std::ptr::null());
+        assert_ne!(ns_view, std::ptr::null_mut());
         $crate::SurfaceDescriptorMacOS {
             nsview: ns_view as *const _,
         }
