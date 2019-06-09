@@ -116,11 +116,11 @@ macro_rules! glfw_surface_descriptor (
     ($window:expr) => {{
         // https://stackoverflow.com/questions/7566882/how-to-get-current-nsview-in-cocoa
         // TODO: Verify that this works!
-        let ns_object = $window.get_cocoa_window();
+        let ns_object: *mut $crate::objc::runtime::Object = $window.get_cocoa_window() as *mut _;
         let ns_view: *mut $crate::objc::runtime::Object = $crate::objc::msg_send![ns_object, contentView];
         assert_ne!(ns_view, std::ptr::null());
         $crate::SurfaceDescriptorMacOS {
-            nsview: ns_view as _,
+            nsview: ns_view as *const _,
         }
     }};
 );
