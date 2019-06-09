@@ -14,13 +14,11 @@ parking_lot = "0.8.0"
 bitflags = "1.0.4"
 log = "0.4.6"
 smallvec = "0.6"
-either = "1.5.2"
 backtrace = "0.3"
-winapi = { version = "0.3.7", features = ["dbghelp", "processthreadsapi"] }
 
 [features]
 default = ["winit-eventloop-2"]
-winit-eventloop-2 = []
+winit-eventloop-2 = [] # configures the winit_surface_descriptor macro
 
 [patch.crates-io]
 ash = { git = "https://github.com/MaikKlein/ash.git", rev = "6d7e4bf" }

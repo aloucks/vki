@@ -12,12 +12,12 @@ use crate::util::{App, EventHandler, EventHandlers};
 
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferUsageFlags, BufferViewDescriptor, Color,
-    ColorStateDescriptor, ColorWriteFlags, ComputePipelineDescriptor, CullMode, Fence, FrontFace, IndexFormat,
-    InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
-    RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
-    ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainError, TextureFormat, VertexAttributeDescriptor,
-    VertexFormat, VertexInputDescriptor,
+    BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferUsageFlags, BufferViewDescriptor,
+    BufferViewFormat, Color, ColorStateDescriptor, ColorWriteFlags, ComputePipelineDescriptor, CullMode, Fence,
+    FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor,
+    PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
+    RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainError,
+    TextureFormat, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
 };
 
 use rand::Rng;
@@ -160,7 +160,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let velocity_buffer_view = velocity_buffer.create_view(BufferViewDescriptor {
         offset: 0,
-        format: either::Left(TextureFormat::RGBA32Float),
+        format: BufferViewFormat::Texture(TextureFormat::RGBA32Float),
         size: velocity_buffer.size(),
     })?;
 
@@ -173,7 +173,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let position_buffer_view = position_buffer.create_view(BufferViewDescriptor {
         offset: 0,
-        format: either::Left(TextureFormat::RGBA32Float),
+        format: BufferViewFormat::Texture(TextureFormat::RGBA32Float),
         size: position_buffer.size(),
     })?;
 

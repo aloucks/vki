@@ -6,7 +6,10 @@ use vk_mem::{AllocationCreateFlags, AllocationCreateInfo, MemoryUsage};
 
 use crate::error::Error;
 use crate::imp::{pipeline, texture, BufferInner, BufferState, BufferViewInner, DeviceInner};
-use crate::{Buffer, BufferDescriptor, BufferUsageFlags, BufferView, BufferViewDescriptor, MappedBuffer, WriteData};
+use crate::{
+    Buffer, BufferDescriptor, BufferUsageFlags, BufferView, BufferViewDescriptor, BufferViewFormat, MappedBuffer,
+    WriteData,
+};
 
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use parking_lot::Mutex;
@@ -618,9 +621,18 @@ impl Buffer {
     }
 }
 
+impl From<BufferViewFormat> for vk::Format {
+    fn from(f: BufferViewFormat) -> vk::Format {
+        match f {
+            BufferViewFormat::Texture(f) => texture::image_format(f),
+            BufferViewFormat::Vertex(f) => pipeline::vertex_format(f),
+        }
+    }
+}
+
 impl BufferViewInner {
     pub fn new(buffer: Arc<BufferInner>, descriptor: BufferViewDescriptor) -> Result<BufferViewInner, Error> {
-        let format = descriptor.format.either(texture::image_format, pipeline::vertex_format);
+        let format = vk::Format::from(descriptor.format);
         let create_info = vk::BufferViewCreateInfo {
             buffer: buffer.handle,
             offset: descriptor.offset as u64,

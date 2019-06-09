@@ -292,9 +292,16 @@ pub struct Buffer {
 /// non-standard / not in the gpuweb spec
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BufferViewDescriptor {
-    pub format: either::Either<TextureFormat, VertexFormat>,
+    pub format: BufferViewFormat,
     pub offset: usize,
     pub size: usize,
+}
+
+/// non-standard / not in the gpuweb spec
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum BufferViewFormat {
+    Texture(TextureFormat),
+    Vertex(VertexFormat),
 }
 
 /// non-standard / not in the gpuweb spec
