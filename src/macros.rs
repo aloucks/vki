@@ -113,7 +113,7 @@ macro_rules! glfw_surface_descriptor {
 #[macro_export]
 #[cfg(all(unix, target_os = "macos"))]
 macro_rules! glfw_surface_descriptor (
-    ($window:expr) => ({
+    ($window:expr) => {{
         // https://stackoverflow.com/questions/7566882/how-to-get-current-nsview-in-cocoa
         // TODO: Verify that this works!
         let ns_object = $window.get_cocoa_window();
@@ -122,7 +122,7 @@ macro_rules! glfw_surface_descriptor (
         $crate::SurfaceDescriptorMacOS {
             nsview: ns_view as _,
         }
-    });
+    }};
 );
 
 #[macro_export]
