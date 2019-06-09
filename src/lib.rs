@@ -6,7 +6,6 @@
 extern crate bitflags;
 //use bitflags::bitflags;
 
-
 use std::sync::Arc;
 
 #[macro_use]
