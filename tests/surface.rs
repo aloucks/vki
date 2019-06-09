@@ -1,3 +1,7 @@
+#[cfg(target_os = "macos")]
+#[macro_use]
+extern crate objc;
+
 use vki::{glfw_surface_descriptor, winit_surface_descriptor};
 use vki::{AdapterOptions, DeviceDescriptor, Instance};
 
