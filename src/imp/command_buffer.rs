@@ -219,7 +219,7 @@ impl CommandBufferInner {
                         self.device.raw.cmd_copy_image_to_buffer(
                             command_buffer,
                             src.texture.handle,
-                            vk::ImageLayout::GENERAL,
+                            vk::ImageLayout::TRANSFER_SRC_OPTIMAL,
                             dst.buffer.handle,
                             &[region],
                         );

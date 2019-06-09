@@ -288,6 +288,31 @@ impl CommandEncoder {
         top_level_textures.insert(dst.texture.inner.clone());
     }
 
+    // TODO: row_pitch bytes vs texels
+    pub fn copy_texture_to_buffer(&mut self, src: TextureCopyView, dst: BufferCopyView, copy_size: Extent3D) {
+        self.inner.push(Command::CopyTextureToBuffer {
+            src: TextureCopy {
+                texture: Arc::clone(&src.texture.inner),
+                mip_level: src.mip_level,
+                origin_texels: src.origin,
+                array_layer: src.array_layer, // TODO: slice ?
+            },
+            dst: BufferCopy {
+                buffer: Arc::clone(&dst.buffer.inner),
+                row_pitch: dst.row_pitch,
+                image_height: dst.image_height,
+                offset: dst.offset,
+            },
+            size_texels: copy_size,
+        });
+
+        let top_level_buffers = &mut self.inner.state.resource_usages.top_level_buffers;
+        let top_level_textures = &mut self.inner.state.resource_usages.top_level_textures;
+
+        top_level_textures.insert(src.texture.inner.clone());
+        top_level_buffers.insert(dst.buffer.inner.clone());
+    }
+
     pub fn blit_texture_to_texture(&mut self, src: TextureBlitView, dst: TextureBlitView, filter: FilterMode) {
         self.inner.push(Command::BlitTextureToTexture {
             src: TextureBlit {

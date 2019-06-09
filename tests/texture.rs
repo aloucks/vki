@@ -1,6 +1,7 @@
 use vki::{
-    Extent3D, FilterMode, Origin3D, TextureAspectFlags, TextureBlitView, TextureCopyView, TextureDescriptor,
-    TextureDimension, TextureFormat, TextureUsageFlags, TextureViewDescriptor, TextureViewDimension,
+    BufferCopyView, BufferDescriptor, BufferUsageFlags, Extent3D, FilterMode, Origin3D, TextureAspectFlags,
+    TextureBlitView, TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
+    TextureViewDescriptor, TextureViewDimension,
 };
 
 pub mod support;
@@ -288,4 +289,116 @@ fn create_depth_stencil_texture_and_view() {
 
         Ok(instance)
     });
+}
+
+#[test]
+fn copy_buffer_to_texture() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let (width, height, depth) = (1024, 1024, 1);
+        let size = Extent3D { width, height, depth };
+
+        let buffer1 = device.create_buffer(BufferDescriptor {
+            size: (width * height) as usize * std::mem::size_of::<f32>(),
+            usage: BufferUsageFlags::TRANSFER_SRC,
+        })?;
+
+        let texture1 = device.create_texture(TextureDescriptor {
+            usage: TextureUsageFlags::TRANSFER_DST,
+            sample_count: 1,
+            format: TextureFormat::R8G8B8A8Unorm,
+            dimension: TextureDimension::D2,
+            size,
+            array_layer_count: 1,
+            mip_level_count: 1,
+        })?;
+
+        let src = BufferCopyView {
+            buffer: &buffer1,
+            row_pitch: width, // TODO row_pitch
+            image_height: height,
+            offset: 0,
+        };
+
+        let dst = TextureCopyView {
+            texture: &texture1,
+            mip_level: 0,
+            array_layer: 0,
+            origin: Origin3D { x: 0, y: 0, z: 0 },
+        };
+
+        let mut encoder = device.create_command_encoder()?;
+
+        encoder.copy_buffer_to_texture(src, dst, size);
+
+        let command_buffers = &[encoder.finish()?];
+
+        let queue = device.get_queue();
+
+        queue.submit(command_buffers)?;
+
+        // TODO: Verification
+
+        // Submitting twice isn't necessary, but this helps catch issues with subresource tracking
+        queue.submit(command_buffers)?;
+
+        Ok(instance)
+    })
+}
+
+#[test]
+fn copy_texture_to_buffer() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let (width, height, depth) = (1024, 1024, 1);
+        let size = Extent3D { width, height, depth };
+
+        let buffer1 = device.create_buffer(BufferDescriptor {
+            size: (width * height) as usize * std::mem::size_of::<f32>(),
+            usage: BufferUsageFlags::TRANSFER_DST,
+        })?;
+
+        let texture1 = device.create_texture(TextureDescriptor {
+            usage: TextureUsageFlags::TRANSFER_SRC,
+            sample_count: 1,
+            format: TextureFormat::R8G8B8A8Unorm,
+            dimension: TextureDimension::D2,
+            size,
+            array_layer_count: 1,
+            mip_level_count: 1,
+        })?;
+
+        let dst = BufferCopyView {
+            buffer: &buffer1,
+            row_pitch: width, // TODO row_pitch
+            image_height: height,
+            offset: 0,
+        };
+
+        let src = TextureCopyView {
+            texture: &texture1,
+            mip_level: 0,
+            array_layer: 0,
+            origin: Origin3D { x: 0, y: 0, z: 0 },
+        };
+
+        let mut encoder = device.create_command_encoder()?;
+
+        encoder.copy_texture_to_buffer(src, dst, size);
+
+        let command_buffers = &[encoder.finish()?];
+
+        let queue = device.get_queue();
+
+        queue.submit(command_buffers)?;
+
+        // TODO: Verification
+
+        // Submitting twice isn't necessary, but this helps catch issues with subresource tracking
+        queue.submit(command_buffers)?;
+
+        Ok(instance)
+    })
 }
