@@ -6,9 +6,6 @@
 extern crate bitflags;
 //use bitflags::bitflags;
 
-#[doc(hidden)]
-#[cfg(target_os = "macos")]
-pub use objc;
 
 use std::sync::Arc;
 

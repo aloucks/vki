@@ -110,14 +110,15 @@ macro_rules! glfw_surface_descriptor {
     }};
 }
 
+/// Note: the `objc` crate must be added to `Cargo.toml` in addition to `glfw`.
 #[macro_export]
 #[cfg(all(unix, target_os = "macos"))]
 macro_rules! glfw_surface_descriptor (
     ($window:expr) => {{
         // https://stackoverflow.com/questions/7566882/how-to-get-current-nsview-in-cocoa
         // TODO: Verify that this works!
-        let ns_object: *mut $crate::objc::runtime::Object = $window.get_cocoa_window() as *mut _;
-        let ns_view: *mut $crate::objc::runtime::Object = $crate::objc::msg_send![ns_object, contentView];
+        let ns_object: *mut objc::runtime::Object = $window.get_cocoa_window() as *mut _;
+        let ns_view: *mut objc::runtime::Object = objc::msg_send![ns_object, contentView];
         assert_ne!(ns_view, std::ptr::null_mut());
         $crate::SurfaceDescriptorMacOS {
             nsview: ns_view as *const _,
