@@ -514,7 +514,11 @@ impl<'a, T> WriteData<'a, T> {
 
     /// Returns the number of elements `T` in the slice
     pub fn len(&self) -> usize {
-        return self.element_count;
+        self.element_count
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() > 0
     }
 }
 
