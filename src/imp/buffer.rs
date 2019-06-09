@@ -474,11 +474,11 @@ impl Drop for MappedBuffer {
 impl<'a, T: Copy> Deref for WriteData<'a, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
-//        unsafe {
-//            let data = self.mapped.data.offset(self.offset_bytes);
-//            std::slice::from_raw_parts(data as *const T, self.element_count)
-//        }
-        panic!("buffer is mapped for write-only operations");
+        log::error!("buffer is mapped for write-only operations");
+        unsafe {
+            let data = self.mapped.data.offset(self.offset_bytes);
+            std::slice::from_raw_parts(data as *const T, self.element_count)
+        }
     }
 }
 
@@ -511,7 +511,7 @@ impl<'a, T> WriteData<'a, T> {
 
     /// Returns the number of elements `T` in the slice
     pub fn len(&self) -> usize {
-        return self.element_count
+        return self.element_count;
     }
 }
 
