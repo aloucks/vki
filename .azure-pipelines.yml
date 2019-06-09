@@ -34,7 +34,7 @@ jobs:
           TOOLCHAIN: nightly
 
   - job: MacOS
-      pool:
+    pool:
         vmImage: macOS-10.14
       steps:
         - template: ci/azure-install-rust.yml
