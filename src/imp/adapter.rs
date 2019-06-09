@@ -153,11 +153,18 @@ impl AdapterInner {
 
     pub fn get_surface_support(&self, surface: &SurfaceInner, queue_index: u32) -> Result<bool, Error> {
         unsafe {
-            self.instance
-                .raw_ext
-                .surface
-                .get_physical_device_surface_support(self.physical_device, queue_index as u32, surface.handle)
-                .map_err(Error::from)
+            // self.instance
+            //    .raw_ext
+            //    .surface
+            //    .get_physical_device_surface_support(self.physical_device, queue_index as u32, surface.handle)
+            //    .map_err(Error::from)
+            // TODO: Revert this once the next version of ash is released
+            let supported = self.instance.raw_ext.surface.get_physical_device_surface_support(
+                self.physical_device,
+                queue_index as u32,
+                surface.handle,
+            );
+            Ok(supported)
         }
     }
 
