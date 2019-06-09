@@ -311,6 +311,22 @@ impl CommandEncoder {
         top_level_textures.insert(dst.texture.inner.clone());
     }
 
+    pub fn push_debug_group(&mut self, group_label: &str) {
+        self.inner.push(Command::PushDebugGroup {
+            group_label: group_label.into(),
+        });
+    }
+
+    pub fn insert_debug_marker(&mut self, marker_label: &str) {
+        self.inner.push(Command::InsertDebugMarker {
+            marker_label: marker_label.into(),
+        })
+    }
+
+    pub fn pop_debug_group(&mut self) {
+        self.inner.push(Command::PopDebugGroup)
+    }
+
     pub fn finish(self) -> Result<CommandBuffer, Error> {
         let mut command_index = 0;
         while let Some(command) = self.inner.state.commands.get(command_index) {
@@ -432,6 +448,22 @@ impl<'a> ComputePassEncoder<'a> {
 
     pub fn dispatch(&mut self, x: u32, y: u32, z: u32) {
         self.inner.top_level_encoder.push(Command::Dispatch { x, y, z });
+    }
+
+    pub fn push_debug_group(&mut self, group_label: &str) {
+        self.inner.top_level_encoder.push(Command::PushDebugGroup {
+            group_label: group_label.into(),
+        });
+    }
+
+    pub fn insert_debug_marker(&mut self, marker_label: &str) {
+        self.inner.top_level_encoder.push(Command::InsertDebugMarker {
+            marker_label: marker_label.into(),
+        })
+    }
+
+    pub fn pop_debug_group(&mut self) {
+        self.inner.top_level_encoder.push(Command::PopDebugGroup)
     }
 }
 
@@ -653,5 +685,21 @@ impl<'a> RenderPassEncoder<'a> {
         self.inner
             .top_level_encoder
             .set_push_constants(stages, offset_bytes, value)
+    }
+
+    pub fn push_debug_group(&mut self, group_label: &str) {
+        self.inner.top_level_encoder.push(Command::PushDebugGroup {
+            group_label: group_label.into(),
+        });
+    }
+
+    pub fn insert_debug_marker(&mut self, marker_label: &str) {
+        self.inner.top_level_encoder.push(Command::InsertDebugMarker {
+            marker_label: marker_label.into(),
+        })
+    }
+
+    pub fn pop_debug_group(&mut self) {
+        self.inner.top_level_encoder.push(Command::PopDebugGroup)
     }
 }

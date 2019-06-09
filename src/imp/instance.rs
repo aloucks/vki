@@ -70,6 +70,9 @@ impl InstanceInner {
                 if name_cow == "VK_EXT_debug_report" && init_debug_report {
                     include_extension = true;
                 }
+                if name_cow == "VK_EXT_debug_utils" {
+                    include_extension = true;
+                }
                 if include_extension {
                     log::debug!("requesting extension support: {}", name_cow);
                     extension_names.push(name.to_owned());

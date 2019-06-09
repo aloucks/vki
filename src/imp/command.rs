@@ -85,11 +85,11 @@ pub enum Command {
     EndComputePass,
     EndRenderPass,
     InsertDebugMarker {
-        // TODO: InsertDebugMarker
+        marker_label: String,
     },
     PopDebugGroup,
     PushDebugGroup {
-        // TODO: PushDebugGroup
+        group_label: String,
     },
     SetComputePipeline {
         pipeline: Arc<ComputePipelineInner>,

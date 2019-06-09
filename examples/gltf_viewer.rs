@@ -853,7 +853,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     window.set_outer_position(winit::dpi::LogicalPosition::from((pos_x, pos_y)));
 
     println!("Importing file: {}", path);
-    let import = Import::load(&path)?;
+    let import = match Import::load(&path) {
+        Ok(import) => import,
+        Err(e) => {
+            eprintln!("{:?}", e);
+            eprintln!("Press enter to quit");
+            let mut buf = String::new();
+            std::io::stdin().read_line(&mut buf).ok();
+            return Err(e)?;
+        }
+    };
 
     let mut encoder = app.device.create_command_encoder()?;
 
@@ -1953,7 +1962,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         for material_index in material_indices_sorted_by_pipeline_key.iter().cloned() {
             let mesh_primitives = &material_primitive_map[&material_index];
             let material_settings_offset = util::byte_stride(&material_settings) * material_index;
-            let material_pipeline_key = materials[material_index].material_pipeline_key();
+            let material = &materials[material_index];
+            let material_name = material
+                .name
+                .as_ref()
+                .map(|name| name.clone())
+                .unwrap_or_else(|| format!("material-{}", material_index));
+            render_pass.push_debug_group(&material_name);
+            let material_pipeline_key = material.material_pipeline_key();
             let dynamic_offsets = &[material_settings_offset as u32];
             render_pass.set_bind_group(1, &bind_group_1[material_index], Some(dynamic_offsets));
 
@@ -1961,6 +1977,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let mesh_index = *mesh_index;
                 let primitive_index = *primitive_index;
                 let mesh = &meshes[mesh_index];
+                let mesh_name = mesh
+                    .name
+                    .as_ref()
+                    .map(|name| name.clone())
+                    .unwrap_or_else(|| format!("mesh-{}", mesh_index));
+                render_pass.insert_debug_marker(&mesh_name);
                 let primitive = &mesh.primitives[primitive_index];
                 let mesh_settings_offset = util::byte_stride(&mesh_settings) * mesh_index;
                 let mesh_pipeline_key = primitive.mesh_pipeline_key;
@@ -1998,6 +2020,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     }
                 }
             }
+            render_pass.pop_debug_group();
         }
 
         render_pass.end_pass();

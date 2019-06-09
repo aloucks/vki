@@ -3,7 +3,7 @@ use std::time::Duration;
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
     BindingType, BufferDescriptor, BufferUsageFlags, ComputePipelineDescriptor, PipelineLayoutDescriptor,
-    PipelineStageDescriptor, PushConstantRange, ShaderModuleDescriptor, ShaderStageFlags,
+    PipelineStageDescriptor, PushConstantRange, RenderPassDescriptor, ShaderModuleDescriptor, ShaderStageFlags,
 };
 
 pub mod support;
@@ -180,6 +180,38 @@ fn push_constants() {
 
         let read: &[u32] = read_buffer_mapped.read(0, data.len())?;
         assert_eq!(data, read);
+
+        Ok(instance)
+    });
+}
+
+#[test]
+fn debug_markers() {
+    vki::validate(|| {
+        let (instance, _adapter, device) = support::init()?;
+
+        let mut encoder = device.create_command_encoder()?;
+        encoder.push_debug_group("push_debug_group");
+        encoder.insert_debug_marker("insert_debug_marker");
+        encoder.pop_debug_group();
+
+        let mut compute_pass = encoder.begin_compute_pass();
+        compute_pass.push_debug_group("compute_pass_encoder::push_debug_group");
+        compute_pass.push_debug_group("compute_pass_encoder::insert_debug_marker");
+        compute_pass.pop_debug_group();
+        compute_pass.end_pass();
+
+        let mut render_pass = encoder.begin_render_pass(RenderPassDescriptor {
+            color_attachments: &[],
+            depth_stencil_attachment: None,
+        });
+        render_pass.push_debug_group("render_pass_encoder::push_debug_group");
+        render_pass.push_debug_group("render_pass_encoder::insert_debug_marker");
+        render_pass.pop_debug_group();
+        render_pass.end_pass();
+
+        let command_buffer = encoder.finish()?;
+        device.get_queue().submit(&[command_buffer])?;
 
         Ok(instance)
     });

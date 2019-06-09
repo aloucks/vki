@@ -117,6 +117,57 @@ fn image_blit(src: &TextureBlit, dst: &TextureBlit) -> vk::ImageBlit {
     }
 }
 
+fn push_debug_group(device: &DeviceInner, command_buffer: vk::CommandBuffer, group_label: &str) {
+    let mut label_name = SmallVec::<[u8; 64]>::new();
+    label_name.extend_from_slice(group_label.as_bytes());
+    label_name.push(0);
+    let label = vk::DebugUtilsLabelEXT {
+        s_type: vk::StructureType::DEBUG_UTILS_LABEL_EXT,
+        p_next: std::ptr::null(),
+        color: [0.0, 0.0, 0.0, 0.0],
+        p_label_name: label_name.as_ptr() as *const _,
+    };
+    unsafe {
+        device
+            .adapter
+            .instance
+            .raw_ext
+            .debug_utils
+            .cmd_begin_debug_utils_label(command_buffer, &label);
+    }
+}
+
+fn insert_debug_marker(device: &DeviceInner, command_buffer: vk::CommandBuffer, marker_label: &str) {
+    let mut label_name = SmallVec::<[u8; 64]>::new();
+    label_name.extend_from_slice(marker_label.as_bytes());
+    label_name.push(0);
+    let label = vk::DebugUtilsLabelEXT {
+        s_type: vk::StructureType::DEBUG_UTILS_LABEL_EXT,
+        p_next: std::ptr::null(),
+        color: [0.0, 0.0, 0.0, 0.0],
+        p_label_name: label_name.as_ptr() as *const _,
+    };
+    unsafe {
+        device
+            .adapter
+            .instance
+            .raw_ext
+            .debug_utils
+            .cmd_insert_debug_utils_label(command_buffer, &label);
+    }
+}
+
+fn pop_debug_group(device: &DeviceInner, command_buffer: vk::CommandBuffer) {
+    unsafe {
+        device
+            .adapter
+            .instance
+            .raw_ext
+            .debug_utils
+            .cmd_end_debug_utils_label(command_buffer);
+    }
+}
+
 impl CommandBufferInner {
     pub fn record_commands(&self, command_buffer: vk::CommandBuffer, state: &mut DeviceState) -> Result<(), Error> {
         let mut pass = 0;
@@ -245,7 +296,7 @@ impl CommandBufferInner {
                     self.state.resource_usages.per_pass[pass].transition_for_pass(command_buffer)?;
                     command_index = self.record_render_pass(
                         command_buffer,
-                        command_index,
+                        command_index + 1,
                         color_attachments,
                         depth_stencil_attachment,
                         *width,
@@ -257,10 +308,15 @@ impl CommandBufferInner {
                 }
                 Command::BeginComputePass => {
                     self.state.resource_usages.per_pass[pass].transition_for_pass(command_buffer)?;
-                    command_index = self.record_compute_pass(command_buffer, command_index)?;
+                    command_index = self.record_compute_pass(command_buffer, command_index + 1)?;
                     pass += 1;
                 }
-                _ => {}
+                Command::PushDebugGroup { group_label } => push_debug_group(&self.device, command_buffer, &group_label),
+                Command::InsertDebugMarker { marker_label } => {
+                    insert_debug_marker(&self.device, command_buffer, &marker_label)
+                }
+                Command::PopDebugGroup => pop_debug_group(&self.device, command_buffer),
+                _ => unreachable!("command: {:?}", command),
             }
 
             command_index += 1;
@@ -582,9 +638,12 @@ impl CommandBufferInner {
                         self.device.raw.cmd_set_viewport(command_buffer, 0, &[viewport]);
                     }
                 }
-                _ => {
-                    // TODO: RenderPass debug commands
+                Command::PushDebugGroup { group_label } => push_debug_group(&self.device, command_buffer, &group_label),
+                Command::InsertDebugMarker { marker_label } => {
+                    insert_debug_marker(&self.device, command_buffer, &marker_label)
                 }
+                Command::PopDebugGroup => pop_debug_group(&self.device, command_buffer),
+                _ => unreachable!("command: {:?}", command),
             }
             command_index += 1;
         }
@@ -635,6 +694,11 @@ impl CommandBufferInner {
                     *size_bytes,
                     &values,
                 ),
+                Command::PushDebugGroup { group_label } => push_debug_group(&self.device, command_buffer, &group_label),
+                Command::InsertDebugMarker { marker_label } => {
+                    insert_debug_marker(&self.device, command_buffer, &marker_label)
+                }
+                Command::PopDebugGroup => pop_debug_group(&self.device, command_buffer),
                 _ => {}
             }
 
