@@ -94,6 +94,32 @@ macro_rules! glfw_surface_descriptor (
     });
 );
 
+/// Note: the `objc` crate must be added to `Cargo.toml` in addition to `glfw`. If compile errors
+/// arise on the `sel!` macro from the `objc` crate, try importing it with rust 2015 syntax:
+///
+/// ```
+/// #[cfg(target_os = "macos")]
+/// #[macro_use]
+/// extern crate objc;
+/// ```
+#[macro_export]
+#[cfg(all(unix, target_os = "macos"))]
+macro_rules! glfw_surface_descriptor (
+    ($window:expr) => {{
+        // https://stackoverflow.com/questions/7566882/how-to-get-current-nsview-in-cocoa
+        // TODO: Verify that this works!
+        unsafe {
+            let ns_window: *mut objc::runtime::Object = $window.get_cocoa_window() as *mut _;
+            assert_ne!(ns_window, std::ptr::null_mut());
+            let ns_view: *mut objc::runtime::Object = objc::msg_send![ns_window, contentView];
+            assert_ne!(ns_view, std::ptr::null_mut());
+            $crate::SurfaceDescriptorMacOS {
+                nsview: ns_view as *const _,
+            }
+        }
+    }};
+);
+
 #[macro_export]
 #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
 macro_rules! glfw_surface_descriptor {
@@ -109,22 +135,6 @@ macro_rules! glfw_surface_descriptor {
         }
     }};
 }
-
-/// Note: the `objc` crate must be added to `Cargo.toml` in addition to `glfw`.
-#[macro_export]
-#[cfg(all(unix, target_os = "macos"))]
-macro_rules! glfw_surface_descriptor (
-    ($window:expr) => {{
-        // https://stackoverflow.com/questions/7566882/how-to-get-current-nsview-in-cocoa
-        // TODO: Verify that this works!
-        let ns_object: *mut objc::runtime::Object = $window.get_cocoa_window() as *mut _;
-        let ns_view: *mut objc::runtime::Object = objc::msg_send![ns_object, contentView];
-        assert_ne!(ns_view, std::ptr::null_mut());
-        $crate::SurfaceDescriptorMacOS {
-            nsview: ns_view as *const _,
-        }
-    }};
-);
 
 #[macro_export]
 macro_rules! offset_of {
