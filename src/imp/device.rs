@@ -18,7 +18,7 @@ use crate::imp::{
 };
 
 use crate::{
-    BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor,
+    Adapter, BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor,
     CommandEncoder, ComputePipeline, ComputePipelineDescriptor, Device, DeviceDescriptor, Limits, MappedBuffer,
     PipelineLayout, PipelineLayoutDescriptor, Queue, RenderPipeline, RenderPipelineDescriptor, Sampler,
     SamplerDescriptor, ShaderModule, ShaderModuleDescriptor, Surface, Swapchain, SwapchainDescriptor, Texture,
@@ -91,6 +91,12 @@ impl Device {
                 device: Arc::clone(&self.inner),
                 queue: self.inner.queue,
             },
+        }
+    }
+
+    pub fn adapter(&self) -> Adapter {
+        Adapter {
+            inner: Arc::clone(&self.inner.adapter),
         }
     }
 
