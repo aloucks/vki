@@ -4,9 +4,9 @@ use std::borrow::Cow;
 use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
-    BufferViewDescriptor, Color, ColorStateDescriptor, ColorWriteFlags, CompareFunction, ComputePipelineDescriptor,
-    CullMode, DepthStencilStateDescriptor, Extent3D, FilterMode, FrontFace, IndexFormat, InputStateDescriptor,
-    InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
+    BufferViewDescriptor, BufferViewFormat, Color, ColorStateDescriptor, ColorWriteFlags, CompareFunction,
+    ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, Extent3D, FilterMode, FrontFace, IndexFormat,
+    InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
     SamplerDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilOperation, StencilStateFaceDescriptor, StoreOp,
     Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView,
@@ -503,7 +503,7 @@ fn set_bind_group() {
         let image_buffer_view = image_buffer.create_view(BufferViewDescriptor {
             size: 1024,
             offset: 0,
-            format: either::Left(TextureFormat::RGBA32Float),
+            format: BufferViewFormat::Texture(TextureFormat::RGBA32Float),
         })?;
         let sampler = device.create_sampler(SamplerDescriptor {
             mag_filter: FilterMode::Nearest,
@@ -647,7 +647,7 @@ fn set_bind_group_out_of_order() {
         let image_buffer_view = image_buffer.create_view(BufferViewDescriptor {
             size: 1024,
             offset: 0,
-            format: either::Left(TextureFormat::RGBA32Float),
+            format: BufferViewFormat::Texture(TextureFormat::RGBA32Float),
         })?;
         let sampler = device.create_sampler(SamplerDescriptor {
             mag_filter: FilterMode::Nearest,
@@ -793,7 +793,7 @@ fn set_bind_group_dynamic_offsets() {
         let image_buffer_view = image_buffer.create_view(BufferViewDescriptor {
             size: 1024,
             offset: 0,
-            format: either::Left(TextureFormat::RGBA32Float),
+            format: BufferViewFormat::Texture(TextureFormat::RGBA32Float),
         })?;
         let sampler = device.create_sampler(SamplerDescriptor {
             mag_filter: FilterMode::Nearest,
