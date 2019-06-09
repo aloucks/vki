@@ -32,3 +32,16 @@ jobs:
           TOOLCHAIN: stable
         nightly:
           TOOLCHAIN: nightly
+
+  - job: MacOS
+      pool:
+        vmImage: macOS-10.14
+      steps:
+        - template: ci/azure-install-rust.yml
+        - template: ci/azure-test-all.yml
+      strategy:
+        matrix:
+          stable:
+            TOOLCHAIN: stable
+          nightly:
+            TOOLCHAIN: nightly
