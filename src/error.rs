@@ -5,6 +5,8 @@ use backtrace::Backtrace;
 use std::error::Error as StdError;
 use std::fmt::{self, Display};
 
+pub use vk::Result as VkResult;
+
 impl<'a> From<&'a Error> for Error {
     fn from(e: &'a Error) -> Error {
         e.clone()
@@ -117,11 +119,12 @@ impl Into<vk::Result> for Error {
 }
 
 impl Error {
-    fn kind(&self) -> &ErrorKind {
+    pub fn kind(&self) -> &ErrorKind {
         &self.kind
     }
 
-    fn backtrace(&self) -> Option<&Backtrace> {
+    /// Set `RUST_BACKTRACE=1` to enable backtraces
+    pub fn backtrace(&self) -> Option<&Backtrace> {
         self.backtrace.as_ref()
     }
 }
@@ -136,7 +139,7 @@ impl Display for Error {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ErrorKind {
-    Code(vk::Result),
+    Code(VkResult),
     Message(String),
 }
 
