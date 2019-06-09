@@ -8,9 +8,9 @@ modeled after [Dawn](https://dawn.googlesource.com/dawn).
 
 ## Should I use this?
 
-VKI is hobby project for learning how to build a sane abstraction layer
-over the Vulkan API. You probably want to use
-[WGPU-RS](https://github.com/gfx-rs/wgpu-rs) or
+It's not in crates.io at the moment. You probably want to check out
+[WGPU](https://github.com/gfx-rs/wgpu-rs),
+[Vulkano](https://github.com/vulkano-rs/vulkano), or
 [Rendy](https://github.com/amethyst/rendy).
 
 ## Does it work?
@@ -19,6 +19,9 @@ Yes! See the [examples](examples) directory for more interesting things.
 
 The examples enable the vulkan validation layers which requires the
 [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to be installed.
+
+A [nuklear-rust backend](https://github.com/aloucks/nuklear-test) for 2D
+UI components also works with VKI.
 
 ## What does VKI mean?
 
