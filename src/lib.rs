@@ -6,6 +6,10 @@
 extern crate bitflags;
 //use bitflags::bitflags;
 
+#[doc(hidden)]
+#[cfg(target_os = "macos")]
+pub use objc;
+
 use std::sync::Arc;
 
 #[macro_use]
@@ -107,6 +111,11 @@ pub struct SurfaceDescriptorWin32 {
     pub hwnd: *const std::ffi::c_void,
 }
 
+#[derive(Debug)]
+pub struct SurfaceDescriptorMacOS {
+    pub nsview: *const std::ffi::c_void,
+}
+
 unsafe impl Send for SurfaceDescriptorWin32 {}
 
 #[derive(Debug)]
@@ -126,6 +135,9 @@ pub type SurfaceDescriptor = SurfaceDescriptorWin32;
 
 #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
 pub type SurfaceDescriptor = SurfaceDescriptorUnix;
+
+#[cfg(all(unix, target_os = "macos"))]
+pub type SurfaceDescriptor = SurfaceDescriptorMacOS;
 
 #[derive(Clone, Debug)]
 pub struct Surface {

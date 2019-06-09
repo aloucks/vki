@@ -36,6 +36,36 @@ impl SurfaceInner {
         })
     }
 
+    #[cfg(all(unix, target_os = "macos"))]
+    pub fn new(
+        instance: Arc<InstanceInner>,
+        descriptor: &crate::SurfaceDescriptorMacOS,
+    ) -> Result<SurfaceInner, Error> {
+        let create_info = vk::MacOSSurfaceCreateInfoMVK {
+            p_view: descriptor.nsview,
+            ..Default::default()
+        };
+
+        // TODO: SurfaceDescriptorMacOS
+        // https://github.com/gfx-rs/gfx/blob/416d9ff65cd4559dcda5e640d7baf79e606be4e8/src/backend/metal/src/lib.rs#L245
+        // https://github.com/glfw/glfw/blob/d834f01ca43c0f5ddd31b00a7fc2f48abbafa3da/src/cocoa_window.m#L1694
+
+        let handle = unsafe {
+            instance
+                .raw_ext
+                .surface_macos
+                .create_mac_os_surface_mvk(&create_info, None)?
+        };
+
+        let supported_formats = Mutex::new(HashMap::default());
+
+        Ok(SurfaceInner {
+            instance,
+            handle,
+            supported_formats,
+        })
+    }
+
     #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
     pub fn new(instance: Arc<InstanceInner>, descriptor: &crate::SurfaceDescriptorUnix) -> Result<SurfaceInner, Error> {
         let supported_formats = Mutex::new(HashMap::default());
