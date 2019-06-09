@@ -604,6 +604,12 @@ impl BlendDescriptor {
     };
 }
 
+impl Default for BlendDescriptor {
+    fn default() -> BlendDescriptor {
+        BlendDescriptor::OPAQUE
+    }
+}
+
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct ColorStateDescriptor {
     pub format: TextureFormat,
@@ -640,6 +646,12 @@ impl StencilStateFaceDescriptor {
         depth_fail_op: StencilOperation::Keep,
         pass_op: StencilOperation::Keep,
     };
+}
+
+impl Default for StencilStateFaceDescriptor {
+    fn default() -> StencilStateFaceDescriptor {
+        StencilStateFaceDescriptor::IGNORE
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
