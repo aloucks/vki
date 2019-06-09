@@ -478,13 +478,13 @@ impl TextureInner {
                     image_memory_barrier.subresource_range.base_mip_level,
                     image_memory_barrier.subresource_range.base_array_layer,
                     *range_last_usage,
-                    old_layout,
+                    image_memory_barrier.old_layout,
                     src_stage_mask,
-                    src_access_mask,
+                    image_memory_barrier.src_access_mask,
                     usage,
-                    new_layout,
+                    image_memory_barrier.new_layout,
                     dst_stage_mask,
-                    dst_access_mask,
+                    image_memory_barrier.dst_access_mask,
                 );
 
                 *range_last_usage = usage;
