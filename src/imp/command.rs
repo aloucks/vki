@@ -2,7 +2,7 @@ use std::sync::Arc;
 
 use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::{BindGroupInner, BufferInner, ComputePipelineInner, RenderPipelineInner, TextureInner};
-use crate::{Color, Extent3D, FilterMode, Origin3D, ShaderStageFlags};
+use crate::{Buffer, Color, Extent3D, FilterMode, Origin3D, ShaderStageFlags};
 
 #[derive(Debug)]
 pub struct BufferCopy {
@@ -81,6 +81,18 @@ pub enum Command {
         first_index: u32,
         base_vertex: i32,
         first_instance: u32,
+    },
+    DrawIndirect {
+        buffer: Buffer,
+        indirect_offset: usize,
+    },
+    DrawIndexedIndirect {
+        buffer: Buffer,
+        indirect_offset: usize,
+    },
+    DispatchIndirect {
+        buffer: Buffer,
+        indirect_offset: usize,
     },
     EndComputePass,
     EndRenderPass,

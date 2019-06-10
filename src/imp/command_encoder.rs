@@ -475,6 +475,13 @@ impl<'a> ComputePassEncoder<'a> {
         self.inner.top_level_encoder.push(Command::Dispatch { x, y, z });
     }
 
+    pub fn dispatch_indirect(&mut self, buffer: &Buffer, indirect_offset: usize) {
+        self.inner.top_level_encoder.push(Command::DispatchIndirect {
+            buffer: buffer.clone(),
+            indirect_offset,
+        })
+    }
+
     pub fn push_debug_group(&mut self, group_label: &str) {
         self.inner.top_level_encoder.push(Command::PushDebugGroup {
             group_label: group_label.into(),
@@ -698,6 +705,20 @@ impl<'a> RenderPassEncoder<'a> {
             first_index,
             base_vertex,
             first_instance,
+        })
+    }
+
+    pub fn draw_indirect(&mut self, buffer: &Buffer, indirect_offset: usize) {
+        self.inner.top_level_encoder.push(Command::DrawIndirect {
+            buffer: buffer.clone(),
+            indirect_offset,
+        })
+    }
+
+    pub fn draw_indexed_indirect(&mut self, buffer: &Buffer, indirect_offset: usize) {
+        self.inner.top_level_encoder.push(Command::DrawIndexedIndirect {
+            buffer: buffer.clone(),
+            indirect_offset,
         })
     }
 

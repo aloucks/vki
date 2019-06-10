@@ -283,6 +283,7 @@ bitflags! {
         const VERTEX = 32;
         const UNIFORM = 64;
         const STORAGE = 128;
+        const INDIRECT = 256;
     }
 }
 
@@ -920,4 +921,46 @@ pub struct TextureBlitView<'a> {
     pub mip_level: u32,
     pub array_layer: u32,
     pub bounds: [Origin3D; 2],
+}
+
+/// Vulkan: `VkDrawIndirectCommand`
+///
+/// D3D12: `D3D12_DRAW_ARGUMENTS`
+///
+/// Metal: `MTLDrawPrimitivesIndirectArguments`
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct DrawIndirectCommand {
+    pub vertex_count: u32,
+    pub instance_count: u32,
+    pub first_vertex: u32,
+    pub first_instance: i32,
+}
+
+/// Vulkan: `VkDrawIndexedIndirectCommand`
+///
+/// D3D12: `D3D12_DRAW_INDEXED_ARGUMENTS`
+///
+/// Metal: `MTLDrawIndexedPrimitivesIndirectArguments`
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct DrawIndexedIndirectCommand {
+    pub vertex_count: u32,
+    pub instance_count: u32,
+    pub first_vertex: u32,
+    pub base_vertex: i32,
+    pub first_instance: i32,
+}
+
+/// Vulkan: `VkDispatchIndirectCommand`
+///
+/// D3D12: `D3D12_DISPATCH_ARGUMENTS`
+///
+/// Metal: `MTLDispatchThreadgroupsIndirectArguments`
+#[repr(C)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct DispatchIndirectCommand {
+    pub x: u32,
+    pub y: u32,
+    pub z: u32,
 }

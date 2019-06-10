@@ -9,7 +9,7 @@ use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery}
 use crate::imp::{binding, pipeline};
 use crate::imp::{render_pass, sampler, texture, util, DeviceInner, PipelineLayoutInner};
 use crate::imp::{CommandBufferInner, RenderPipelineInner};
-use crate::{BufferUsageFlags, Error, Extent3D, IndexFormat, ShaderStageFlags, TextureUsageFlags};
+use crate::{BufferUsageFlags, DrawIndirectCommand, Error, Extent3D, IndexFormat, ShaderStageFlags, TextureUsageFlags};
 
 use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::device::DeviceState;
@@ -532,6 +532,38 @@ impl CommandBufferInner {
                         )
                     }
                 }
+                Command::DrawIndirect {
+                    buffer,
+                    indirect_offset,
+                } => {
+                    let bind_point = vk::PipelineBindPoint::GRAPHICS;
+                    descriptor_sets.flush(&self.device, command_buffer, bind_point);
+                    unsafe {
+                        self.device.raw.cmd_draw_indirect(
+                            command_buffer,
+                            buffer.inner.handle,
+                            *indirect_offset as u64,
+                            1,
+                            std::mem::size_of::<DrawIndirectCommand>() as u32,
+                        )
+                    }
+                }
+                Command::DrawIndexedIndirect {
+                    buffer,
+                    indirect_offset,
+                } => {
+                    let bind_point = vk::PipelineBindPoint::GRAPHICS;
+                    descriptor_sets.flush(&self.device, command_buffer, bind_point);
+                    unsafe {
+                        self.device.raw.cmd_draw_indexed_indirect(
+                            command_buffer,
+                            buffer.inner.handle,
+                            *indirect_offset as u64,
+                            1,
+                            std::mem::size_of::<DrawIndirectCommand>() as u32,
+                        )
+                    }
+                }
                 Command::SetPushConstants {
                     stages,
                     offset_bytes,
@@ -664,6 +696,20 @@ impl CommandBufferInner {
                     descriptor_sets.flush(&self.device, command_buffer, bind_point);
                     self.device.raw.cmd_dispatch(command_buffer, *x, *y, *z);
                 },
+                Command::DispatchIndirect {
+                    buffer,
+                    indirect_offset,
+                } => {
+                    let bind_point = vk::PipelineBindPoint::COMPUTE;
+                    descriptor_sets.flush(&self.device, command_buffer, bind_point);
+                    unsafe {
+                        self.device.raw.cmd_dispatch_indirect(
+                            command_buffer,
+                            buffer.inner.handle,
+                            *indirect_offset as u64,
+                        )
+                    }
+                }
                 Command::SetComputePipeline { pipeline } => {
                     let bind_point = vk::PipelineBindPoint::COMPUTE;
                     unsafe {

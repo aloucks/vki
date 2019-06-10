@@ -100,7 +100,7 @@ pub fn pipeline_stage(usage: BufferUsageFlags) -> vk::PipelineStageFlags {
         flags |= vk::PipelineStageFlags::TRANSFER;
     }
 
-    if usage.intersects(BufferUsageFlags::INDEX | BufferUsageFlags::VERTEX) {
+    if usage.intersects(BufferUsageFlags::INDEX | BufferUsageFlags::VERTEX | BufferUsageFlags::INDIRECT) {
         flags |= vk::PipelineStageFlags::VERTEX_INPUT;
     }
 
@@ -142,6 +142,10 @@ pub fn access_flags(usage: BufferUsageFlags) -> vk::AccessFlags {
 
     if usage.intersects(BufferUsageFlags::UNIFORM) {
         flags |= vk::AccessFlags::UNIFORM_READ
+    }
+
+    if usage.intersects(BufferUsageFlags::INDIRECT) {
+        flags |= vk::AccessFlags::INDIRECT_COMMAND_READ
     }
 
     if usage.intersects(BufferUsageFlags::STORAGE) {
