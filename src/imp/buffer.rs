@@ -32,22 +32,25 @@ pub fn writable_buffer_usages() -> BufferUsageFlags {
     BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE
 }
 
+/// https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/usage_patterns.html
 pub fn memory_usage(usage: BufferUsageFlags) -> MemoryUsage {
     assert_ne!(usage, BufferUsageFlags::NONE, "BufferUsageFlags may not be NONE");
 
-    if usage.intersects(BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC) {
+    if usage.contains(BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC) {
         return MemoryUsage::CpuOnly;
     }
 
-    if usage.intersects(BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST) {
+    if usage.contains(BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST) {
         return MemoryUsage::CpuOnly;
     }
 
-    if usage.intersects(BufferUsageFlags::MAP_WRITE) {
+    // Dynamic resources
+    if usage.contains(BufferUsageFlags::MAP_WRITE) {
         return MemoryUsage::CpuToGpu;
     }
 
-    if usage.intersects(BufferUsageFlags::MAP_READ) {
+    // Readback
+    if usage.contains(BufferUsageFlags::MAP_READ) {
         return MemoryUsage::GpuToCpu;
     }
 
