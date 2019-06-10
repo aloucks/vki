@@ -158,13 +158,38 @@ impl AdapterInner {
             //    .surface
             //    .get_physical_device_surface_support(self.physical_device, queue_index as u32, surface.handle)
             //    .map_err(Error::from)
-            // TODO: Revert this once the next version of ash is released
+
+            // TODO: ash has a breaking change in the return type for `get_physical_device_surface_support`.
+            //       The section above is for the current master and the unreleased 0.30+.
+            //       The section below is compatible with both 0.29 and the current master.
+            enum Compat {
+                Old(bool),
+                New(Result<bool, vk::Result>),
+            };
+            impl From<bool> for Compat {
+                fn from(value: bool) -> Compat {
+                    Compat::Old(value)
+                }
+            }
+            impl From<Result<bool, vk::Result>> for Compat {
+                fn from(value: Result<bool, vk::Result>) -> Compat {
+                    Compat::New(value)
+                }
+            }
+            impl Into<Result<bool, Error>> for Compat {
+                fn into(self) -> Result<bool, Error> {
+                    match self {
+                        Compat::Old(value) => Ok(value),
+                        Compat::New(value) => Ok(value?),
+                    }
+                }
+            }
             let supported = self.instance.raw_ext.surface.get_physical_device_surface_support(
                 self.physical_device,
                 queue_index as u32,
                 surface.handle,
             );
-            Ok(supported)
+            Compat::from(supported).into()
         }
     }
 
