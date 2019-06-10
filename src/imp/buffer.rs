@@ -36,20 +36,26 @@ pub fn writable_buffer_usages() -> BufferUsageFlags {
 pub fn memory_usage(usage: BufferUsageFlags) -> MemoryUsage {
     assert_ne!(usage, BufferUsageFlags::NONE, "BufferUsageFlags may not be NONE");
 
+    // Note: `contains` here with the OR'd flags results in "must contain *both* flags".
+    //       Although it's obvious when you sit and think about, but on first glance
+    //       it may read something else entirely!
+
+    // Staging resources that are used to transfer to the GPU
     if usage.contains(BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC) {
         return MemoryUsage::CpuOnly;
     }
 
+    // Staging resources that are used to transfer from the GPU
     if usage.contains(BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST) {
         return MemoryUsage::CpuOnly;
     }
 
-    // Dynamic resources
+    // Dynamic resources that are updated often by the CPU and read directly by the GPU
     if usage.contains(BufferUsageFlags::MAP_WRITE) {
         return MemoryUsage::CpuToGpu;
     }
 
-    // Readback
+    // Readback resources that are written often by the GPU and read directly by the CPU
     if usage.contains(BufferUsageFlags::MAP_READ) {
         return MemoryUsage::GpuToCpu;
     }
