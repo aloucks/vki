@@ -911,7 +911,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         type BgrImage = ImageBuffer<Rgb<u8>, Vec<u8>>;
 
         let (width, height) = (image.width, image.height);
-        let mut maybe_pixels: Vec<u8>;
+        let maybe_pixels: Vec<u8>;
         let (format, data) = match image.format {
             Format::R8 => (TextureFormat::R8Unorm, &image.pixels),
             Format::R8G8 => (TextureFormat::R8G8Unorm, &image.pixels),
