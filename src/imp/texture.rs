@@ -356,7 +356,7 @@ impl TextureInner {
             extent: util::extent_3d(descriptor.size),
             mip_levels: descriptor.mip_level_count,
             array_layers: descriptor.array_layer_count,
-            samples: render_pass::sample_count(descriptor.sample_count)?,
+            samples: render_pass::sample_count_flags(descriptor.sample_count)?,
             tiling: vk::ImageTiling::OPTIMAL,
             usage: image_usage(descriptor.usage, descriptor.format),
             sharing_mode: vk::SharingMode::EXCLUSIVE,

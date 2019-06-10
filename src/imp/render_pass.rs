@@ -148,7 +148,7 @@ pub fn depth_stencil_attachment_description(
     }
 }
 
-pub fn sample_count(sample_count: u32) -> Result<vk::SampleCountFlags, Error> {
+pub fn sample_count_flags(sample_count: u32) -> Result<vk::SampleCountFlags, Error> {
     match sample_count {
         1 => Ok(vk::SampleCountFlags::TYPE_1),
         2 => Ok(vk::SampleCountFlags::TYPE_2),
@@ -182,7 +182,7 @@ impl RenderPassCache {
         query: RenderPassCacheQuery,
         device: &DeviceInner,
     ) -> Result<vk::RenderPass, Error> {
-        let sample_count = sample_count(query.sample_count)?;
+        let sample_count = sample_count_flags(query.sample_count)?;
 
         let color_attachments = query
             .color

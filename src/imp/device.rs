@@ -343,13 +343,15 @@ impl Drop for DeviceInner {
 
 impl DeviceState {
     fn tick(&mut self, device: &DeviceInner) -> Result<(), Error> {
-        log::trace!("device.tick; last_submitted_serial: {:?}", self.last_submitted_serial);
-        log::trace!("device.tick; last_completed_serial: {:?}", self.last_completed_serial);
-        log::trace!("device.tick; unused_commands.len: {}", self.unused_commands.len());
-        log::trace!("device.tick; commands_in_flight.len: {}", self.commands_in_flight.len());
-        log::trace!("device.tick; fences_in_flight.len: {}", self.fences_in_flight.len());
-        log::trace!("device.tick; unused_fences.len: {}", self.unused_fences.len());
-        log::trace!("device.tick; wait_semaphores.len: {}", self.wait_semaphores.len());
+        if log::log_enabled!(log::Level::Trace) {
+            log::trace!("device.tick; last_submitted_serial: {:?}", self.last_submitted_serial);
+            log::trace!("device.tick; last_completed_serial: {:?}", self.last_completed_serial);
+            log::trace!("device.tick; unused_commands.len: {}", self.unused_commands.len());
+            log::trace!("device.tick; commands_in_flight.len: {}", self.commands_in_flight.len());
+            log::trace!("device.tick; fences_in_flight.len: {}", self.fences_in_flight.len());
+            log::trace!("device.tick; unused_fences.len: {}", self.unused_fences.len());
+            log::trace!("device.tick; wait_semaphores.len: {}", self.wait_semaphores.len());
+        }
         self.check_passed_fences(device)?;
         self.recycle_completed_commands(device)?;
         // TODO: maprequest/uploader/allocator ticks

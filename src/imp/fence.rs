@@ -16,16 +16,19 @@ impl Fence {
         Ok(())
     }
 
-    pub fn wait(&self, timeout: Duration) -> Result<(), FenceError> {
+    pub fn wait(&self, timeout: Duration) -> Result<bool, FenceError> {
         let timeout = Instant::now() + timeout;
         let serial = *self.inner.serial.lock();
+        let mut stalled = false;
         while serial > get_last_completed_serial(&self.inner.device) {
-            self.inner.device.tick()?;
             if Instant::now() >= timeout {
                 return Err(FenceError::Timeout);
             }
+            stalled = true;
+            std::thread::yield_now();
+            self.inner.device.tick()?;
         }
-        Ok(())
+        Ok(stalled)
     }
 
     pub fn is_signaled(&self) -> bool {

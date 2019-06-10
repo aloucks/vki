@@ -25,6 +25,7 @@ pub struct FencedDeleter {
     pipelines: SerialQueue<vk::Pipeline>,
     framebuffers: SerialQueue<vk::Framebuffer>,
     surface_keepalive: SerialQueue<Arc<SurfaceInner>>,
+    // NOTE: Update is_empty(&self) when adding to this list
 }
 
 impl FencedDeleter {
@@ -38,20 +39,21 @@ impl FencedDeleter {
 
     #[allow(clippy::cognitive_complexity)]
     pub fn tick(&mut self, last_completed_serial: Serial, device: &DeviceInner, allocator: &mut Allocator) {
-        log::trace!("last_completed_serial:   {:?}", last_completed_serial);
-
-        log::trace!(" swapchains:             {}", self.swapchains.len());
-        log::trace!(" semaphores:             {}", self.semaphores.len());
-        log::trace!(" buffers:                {}", self.buffers.len());
-        log::trace!(" buffer_views:           {}", self.buffer_views.len());
-        log::trace!(" images:                 {}", self.images.len());
-        log::trace!(" image_views:            {}", self.image_views.len());
-        log::trace!(" descriptor_set_layouts: {}", self.descriptor_set_layouts.len());
-        log::trace!(" descriptor_pools:       {}", self.descriptor_pools.len());
-        log::trace!(" shader_modules:         {}", self.shader_modules.len());
-        log::trace!(" pipeline_layouts:       {}", self.pipeline_layouts.len());
-        log::trace!(" pipelines:              {}", self.pipelines.len());
-        log::trace!(" framebuffers:           {}", self.framebuffers.len());
+        if log::log_enabled!(log::Level::Trace) {
+            log::trace!("last_completed_serial:   {:?}", last_completed_serial);
+            log::trace!(" swapchains:             {}", self.swapchains.len());
+            log::trace!(" semaphores:             {}", self.semaphores.len());
+            log::trace!(" buffers:                {}", self.buffers.len());
+            log::trace!(" buffer_views:           {}", self.buffer_views.len());
+            log::trace!(" images:                 {}", self.images.len());
+            log::trace!(" image_views:            {}", self.image_views.len());
+            log::trace!(" descriptor_set_layouts: {}", self.descriptor_set_layouts.len());
+            log::trace!(" descriptor_pools:       {}", self.descriptor_pools.len());
+            log::trace!(" shader_modules:         {}", self.shader_modules.len());
+            log::trace!(" pipeline_layouts:       {}", self.pipeline_layouts.len());
+            log::trace!(" pipelines:              {}", self.pipelines.len());
+            log::trace!(" framebuffers:           {}", self.framebuffers.len());
+        }
 
         for ((handle, surface), serial) in self.swapchains.drain_up_to(last_completed_serial) {
             log::debug!("destroy swapchain: {:?}, completed: {:?}", handle, serial);
@@ -150,7 +152,9 @@ impl FencedDeleter {
         self.swapchains.is_empty()
             && self.semaphores.is_empty()
             && self.buffers.is_empty()
+            && self.buffer_views.is_empty()
             && self.images.is_empty()
+            && self.image_views.is_empty()
             && self.samplers.is_empty()
             && self.descriptor_set_layouts.is_empty()
             && self.descriptor_pools.is_empty()
@@ -158,6 +162,7 @@ impl FencedDeleter {
             && self.pipeline_layouts.is_empty()
             && self.pipelines.is_empty()
             && self.framebuffers.is_empty()
+            && self.surface_keepalive.is_empty()
     }
 }
 

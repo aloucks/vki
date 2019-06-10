@@ -426,7 +426,9 @@ impl RenderPipelineInner {
             // it for 'list' topologies.
             primitive_restart_enable: match descriptor.primitive_topology {
                 PrimitiveTopology::LineStrip | PrimitiveTopology::TriangleStrip => vk::TRUE,
-                _ => vk::FALSE,
+                PrimitiveTopology::TriangleList | PrimitiveTopology::PointList | PrimitiveTopology::LineList => {
+                    vk::FALSE
+                }
             },
             ..Default::default()
         };
@@ -451,7 +453,7 @@ impl RenderPipelineInner {
             .build();
 
         let multisample_state_create_info = vk::PipelineMultisampleStateCreateInfo::builder()
-            .rasterization_samples(render_pass::sample_count(descriptor.sample_count)?)
+            .rasterization_samples(render_pass::sample_count_flags(descriptor.sample_count)?)
             .build();
 
         let depth_stencil_state_create_info = depth_stencil_state_create_info(
