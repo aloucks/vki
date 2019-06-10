@@ -111,6 +111,9 @@ struct InstanceExt {
     #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
     surface_wayland: khr::WaylandSurface,
 
+    #[cfg(all(unix, target_os = "macos"))]
+    surface_macos: ash::extensions::mvk::MacOSSurface,
+
     debug_utils: ext::DebugUtils,
     debug_report: ext::DebugReport,
 }

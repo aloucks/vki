@@ -1,12 +1,11 @@
 steps:
-#  - bash: |
-#      set -e
-#      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TOOLCHAIN
-#      source $HOME/.cargo/env
-#      rustup component add rustfmt --toolchain $TOOLCHAIN
-#      echo "##vso[task.prependpath]$HOME/.cargo/bin"
-#    displayName: Install rust (unix)
-#    condition: ne(variables['Agent.OS'], 'Windows_NT')
+  - bash: |
+      set -e
+      curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TOOLCHAIN
+      source $HOME/.cargo/env
+      echo "##vso[task.prependpath]$HOME/.cargo/bin"
+    displayName: Install rustup (Darwin)
+    condition: eq(variables['Agent.OS'], 'Darwin')
 #  - script: |
 #      echo %TOOLCHAIN%
 #      curl -sSf -o rustup-init.exe https://win.rustup.rs

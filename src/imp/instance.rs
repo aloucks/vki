@@ -128,6 +128,9 @@ impl InstanceInner {
             #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
             let surface_wayland = khr::WaylandSurface::new(entry, &raw);
 
+            #[cfg(all(unix, target_os = "macos"))]
+            let surface_macos= ash::extensions::mvk::MacOSSurface::new(entry, &raw);
+
             let debug_utils = ext::DebugUtils::new(entry, &raw);
             let debug_report = ext::DebugReport::new(entry, &raw);
             let debug_report_callback = if init_debug_report {
@@ -148,10 +151,15 @@ impl InstanceInner {
 
                 #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
                 surface_xlib,
+
                 #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
                 surface_xcb,
+
                 #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
                 surface_wayland,
+
+                #[cfg(all(unix, target_os = "macos"))]
+                surface_macos,
 
                 debug_utils,
                 debug_report,
