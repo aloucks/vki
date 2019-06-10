@@ -1,10 +1,11 @@
 steps:
   - bash: |
-      set -e
+      set -e -x
       curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain $TOOLCHAIN
       source $HOME/.cargo/env
       echo "##vso[task.prependpath]$HOME/.cargo/bin"
-    displayName: Install rustup (Darwin)
+      rustup --version
+    displayName: Install rustup
     condition: eq(variables['Agent.OS'], 'Darwin')
 #  - script: |
 #      echo %TOOLCHAIN%

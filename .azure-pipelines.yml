@@ -12,6 +12,7 @@ jobs:
       vmImage: vs2017-win2016
     steps:
       - template: ci/azure-install-rust.yml
+      - template: ci/azure-install-dependencies.yml
       - template: ci/azure-test-all.yml
     strategy:
       matrix:
@@ -25,7 +26,7 @@ jobs:
       vmImage: ubuntu-16.04
     steps:
       - template: ci/azure-install-rust.yml
-      - template: ci/azure-install-glfw-deps-ubuntu-16.yml
+      - template: ci/azure-install-dependencies.yml
       - template: ci/azure-test-all.yml
     strategy:
       matrix:
@@ -39,6 +40,7 @@ jobs:
       vmImage: macOS-10.14
     steps:
       - template: ci/azure-install-rust.yml
+      - template: ci/azure-install-dependencies.yml
       - template: ci/azure-test-all.yml
     strategy:
       matrix:
