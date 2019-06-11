@@ -41,7 +41,7 @@ impl SwapchainInner {
     /// Recipe: _Creating a swapchain_ (page `105`)
     pub fn new(
         device: Arc<DeviceInner>,
-        descriptor: SwapchainDescriptor,
+        descriptor: &SwapchainDescriptor,
         old_swapchain: Option<&SwapchainInner>,
     ) -> Result<SwapchainInner, Error> {
         unsafe {

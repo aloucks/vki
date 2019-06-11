@@ -56,7 +56,7 @@ pub fn init_with_window(
     let surface = instance.create_surface(&surface_descriptor)?;
     let device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
     let swapchain_descriptor = swapchain_descriptor(&surface);
-    let swapchain = device.create_swapchain(swapchain_descriptor, None)?;
+    let swapchain = device.create_swapchain(&swapchain_descriptor, None)?;
 
     Ok((instance, adapter, device, surface, swapchain))
 }

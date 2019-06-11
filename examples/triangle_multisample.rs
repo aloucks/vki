@@ -61,7 +61,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
     };
 
-    let mut swapchain = device.create_swapchain(swapchain_desc, None)?;
+    let mut swapchain = device.create_swapchain(&swapchain_desc, None)?;
 
     let vertex_shader = device.create_shader_module(ShaderModuleDescriptor {
         code: Cow::Borrowed(include_bytes!("shaders/triangle.vert.spv")),
@@ -283,7 +283,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         output_texture_descriptor.size.height = height;
                         output_texture = device.create_texture(output_texture_descriptor)?;
                         output_texture_view = output_texture.create_default_view()?;
-                        swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
+                        swapchain = device.create_swapchain(&swapchain_desc, Some(&swapchain))?;
                     }
                 }
                 Event::WindowEvent {

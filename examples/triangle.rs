@@ -62,7 +62,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
     };
 
-    let mut swapchain = device.create_swapchain(swapchain_desc, None)?;
+    let mut swapchain = device.create_swapchain(&swapchain_desc, None)?;
     window.set_visible(true);
 
     let vertex_shader = device.create_shader_module(ShaderModuleDescriptor {
@@ -243,7 +243,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     event: WindowEvent::Resized(_),
                     ..
                 } => {
-                    swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
+                    swapchain = device.create_swapchain(&swapchain_desc, Some(&swapchain))?;
                 }
                 Event::WindowEvent {
                     event: WindowEvent::RedrawRequested,

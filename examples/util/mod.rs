@@ -35,7 +35,7 @@ fn create_swapchain_and_depth_view_and_color_view(
 ) -> Result<(Swapchain, TextureView, TextureView), Error> {
     let swap_chain = device
         .create_swapchain(
-            SwapchainDescriptor {
+            &SwapchainDescriptor {
                 surface,
                 usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
                 format: DEFAULT_COLOR_FORMAT,

@@ -56,7 +56,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
     };
 
-    let mut swapchain = device.create_swapchain(swapchain_desc, None)?;
+    let mut swapchain = device.create_swapchain(&swapchain_desc, None)?;
 
     window.set_visible(true);
 
@@ -82,7 +82,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // the window is minimized. We do not handle this case here, but it is
                     // handled in the examples framework. Minimizing this window should result
                     // in a validation error.
-                    swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
+                    swapchain = device.create_swapchain(&swapchain_desc, Some(&swapchain))?;
                 }
                 Event::WindowEvent {
                     event: WindowEvent::RedrawRequested,

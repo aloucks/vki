@@ -61,7 +61,7 @@ struct CommandPoolAndBuffer {
 impl Device {
     pub fn create_swapchain(
         &self,
-        descriptor: SwapchainDescriptor,
+        descriptor: &SwapchainDescriptor,
         old_swapchain: Option<&Swapchain>,
     ) -> Result<Swapchain, Error> {
         let swapchain = SwapchainInner::new(self.inner.clone(), descriptor, old_swapchain.map(|s| &*s.inner))?;
