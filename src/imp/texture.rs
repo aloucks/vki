@@ -350,7 +350,7 @@ impl Texture {
 }
 
 impl TextureInner {
-    pub fn new(device: Arc<DeviceInner>, descriptor: TextureDescriptor) -> Result<TextureInner, Error> {
+    pub fn new(device: Arc<DeviceInner>, descriptor: &TextureDescriptor) -> Result<TextureInner, Error> {
         let flags = if descriptor.array_layer_count >= 6 && descriptor.size.width == descriptor.size.height {
             vk::ImageCreateFlags::CUBE_COMPATIBLE
         } else {
@@ -423,7 +423,7 @@ impl TextureInner {
             device: device.clone(),
             allocation: Some(allocation),
             allocation_info: Some(allocation_info),
-            descriptor,
+            descriptor: *descriptor,
             subresource_usage: Mutex::new(subresource_usage),
         })
     }

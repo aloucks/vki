@@ -63,7 +63,7 @@ fn create_bind_group() {
             sample_count: 1,
             usage: TextureUsageFlags::SAMPLED,
         };
-        let texture = device.create_texture(texture_descriptor)?;
+        let texture = device.create_texture(&texture_descriptor)?;
         let texture_view = texture.create_default_view()?;
 
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {

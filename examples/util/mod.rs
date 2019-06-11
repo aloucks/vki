@@ -47,7 +47,7 @@ fn create_swapchain_and_depth_view_and_color_view(
             vk::Result::ERROR_INITIALIZATION_FAILED
         })?;
 
-    let depth_texture = device.create_texture(TextureDescriptor {
+    let depth_texture = device.create_texture(&TextureDescriptor {
         size: Extent3D {
             width,
             height,
@@ -63,7 +63,7 @@ fn create_swapchain_and_depth_view_and_color_view(
 
     let depth_view = depth_texture.create_default_view()?;
 
-    let color_texture = device.create_texture(TextureDescriptor {
+    let color_texture = device.create_texture(&TextureDescriptor {
         size: Extent3D {
             width,
             height,
@@ -456,7 +456,7 @@ pub fn create_texture_with_data(
         dimension: TextureDimension::D2,
     };
 
-    let texture = device.create_texture(descriptor)?;
+    let texture = device.create_texture(&descriptor)?;
 
     let buffer = create_staging_buffer(&device, data)?;
 

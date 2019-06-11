@@ -175,7 +175,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     };
 
-    let mut output_texture = device.create_texture(output_texture_descriptor)?;
+    let mut output_texture = device.create_texture(&output_texture_descriptor)?;
     let mut output_texture_view = output_texture.create_default_view()?;
 
     let color_replace = BlendDescriptor {
@@ -281,7 +281,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     if width > 0 && height > 0 {
                         output_texture_descriptor.size.width = width;
                         output_texture_descriptor.size.height = height;
-                        output_texture = device.create_texture(output_texture_descriptor)?;
+                        output_texture = device.create_texture(&output_texture_descriptor)?;
                         output_texture_view = output_texture.create_default_view()?;
                         swapchain = device.create_swapchain(&swapchain_desc, Some(&swapchain))?;
                     }

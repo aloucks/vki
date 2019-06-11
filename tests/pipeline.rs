@@ -355,7 +355,7 @@ fn create_multi_sample_render_pipeline() {
         let format = TextureFormat::B8G8R8A8Unorm;
         let usage = TextureUsageFlags::OUTPUT_ATTACHMENT;
 
-        let frame_texture = device.create_texture(TextureDescriptor {
+        let frame_texture = device.create_texture(&TextureDescriptor {
             sample_count: 1,
             size,
             mip_level_count,
@@ -372,7 +372,7 @@ fn create_multi_sample_render_pipeline() {
             texture: frame_texture,
         };
 
-        let output_texture = device.create_texture(TextureDescriptor {
+        let output_texture = device.create_texture(&TextureDescriptor {
             sample_count,
             size,
             mip_level_count,
@@ -503,7 +503,7 @@ fn set_bind_group() {
             address_mode_w: AddressMode::ClampToEdge,
             compare_function: CompareFunction::Never,
         })?;
-        let texture = device.create_texture(TextureDescriptor {
+        let texture = device.create_texture(&TextureDescriptor {
             size: Extent3D {
                 width: 256,
                 height: 256,
@@ -647,7 +647,7 @@ fn set_bind_group_out_of_order() {
             address_mode_w: AddressMode::ClampToEdge,
             compare_function: CompareFunction::Never,
         })?;
-        let texture = device.create_texture(TextureDescriptor {
+        let texture = device.create_texture(&TextureDescriptor {
             size: Extent3D {
                 width: 256,
                 height: 256,
@@ -793,7 +793,7 @@ fn set_bind_group_dynamic_offsets() {
             address_mode_w: AddressMode::ClampToEdge,
             compare_function: CompareFunction::Never,
         })?;
-        let texture = device.create_texture(TextureDescriptor {
+        let texture = device.create_texture(&TextureDescriptor {
             size: Extent3D {
                 width: 256,
                 height: 256,

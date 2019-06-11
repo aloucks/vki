@@ -25,7 +25,7 @@ fn create_texture() {
             format: TextureFormat::R8G8B8A8Unorm,
         };
 
-        let _texture = device.create_texture(descriptor)?;
+        let _texture = device.create_texture(&descriptor)?;
 
         Ok(instance)
     });
@@ -50,7 +50,7 @@ fn create_default_texture_view() {
             format: TextureFormat::R8G8B8A8Unorm,
         };
 
-        let texture = device.create_texture(descriptor)?;
+        let texture = device.create_texture(&descriptor)?;
         let _texture_view = texture.create_default_view()?;
 
         Ok(instance)
@@ -78,7 +78,7 @@ fn create_texture_and_cube_view() {
             format: TextureFormat::R8G8B8A8Unorm,
         };
 
-        let texture = device.create_texture(descriptor)?;
+        let texture = device.create_texture(&descriptor)?;
 
         let texture_view_descriptor = TextureViewDescriptor {
             dimension: TextureViewDimension::Cube,
@@ -105,7 +105,7 @@ fn copy_texture_to_texture() {
 
         let size = Extent3D { width, height, depth };
 
-        let texture1 = device.create_texture(TextureDescriptor {
+        let texture1 = device.create_texture(&TextureDescriptor {
             usage: TextureUsageFlags::TRANSFER_SRC,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
@@ -115,7 +115,7 @@ fn copy_texture_to_texture() {
             mip_level_count: 1,
         })?;
 
-        let texture2 = device.create_texture(TextureDescriptor {
+        let texture2 = device.create_texture(&TextureDescriptor {
             usage: TextureUsageFlags::SAMPLED | TextureUsageFlags::TRANSFER_DST,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
@@ -167,7 +167,7 @@ fn blit_texture_to_texture_generate_mipmaps() {
 
         let mip_level_count = (width.max(height) as f32).log2().floor() as u32 + 1;
 
-        let texture = device.create_texture(TextureDescriptor {
+        let texture = device.create_texture(&TextureDescriptor {
             usage: TextureUsageFlags::SAMPLED | TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
@@ -256,7 +256,7 @@ fn create_depth_texture_and_view() {
             format: TextureFormat::D32Float,
         };
 
-        let texture = device.create_texture(descriptor)?;
+        let texture = device.create_texture(&descriptor)?;
 
         let _texture_view = texture.create_default_view()?;
 
@@ -283,7 +283,7 @@ fn create_depth_stencil_texture_and_view() {
             format: TextureFormat::D32FloatS8Uint,
         };
 
-        let texture = device.create_texture(descriptor)?;
+        let texture = device.create_texture(&descriptor)?;
 
         let _texture_view = texture.create_default_view()?;
 
@@ -304,7 +304,7 @@ fn copy_buffer_to_texture() {
             usage: BufferUsageFlags::TRANSFER_SRC,
         })?;
 
-        let texture1 = device.create_texture(TextureDescriptor {
+        let texture1 = device.create_texture(&TextureDescriptor {
             usage: TextureUsageFlags::TRANSFER_DST,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
@@ -360,7 +360,7 @@ fn copy_texture_to_buffer() {
             usage: BufferUsageFlags::TRANSFER_DST,
         })?;
 
-        let texture1 = device.create_texture(TextureDescriptor {
+        let texture1 = device.create_texture(&TextureDescriptor {
             usage: TextureUsageFlags::TRANSFER_SRC,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,

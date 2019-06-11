@@ -113,7 +113,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("lod mip_levels: {}", mip_level_count);
 
-    let container_texture = app.device.create_texture(TextureDescriptor {
+    let container_texture = app.device.create_texture(&TextureDescriptor {
         mip_level_count,
         sample_count: 1,
         array_layer_count: 1,

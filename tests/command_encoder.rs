@@ -15,7 +15,7 @@ fn create_command_encoder() {
         let compute_pass = command_encoder.begin_compute_pass();
         compute_pass.end_pass();
 
-        let texture = device.create_texture(TextureDescriptor {
+        let texture = device.create_texture(&TextureDescriptor {
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
@@ -64,7 +64,7 @@ fn submit_command_buffer() {
         let compute_pass = command_encoder.begin_compute_pass();
         compute_pass.end_pass();
 
-        let texture = device.create_texture(TextureDescriptor {
+        let texture = device.create_texture(&TextureDescriptor {
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             usage: TextureUsageFlags::OUTPUT_ATTACHMENT,

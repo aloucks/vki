@@ -114,7 +114,7 @@ impl Device {
         })
     }
 
-    pub fn create_texture(&self, descriptor: TextureDescriptor) -> Result<Texture, Error> {
+    pub fn create_texture(&self, descriptor: &TextureDescriptor) -> Result<Texture, Error> {
         let texture = TextureInner::new(self.inner.clone(), descriptor)?;
         Ok(texture.into())
     }
