@@ -466,7 +466,7 @@ pub fn create_texture_with_data(
             offset: 0,
             buffer: &buffer,
             image_height: size.height,
-            row_pitch: size.width,
+            row_length: size.width,
         },
         TextureCopyView {
             texture: &texture,

@@ -8,7 +8,7 @@ use crate::{Buffer, Color, Extent3D, FilterMode, Origin3D, ShaderStageFlags};
 pub struct BufferCopy {
     pub buffer: Arc<BufferInner>,
     pub offset: usize,
-    pub row_pitch: u32,
+    pub row_length: u32,
     pub image_height: u32,
 }
 

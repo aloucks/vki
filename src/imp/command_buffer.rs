@@ -39,7 +39,7 @@ fn buffer_image_copy(
 ) -> vk::BufferImageCopy {
     vk::BufferImageCopy {
         buffer_offset: buffer_copy.offset as vk::DeviceSize,
-        buffer_row_length: buffer_copy.row_pitch, // TODO: row_pitch
+        buffer_row_length: buffer_copy.row_length, // TODO: row_pitch
         buffer_image_height: buffer_copy.image_height,
         image_subresource: vk::ImageSubresourceLayers {
             aspect_mask: texture::aspect_mask(texture_copy.texture.descriptor.format),

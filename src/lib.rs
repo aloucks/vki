@@ -898,11 +898,15 @@ pub struct CommandBuffer {
 
 pub struct CommandEncoderDescriptor {}
 
+/// Specifies buffer to texture copy operation
+///
+/// https://www.khronos.org/registry/vulkan/specs/1.1-extensions/man/html/VkBufferImageCopy.html
 #[derive(Clone, Debug)]
 pub struct BufferCopyView<'a> {
     pub buffer: &'a Buffer,
     pub offset: usize,
-    pub row_pitch: u32,
+    /// Specified in texels (Note that WebGPU currently uses rowPitch in bytes)
+    pub row_length: u32,
     pub image_height: u32,
 }
 

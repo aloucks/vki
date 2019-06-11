@@ -222,13 +222,13 @@ impl CommandEncoder {
                 buffer: src.inner.clone(),
                 offset: src_offset,
                 image_height: 0,
-                row_pitch: 0,
+                row_length: 0,
             },
             dst: BufferCopy {
                 buffer: dst.inner.clone(),
                 offset: dst_offset,
                 image_height: 0,
-                row_pitch: 0,
+                row_length: 0,
             },
             size_bytes,
         });
@@ -244,7 +244,7 @@ impl CommandEncoder {
         self.inner.push(Command::CopyBufferToTexture {
             src: BufferCopy {
                 buffer: Arc::clone(&src.buffer.inner),
-                row_pitch: src.row_pitch,
+                row_length: src.row_length,
                 image_height: src.image_height,
                 offset: src.offset,
             },
@@ -299,7 +299,7 @@ impl CommandEncoder {
             },
             dst: BufferCopy {
                 buffer: Arc::clone(&dst.buffer.inner),
-                row_pitch: dst.row_pitch,
+                row_length: dst.row_length,
                 image_height: dst.image_height,
                 offset: dst.offset,
             },

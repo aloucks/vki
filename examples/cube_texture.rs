@@ -130,7 +130,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             offset: 0,
             buffer: &texture_buffer,
             image_height: texture_size.height,
-            row_pitch: texture_size.width,
+            row_length: texture_size.width,
         },
         TextureCopyView {
             texture: &container_texture,

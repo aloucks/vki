@@ -316,7 +316,7 @@ fn copy_buffer_to_texture() {
 
         let src = BufferCopyView {
             buffer: &buffer1,
-            row_pitch: width, // TODO row_pitch
+            row_length: width, // TODO row_pitch
             image_height: height,
             offset: 0,
         };
@@ -372,7 +372,7 @@ fn copy_texture_to_buffer() {
 
         let dst = BufferCopyView {
             buffer: &buffer1,
-            row_pitch: width, // TODO row_pitch
+            row_length: width, // TODO row_pitch
             image_height: height,
             offset: 0,
         };
