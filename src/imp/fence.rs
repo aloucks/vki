@@ -24,8 +24,11 @@ impl Fence {
             if Instant::now() >= timeout {
                 return Err(FenceError::Timeout);
             }
-            stalled = true;
-            std::thread::yield_now();
+            if stalled {
+                std::thread::yield_now();
+            } else {
+                stalled = true;
+            }
             self.inner.device.tick()?;
         }
         Ok(stalled)
