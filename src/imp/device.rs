@@ -134,7 +134,7 @@ impl Device {
         Ok(bind_group.into())
     }
 
-    pub fn create_shader_module(&self, descriptor: ShaderModuleDescriptor) -> Result<ShaderModule, Error> {
+    pub fn create_shader_module(&self, descriptor: &ShaderModuleDescriptor) -> Result<ShaderModule, Error> {
         let shader_module = ShaderModuleInner::new(self.inner.clone(), descriptor)?;
         Ok(shader_module.into())
     }

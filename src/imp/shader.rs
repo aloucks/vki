@@ -10,7 +10,7 @@ use std::sync::Arc;
 use std::{mem, ptr};
 
 impl ShaderModuleInner {
-    pub fn new(device: Arc<DeviceInner>, descriptor: ShaderModuleDescriptor) -> Result<ShaderModuleInner, Error> {
+    pub fn new(device: Arc<DeviceInner>, descriptor: &ShaderModuleDescriptor) -> Result<ShaderModuleInner, Error> {
         // TODO: Use spirv-cross to reflect binding and attribute info so we can determine
         //       when a shader module is compatible with a given pipeline layout
 

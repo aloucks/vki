@@ -14,7 +14,7 @@ fn copy_buffer_with_compute_shader() {
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
-        let compute_module = device.create_shader_module(ShaderModuleDescriptor {
+        let compute_module = device.create_shader_module(&ShaderModuleDescriptor {
             code: Cow::Borrowed(include_bytes!(
                 "shaders/command_buffer.copy_buffer_with_compute_shader.comp.spv"
             )),
@@ -117,7 +117,7 @@ fn push_constants() {
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
         let data_byte_size = data_byte_size;
 
-        let compute_module = device.create_shader_module(ShaderModuleDescriptor {
+        let compute_module = device.create_shader_module(&ShaderModuleDescriptor {
             code: Cow::Borrowed(include_bytes!("shaders/command_buffer.push_constants.comp.spv")),
         })?;
 
@@ -223,7 +223,7 @@ fn dispatch_indirect() {
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
-        let compute_module = device.create_shader_module(ShaderModuleDescriptor {
+        let compute_module = device.create_shader_module(&ShaderModuleDescriptor {
             code: Cow::Borrowed(include_bytes!(
                 "shaders/command_buffer.copy_buffer_with_compute_shader.comp.spv"
             )),

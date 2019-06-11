@@ -135,11 +135,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         push_constant_ranges: vec![],
     })?;
 
-    let vs = app.device.create_shader_module(ShaderModuleDescriptor {
+    let vs = app.device.create_shader_module(&ShaderModuleDescriptor {
         code: Cow::Borrowed(include_bytes!("shaders/cube.vert.spv")),
     })?;
 
-    let fs = app.device.create_shader_module(ShaderModuleDescriptor {
+    let fs = app.device.create_shader_module(&ShaderModuleDescriptor {
         code: Cow::Borrowed(include_bytes!("shaders/cube.frag.spv")),
     })?;
 

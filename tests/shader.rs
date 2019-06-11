@@ -10,7 +10,7 @@ fn create_shader_module() {
         let descriptor = ShaderModuleDescriptor {
             code: Cow::Borrowed(include_bytes!("shaders/shader.vert.spv")),
         };
-        let _shader_module = device.create_shader_module(descriptor)?;
+        let _shader_module = device.create_shader_module(&descriptor)?;
         Ok(instance)
     });
 }

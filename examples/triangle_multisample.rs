@@ -63,11 +63,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut swapchain = device.create_swapchain(&swapchain_desc, None)?;
 
-    let vertex_shader = device.create_shader_module(ShaderModuleDescriptor {
+    let vertex_shader = device.create_shader_module(&ShaderModuleDescriptor {
         code: Cow::Borrowed(include_bytes!("shaders/triangle.vert.spv")),
     })?;
 
-    let fragment_shader = device.create_shader_module(ShaderModuleDescriptor {
+    let fragment_shader = device.create_shader_module(&ShaderModuleDescriptor {
         code: Cow::Borrowed(include_bytes!("shaders/triangle.frag.spv")),
     })?;
 
