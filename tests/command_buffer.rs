@@ -20,7 +20,7 @@ fn copy_buffer_with_compute_shader() {
             )),
         })?;
 
-        let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
+        let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
             bindings: &[
                 BindGroupLayoutBinding {
                     binding: 0,
@@ -121,7 +121,7 @@ fn push_constants() {
             code: Cow::Borrowed(include_bytes!("shaders/command_buffer.push_constants.comp.spv")),
         })?;
 
-        let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
+        let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
             bindings: &[BindGroupLayoutBinding {
                 binding: 0,
                 visibility: ShaderStageFlags::COMPUTE,
@@ -229,7 +229,7 @@ fn dispatch_indirect() {
             )),
         })?;
 
-        let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
+        let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
             bindings: &[
                 BindGroupLayoutBinding {
                     binding: 0,

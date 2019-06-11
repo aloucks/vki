@@ -19,7 +19,7 @@ fn create_bind_group_layout() {
             }],
         };
 
-        let _bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
+        let _bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         Ok(instance)
     });
@@ -90,7 +90,7 @@ fn create_bind_group() {
                 },
             ],
         };
-        let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
+        let bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         let bind_group_descriptor = BindGroupDescriptor {
             layout: bind_group_layout,

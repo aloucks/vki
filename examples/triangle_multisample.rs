@@ -71,7 +71,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         code: Cow::Borrowed(include_bytes!("shaders/triangle.frag.spv")),
     })?;
 
-    let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
+    let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
         bindings: &[BindGroupLayoutBinding {
             binding: 0,
             visibility: ShaderStageFlags::VERTEX,

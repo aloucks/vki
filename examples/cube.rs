@@ -109,7 +109,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     app.device.get_queue().submit(&[encoder.finish()?])?;
 
     #[rustfmt::skip]
-    let bind_group_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
+    let bind_group_layout = app.device.create_bind_group_layout(&BindGroupLayoutDescriptor {
         bindings: &[
             BindGroupLayoutBinding {
                 binding: 0,

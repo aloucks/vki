@@ -1464,7 +1464,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Unique mesh_pipeline_key: {:?}", mesh_pipeline_keys.len());
 
     #[rustfmt::skip]
-    let bind_group_0_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
+    let bind_group_0_layout = app.device.create_bind_group_layout(&BindGroupLayoutDescriptor {
         bindings: &[
             // CameraAndLightSettings
             BindGroupLayoutBinding {
@@ -1476,7 +1476,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     #[rustfmt::skip]
-    let bind_group_1_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
+    let bind_group_1_layout = app.device.create_bind_group_layout(&BindGroupLayoutDescriptor {
         bindings: &[
             // MaterialSettings
             BindGroupLayoutBinding {
@@ -1548,7 +1548,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     #[rustfmt::skip]
-    let bind_group_2_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
+    let bind_group_2_layout = app.device.create_bind_group_layout(&BindGroupLayoutDescriptor {
         bindings: &[
             // MeshSettings
             BindGroupLayoutBinding {

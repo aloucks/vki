@@ -49,7 +49,7 @@ fn create_pipeline_layout() {
                 },
             ],
         };
-        let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
+        let bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout],
@@ -86,7 +86,7 @@ fn create_compute_pipeline() {
                 },
             ],
         };
-        let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
+        let bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout],
@@ -125,7 +125,7 @@ fn create_render_pipeline() {
         })?;
 
         #[rustfmt::skip]
-        let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
+        let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
             bindings: &[
                 BindGroupLayoutBinding {
                     binding: 0,
@@ -240,7 +240,7 @@ fn create_multi_sample_render_pipeline() {
         })?;
 
         #[rustfmt::skip]
-        let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
+        let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
             bindings: &[
                 BindGroupLayoutBinding {
                     binding: 0,
@@ -454,7 +454,7 @@ fn set_bind_group() {
                 },
             ],
         };
-        let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
+        let bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout.clone()],
@@ -598,7 +598,7 @@ fn set_bind_group_out_of_order() {
                 },
             ],
         };
-        let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
+        let bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout.clone()],
@@ -744,7 +744,7 @@ fn set_bind_group_dynamic_offsets() {
                 },
             ],
         };
-        let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
+        let bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout.clone()],
