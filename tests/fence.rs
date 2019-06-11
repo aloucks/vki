@@ -28,7 +28,7 @@ fn is_signaled_after_wait() {
         let fence1 = queue.create_fence()?;
         assert_eq!(false, fence1.is_signaled());
 
-        let encoder = device.create_command_encoder()?;
+        let encoder = device.create_command_encoder(None)?;
 
         queue.submit(&[encoder.finish()?])?;
 

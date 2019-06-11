@@ -894,6 +894,7 @@ pub struct CommandBuffer {
     inner: imp::CommandBufferInner,
 }
 
+#[derive(Clone, Default, Debug, PartialEq)]
 pub struct CommandEncoderDescriptor {}
 
 /// Specifies buffer to texture copy operation

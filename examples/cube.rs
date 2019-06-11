@@ -95,7 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut uniforms = vec![Uniforms::default(); 1];
 
-    let mut encoder = app.device.create_command_encoder()?;
+    let mut encoder = app.device.create_command_encoder(None)?;
 
     let vertex_buffer = util::create_buffer_with_data(&app.device, &mut encoder, BufferUsageFlags::VERTEX, &vertices)?;
     let index_buffer = util::create_buffer_with_data(&app.device, &mut encoder, BufferUsageFlags::INDEX, &indices)?;
@@ -214,7 +214,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(e) => return Err(e)?,
         };
 
-        let mut encoder = app.device.create_command_encoder()?;
+        let mut encoder = app.device.create_command_encoder(None)?;
 
         let (attachment, resolve_target) = if app.get_sample_count() == 1 {
             (&frame.view, None)

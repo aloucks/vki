@@ -10,7 +10,7 @@ fn create_command_encoder() {
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
-        let mut command_encoder = device.create_command_encoder()?;
+        let mut command_encoder = device.create_command_encoder(None)?;
 
         let compute_pass = command_encoder.begin_compute_pass();
         compute_pass.end_pass();
@@ -59,7 +59,7 @@ fn submit_command_buffer() {
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
-        let mut command_encoder = device.create_command_encoder()?;
+        let mut command_encoder = device.create_command_encoder(None)?;
 
         let compute_pass = command_encoder.begin_compute_pass();
         compute_pass.end_pass();

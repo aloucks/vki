@@ -48,7 +48,7 @@ fn copy_buffer_with_compute_shader() {
             layout: pipeline_layout,
         })?;
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         let data: &[[f32; 4]] = &[
             [1.0, 2.0, 3.0, 4.0],
@@ -146,7 +146,7 @@ fn push_constants() {
             layout: pipeline_layout,
         })?;
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         let read_buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE,
@@ -191,7 +191,7 @@ fn debug_markers() {
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
         encoder.push_debug_group("push_debug_group");
         encoder.insert_debug_marker("insert_debug_marker");
         encoder.pop_debug_group();
@@ -257,7 +257,7 @@ fn dispatch_indirect() {
             layout: pipeline_layout,
         })?;
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         let data: &[[f32; 4]] = &[
             [1.0, 2.0, 3.0, 4.0],

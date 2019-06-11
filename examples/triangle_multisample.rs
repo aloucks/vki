@@ -149,7 +149,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     staging_vertex_buffer.copy_from_slice(vertices)?;
 
-    let mut encoder = device.create_command_encoder()?;
+    let mut encoder = device.create_command_encoder(None)?;
 
     encoder.copy_buffer_to_buffer(
         &staging_vertex_buffer.unmap(),
@@ -314,7 +314,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     uniforms.time = (start.elapsed().as_millis() as f32) / 1000.0;
                     uniform_buffer.set_sub_data(0, &[uniforms])?;
 
-                    let mut encoder = device.create_command_encoder()?;
+                    let mut encoder = device.create_command_encoder(None)?;
                     let mut render_pass = encoder.begin_render_pass(RenderPassDescriptor {
                         color_attachments: &[RenderPassColorAttachmentDescriptor {
                             attachment: &output_texture_view,

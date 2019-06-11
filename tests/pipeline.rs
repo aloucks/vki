@@ -384,7 +384,7 @@ fn create_multi_sample_render_pipeline() {
 
         let output_view = output_texture.create_default_view()?;
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         let mut render_pass = encoder.begin_render_pass(RenderPassDescriptor {
             color_attachments: &[RenderPassColorAttachmentDescriptor {
@@ -544,7 +544,7 @@ fn set_bind_group() {
             ],
         })?;
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         let mut compute_pass = encoder.begin_compute_pass();
         compute_pass.set_pipeline(&compute_pipeline);
@@ -690,7 +690,7 @@ fn set_bind_group_out_of_order() {
             ],
         })?;
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         let mut compute_pass = encoder.begin_compute_pass();
         compute_pass.set_pipeline(&compute_pipeline);
@@ -834,7 +834,7 @@ fn set_bind_group_dynamic_offsets() {
             ],
         })?;
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         let mut compute_pass = encoder.begin_compute_pass();
         compute_pass.set_pipeline(&compute_pipeline);

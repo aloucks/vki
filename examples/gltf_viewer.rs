@@ -866,7 +866,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     };
 
-    let mut encoder = app.device.create_command_encoder()?;
+    let mut encoder = app.device.create_command_encoder(None)?;
 
     let _buffers: HashMap<usize, Buffer> = HashMap::with_capacity(import.buffers.len());
     let mut images = Vec::with_capacity(import.doc.images().len());
@@ -1849,7 +1849,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     app.run(move |app| {
         let now = Instant::now();
-        let mut encoder = app.device.create_command_encoder()?;
+        let mut encoder = app.device.create_command_encoder(None)?;
 
         let frame = match app.swapchain.acquire_next_image() {
             Ok(frame) => frame,

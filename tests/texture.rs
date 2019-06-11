@@ -139,7 +139,7 @@ fn copy_texture_to_texture() {
             origin: Origin3D { x: 0, y: 0, z: 0 },
         };
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         encoder.copy_texture_to_texture(src, dst, size);
 
@@ -177,7 +177,7 @@ fn blit_texture_to_texture_generate_mipmaps() {
             mip_level_count,
         })?;
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         let mut mip_width = width;
         let mut mip_height = height;
@@ -328,7 +328,7 @@ fn copy_buffer_to_texture() {
             origin: Origin3D { x: 0, y: 0, z: 0 },
         };
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         encoder.copy_buffer_to_texture(src, dst, size);
 
@@ -384,7 +384,7 @@ fn copy_texture_to_buffer() {
             origin: Origin3D { x: 0, y: 0, z: 0 },
         };
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         encoder.copy_texture_to_buffer(src, dst, size);
 

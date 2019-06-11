@@ -19,9 +19,9 @@ use crate::imp::{
 
 use crate::{
     Adapter, BindGroup, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutDescriptor, Buffer, BufferDescriptor,
-    CommandEncoder, ComputePipeline, ComputePipelineDescriptor, Device, DeviceDescriptor, Limits, MappedBuffer,
-    PipelineLayout, PipelineLayoutDescriptor, Queue, RenderPipeline, RenderPipelineDescriptor, Sampler,
-    SamplerDescriptor, ShaderModule, ShaderModuleDescriptor, Surface, Swapchain, SwapchainDescriptor, Texture,
+    CommandEncoder, CommandEncoderDescriptor, ComputePipeline, ComputePipelineDescriptor, Device, DeviceDescriptor,
+    Limits, MappedBuffer, PipelineLayout, PipelineLayoutDescriptor, Queue, RenderPipeline, RenderPipelineDescriptor,
+    Sampler, SamplerDescriptor, ShaderModule, ShaderModuleDescriptor, Surface, Swapchain, SwapchainDescriptor, Texture,
     TextureDescriptor, TextureFormat,
 };
 
@@ -154,7 +154,10 @@ impl Device {
         Ok(render_pipeline.into())
     }
 
-    pub fn create_command_encoder(&self) -> Result<CommandEncoder, Error> {
+    pub fn create_command_encoder(
+        &self,
+        _descriptor: Option<&CommandEncoderDescriptor>,
+    ) -> Result<CommandEncoder, Error> {
         let command_encoder = CommandEncoderInner::new(self.inner.clone())?;
         Ok(command_encoder.into())
     }

@@ -368,7 +368,7 @@ impl<T: 'static> App<T> {
 /// Convenience function for submitting a command buffer and creating a new encoder
 pub fn submit(device: &Device, encoder: CommandEncoder) -> Result<CommandEncoder, vki::Error> {
     device.get_queue().submit(&[encoder.finish()?])?;
-    Ok(device.create_command_encoder()?)
+    Ok(device.create_command_encoder(None)?)
 }
 
 /// Creates a new buffer with the given data. If the `usage` flag contains `BufferUsageFlags::MAP_WRITE`,

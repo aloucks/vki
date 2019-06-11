@@ -121,7 +121,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         1
     ];
 
-    let mut encoder = app.device.create_command_encoder()?;
+    let mut encoder = app.device.create_command_encoder(None)?;
 
     let attractor_buffer = util::create_buffer_with_data(
         &app.device,
@@ -382,7 +382,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Err(e) => return Err(e)?,
         };
 
-        let mut encoder = app.device.create_command_encoder()?;
+        let mut encoder = app.device.create_command_encoder(None)?;
 
         if app.state.reset1 {
             util::copy_to_buffer(&app.device, &mut encoder, &position_data, &position_buffer)?;

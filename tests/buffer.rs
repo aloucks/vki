@@ -90,7 +90,7 @@ fn create_buffer_mapped() {
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         let data: &[u32] = &[1, 2, 3, 4, 5];
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
@@ -132,7 +132,7 @@ fn create_buffer_mapped_write_data() {
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
-        let mut encoder = device.create_command_encoder()?;
+        let mut encoder = device.create_command_encoder(None)?;
 
         let data: &[u32] = &[1, 2, 3, 4, 5];
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
@@ -197,7 +197,7 @@ fn set_sub_data() {
 
         let queue = device.get_queue();
 
-        let encoder = device.create_command_encoder()?;
+        let encoder = device.create_command_encoder(None)?;
 
         queue.submit(&[encoder.finish()?])?;
 
@@ -233,7 +233,7 @@ fn set_sub_data_offset() {
 
         let queue = device.get_queue();
 
-        let encoder = device.create_command_encoder()?;
+        let encoder = device.create_command_encoder(None)?;
 
         queue.submit(&[encoder.finish()?])?;
 
