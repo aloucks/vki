@@ -22,7 +22,7 @@ use crate::error::Error;
 
 #[derive(Debug, Clone)]
 pub struct RenderPassColorAttachmentInfo {
-    pub view: Arc<TextureViewInner>,
+    pub attachment: Arc<TextureViewInner>,
     pub resolve_target: Option<Arc<TextureViewInner>>,
     pub load_op: LoadOp,
     pub store_op: StoreOp,
@@ -32,7 +32,7 @@ pub struct RenderPassColorAttachmentInfo {
 impl<'a> From<&RenderPassColorAttachmentDescriptor<'a>> for RenderPassColorAttachmentInfo {
     fn from(descriptor: &RenderPassColorAttachmentDescriptor<'a>) -> RenderPassColorAttachmentInfo {
         RenderPassColorAttachmentInfo {
-            view: Arc::clone(&descriptor.attachment.inner),
+            attachment: Arc::clone(&descriptor.attachment.inner),
             resolve_target: descriptor.resolve_target.map(|v| Arc::clone(&v.inner)),
             load_op: descriptor.load_op,
             store_op: descriptor.store_op,
@@ -43,7 +43,7 @@ impl<'a> From<&RenderPassColorAttachmentDescriptor<'a>> for RenderPassColorAttac
 
 #[derive(Debug, Clone)]
 pub struct RenderPassDepthStencilAttachmentInfo {
-    pub view: Arc<TextureViewInner>,
+    pub attachment: Arc<TextureViewInner>,
     pub depth_load_op: LoadOp,
     pub depth_store_op: StoreOp,
     pub clear_depth: f32,
@@ -55,7 +55,7 @@ pub struct RenderPassDepthStencilAttachmentInfo {
 impl<'a> From<RenderPassDepthStencilAttachmentDescriptor<'a>> for RenderPassDepthStencilAttachmentInfo {
     fn from(descriptor: RenderPassDepthStencilAttachmentDescriptor<'a>) -> RenderPassDepthStencilAttachmentInfo {
         RenderPassDepthStencilAttachmentInfo {
-            view: Arc::clone(&descriptor.attachment.inner),
+            attachment: Arc::clone(&descriptor.attachment.inner),
             depth_load_op: descriptor.depth_load_op,
             depth_store_op: descriptor.depth_store_op,
             clear_depth: descriptor.clear_depth,

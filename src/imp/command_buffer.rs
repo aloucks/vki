@@ -342,7 +342,7 @@ impl CommandBufferInner {
 
         for color_attachment in color_attachments.iter() {
             query.add_color(ColorInfo {
-                format: color_attachment.view.texture.descriptor.format,
+                format: color_attachment.attachment.texture.descriptor.format,
                 load_op: color_attachment.load_op,
                 has_resolve_target: color_attachment.resolve_target.is_some(),
             });
@@ -350,7 +350,7 @@ impl CommandBufferInner {
 
         if let Some(depth_stencil_attachment) = depth_stencil_attachment {
             query.set_depth_stencil(DepthStencilInfo {
-                format: depth_stencil_attachment.view.texture.descriptor.format,
+                format: depth_stencil_attachment.attachment.texture.descriptor.format,
                 stencil_load_op: depth_stencil_attachment.stencil_load_op,
                 depth_load_op: depth_stencil_attachment.depth_load_op,
             })
@@ -370,7 +370,7 @@ impl CommandBufferInner {
                     ],
                 },
             });
-            attachments.push(color_attachment.view.handle);
+            attachments.push(color_attachment.attachment.handle);
         }
 
         if let Some(depth_stencil_attachment) = depth_stencil_attachment {
@@ -380,7 +380,7 @@ impl CommandBufferInner {
                     stencil: depth_stencil_attachment.clear_stencil,
                 },
             });
-            attachments.push(depth_stencil_attachment.view.handle);
+            attachments.push(depth_stencil_attachment.attachment.handle);
         }
 
         for color_attachment in color_attachments.iter() {
