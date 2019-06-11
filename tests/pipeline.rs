@@ -492,7 +492,7 @@ fn set_bind_group() {
             offset: 0,
             format: BufferViewFormat::Texture(TextureFormat::RGBA32Float),
         })?;
-        let sampler = device.create_sampler(SamplerDescriptor {
+        let sampler = device.create_sampler(&SamplerDescriptor {
             mag_filter: FilterMode::Nearest,
             min_filter: FilterMode::Nearest,
             mipmap_filter: FilterMode::Nearest,
@@ -636,7 +636,7 @@ fn set_bind_group_out_of_order() {
             offset: 0,
             format: BufferViewFormat::Texture(TextureFormat::RGBA32Float),
         })?;
-        let sampler = device.create_sampler(SamplerDescriptor {
+        let sampler = device.create_sampler(&SamplerDescriptor {
             mag_filter: FilterMode::Nearest,
             min_filter: FilterMode::Nearest,
             mipmap_filter: FilterMode::Nearest,
@@ -782,7 +782,7 @@ fn set_bind_group_dynamic_offsets() {
             offset: 0,
             format: BufferViewFormat::Texture(TextureFormat::RGBA32Float),
         })?;
-        let sampler = device.create_sampler(SamplerDescriptor {
+        let sampler = device.create_sampler(&SamplerDescriptor {
             mag_filter: FilterMode::Nearest,
             min_filter: FilterMode::Nearest,
             mipmap_filter: FilterMode::Nearest,

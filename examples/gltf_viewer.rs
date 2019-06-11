@@ -975,7 +975,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             MagFilter::Linear => FilterMode::Linear,
         };
 
-        samplers.push(app.device.create_sampler(SamplerDescriptor {
+        samplers.push(app.device.create_sampler(&SamplerDescriptor {
             address_mode_u: address_mode(sampler.wrap_s()),
             address_mode_v: address_mode(sampler.wrap_t()),
             address_mode_w: AddressMode::ClampToEdge,
@@ -988,7 +988,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         })?);
     }
 
-    let default_sampler = app.device.create_sampler(SamplerDescriptor {
+    let default_sampler = app.device.create_sampler(&SamplerDescriptor {
         address_mode_u: AddressMode::ClampToEdge,
         address_mode_v: AddressMode::ClampToEdge,
         address_mode_w: AddressMode::ClampToEdge,

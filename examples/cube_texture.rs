@@ -95,7 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         depth: 1,
     };
 
-    let sampler = app.device.create_sampler(SamplerDescriptor {
+    let sampler = app.device.create_sampler(&SamplerDescriptor {
         address_mode_u: AddressMode::ClampToEdge,
         address_mode_v: AddressMode::ClampToEdge,
         address_mode_w: AddressMode::ClampToEdge,

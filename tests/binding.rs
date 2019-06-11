@@ -48,7 +48,7 @@ fn create_bind_group() {
         })?;
 
         let sampler_descriptor = SamplerDescriptor::default();
-        let sampler = device.create_sampler(sampler_descriptor)?;
+        let sampler = device.create_sampler(&sampler_descriptor)?;
 
         let texture_descriptor = TextureDescriptor {
             size: Extent3D {
