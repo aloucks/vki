@@ -165,7 +165,7 @@ pub fn access_flags(usage: BufferUsageFlags) -> vk::AccessFlags {
 }
 
 impl BufferInner {
-    pub fn new(device: Arc<DeviceInner>, descriptor: BufferDescriptor) -> Result<BufferInner, Error> {
+    pub fn new(device: Arc<DeviceInner>, descriptor: &BufferDescriptor) -> Result<BufferInner, Error> {
         let create_info = vk::BufferCreateInfo {
             size: descriptor.size as u64,
             usage: usage_flags(descriptor.usage),
@@ -212,7 +212,7 @@ impl BufferInner {
         drop(state);
 
         Ok(BufferInner {
-            descriptor,
+            descriptor: *descriptor,
             allocation,
             allocation_info,
             device,

@@ -299,7 +299,7 @@ fn copy_buffer_to_texture() {
         let (width, height, depth) = (1024, 1024, 1);
         let size = Extent3D { width, height, depth };
 
-        let buffer1 = device.create_buffer(BufferDescriptor {
+        let buffer1 = device.create_buffer(&BufferDescriptor {
             size: (width * height) as usize * std::mem::size_of::<f32>(),
             usage: BufferUsageFlags::TRANSFER_SRC,
         })?;
@@ -355,7 +355,7 @@ fn copy_texture_to_buffer() {
         let (width, height, depth) = (1024, 1024, 1);
         let size = Extent3D { width, height, depth };
 
-        let buffer1 = device.create_buffer(BufferDescriptor {
+        let buffer1 = device.create_buffer(&BufferDescriptor {
             size: (width * height) as usize * std::mem::size_of::<f32>(),
             usage: BufferUsageFlags::TRANSFER_DST,
         })?;

@@ -392,11 +392,11 @@ pub fn create_buffer_with_data<U: Copy + 'static>(
     };
 
     if is_write_mapped {
-        let mapped_buffer = device.create_buffer_mapped(descriptor)?;
+        let mapped_buffer = device.create_buffer_mapped(&descriptor)?;
         mapped_buffer.copy_from_slice(data)?;
         Ok(mapped_buffer.unmap())
     } else {
-        let buffer = device.create_buffer(descriptor)?;
+        let buffer = device.create_buffer(&descriptor)?;
         copy_to_buffer(device, encoder, data, &buffer)?;
         Ok(buffer)
     }
@@ -407,7 +407,7 @@ pub fn create_staging_buffer<U: Copy + 'static>(device: &Device, data: &[U]) -> 
         usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,
         size: byte_length(data),
     };
-    let mapped_buffer = device.create_buffer_mapped(descriptor)?;
+    let mapped_buffer = device.create_buffer_mapped(&descriptor)?;
     mapped_buffer.copy_from_slice(data)?;
     Ok(mapped_buffer.unmap())
 }

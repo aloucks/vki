@@ -59,14 +59,14 @@ fn copy_buffer_with_compute_shader() {
         let data_byte_size = std::mem::size_of::<[f32; 4]>() * data.len();
         let data_byte_size = data_byte_size;
 
-        let write_buffer_mapped = device.create_buffer_mapped(BufferDescriptor {
+        let write_buffer_mapped = device.create_buffer_mapped(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::STORAGE,
             size: data_byte_size,
         })?;
 
         write_buffer_mapped.copy_from_slice(data)?;
 
-        let read_buffer = device.create_buffer(BufferDescriptor {
+        let read_buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE,
             size: data_byte_size,
         })?;
@@ -148,7 +148,7 @@ fn push_constants() {
 
         let mut encoder = device.create_command_encoder()?;
 
-        let read_buffer = device.create_buffer(BufferDescriptor {
+        let read_buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE,
             size: data_byte_size,
         })?;
@@ -268,14 +268,14 @@ fn dispatch_indirect() {
         let data_byte_size = std::mem::size_of::<[f32; 4]>() * data.len();
         let data_byte_size = data_byte_size;
 
-        let write_buffer_mapped = device.create_buffer_mapped(BufferDescriptor {
+        let write_buffer_mapped = device.create_buffer_mapped(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::STORAGE,
             size: data_byte_size,
         })?;
 
         write_buffer_mapped.copy_from_slice(data)?;
 
-        let read_buffer = device.create_buffer(BufferDescriptor {
+        let read_buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE,
             size: data_byte_size,
         })?;
@@ -294,7 +294,7 @@ fn dispatch_indirect() {
             ],
         })?;
 
-        let indirect_buffer = device.create_buffer(BufferDescriptor {
+        let indirect_buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::INDIRECT | BufferUsageFlags::TRANSFER_DST,
             size: std::mem::size_of::<DispatchIndirectCommand>(),
         })?;

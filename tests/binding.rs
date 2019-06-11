@@ -34,13 +34,13 @@ fn create_bind_group() {
             usage: BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
             size: 1024,
         };
-        let buffer = device.create_buffer(buffer_descriptor)?;
+        let buffer = device.create_buffer(&buffer_descriptor)?;
 
         let texel_buffer_descriptor = BufferDescriptor {
             usage: BufferUsageFlags::STORAGE,
             size: 1024,
         };
-        let texel_buffer = device.create_buffer(texel_buffer_descriptor)?;
+        let texel_buffer = device.create_buffer(&texel_buffer_descriptor)?;
         let texel_buffer_view = texel_buffer.create_view(BufferViewDescriptor {
             format: BufferViewFormat::Texture(TextureFormat::R8G8B8A8Unorm),
             size: 1024,

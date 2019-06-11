@@ -95,7 +95,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let uniforms_size_bytes = std::mem::size_of::<Uniforms>();
 
-    let uniform_buffer = device.create_buffer(BufferDescriptor {
+    let uniform_buffer = device.create_buffer(&BufferDescriptor {
         size: uniforms_size_bytes,
         usage: BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
     })?;
@@ -139,12 +139,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let vertices_size_bytes = std::mem::size_of::<Vertex>() * vertices.len();
 
-    let vertex_buffer = device.create_buffer(BufferDescriptor {
+    let vertex_buffer = device.create_buffer(&BufferDescriptor {
         size: vertices_size_bytes,
         usage: BufferUsageFlags::VERTEX | BufferUsageFlags::TRANSFER_DST,
     })?;
 
-    let staging_vertex_buffer = device.create_buffer_mapped(BufferDescriptor {
+    let staging_vertex_buffer = device.create_buffer_mapped(&BufferDescriptor {
         size: vertices_size_bytes,
         usage: BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::MAP_WRITE,
     })?;

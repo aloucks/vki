@@ -13,7 +13,7 @@ fn create_buffer_vertex_transfer_dst() {
             size: 1024,
         };
 
-        let _buffer = device.create_buffer(descriptor)?;
+        let _buffer = device.create_buffer(&descriptor)?;
 
         Ok(instance)
     });
@@ -29,7 +29,7 @@ fn create_buffer_uniform_mapped_write() {
             size: 1024,
         };
 
-        let _buffer = device.create_buffer(descriptor)?;
+        let _buffer = device.create_buffer(&descriptor)?;
 
         Ok(instance)
     });
@@ -45,7 +45,7 @@ fn create_buffer_write_staging() {
             size: 1024,
         };
 
-        let _buffer = device.create_buffer(descriptor)?;
+        let _buffer = device.create_buffer(&descriptor)?;
 
         Ok(instance)
     });
@@ -61,7 +61,7 @@ fn create_buffer_read_staging() {
             size: 1024,
         };
 
-        let _buffer = device.create_buffer(descriptor)?;
+        let _buffer = device.create_buffer(&descriptor)?;
 
         Ok(instance)
     });
@@ -77,7 +77,7 @@ fn create_buffer_read_storage() {
             size: 1024,
         };
 
-        let _buffer = device.create_buffer(descriptor)?;
+        let _buffer = device.create_buffer(&descriptor)?;
 
         drop(_buffer);
 
@@ -96,14 +96,14 @@ fn create_buffer_mapped() {
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
         let data_byte_size = data_byte_size;
 
-        let write_buffer_mapped = device.create_buffer_mapped(BufferDescriptor {
+        let write_buffer_mapped = device.create_buffer_mapped(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,
             size: data_byte_size,
         })?;
 
         write_buffer_mapped.copy_from_slice(data)?;
 
-        let read_buffer = device.create_buffer(BufferDescriptor {
+        let read_buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
             size: data_byte_size,
         })?;
@@ -138,7 +138,7 @@ fn create_buffer_mapped_write_data() {
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
         let data_byte_size = data_byte_size;
 
-        let mut write_buffer_mapped = device.create_buffer_mapped(BufferDescriptor {
+        let mut write_buffer_mapped = device.create_buffer_mapped(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,
             size: data_byte_size,
         })?;
@@ -150,7 +150,7 @@ fn create_buffer_mapped_write_data() {
 
         write_data.flush()?;
 
-        let read_buffer = device.create_buffer(BufferDescriptor {
+        let read_buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
             size: data_byte_size,
         })?;
@@ -182,7 +182,7 @@ fn set_sub_data() {
         let data: &[u32] = &[1, 2, 3, 4];
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
 
-        let read_buffer = device.create_buffer(BufferDescriptor {
+        let read_buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
             size: data_byte_size,
         })?;
@@ -223,7 +223,7 @@ fn set_sub_data_offset() {
         let data: &[u32] = &[1, 2, 3, 4];
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
 
-        let read_buffer = device.create_buffer(BufferDescriptor {
+        let read_buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
             size: (2 * data_byte_size) as _,
         })?;
@@ -264,7 +264,7 @@ fn mapping_twice_should_fail() {
         let data: &[u32] = &[1, 2, 3, 4];
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
 
-        let buffer = device.create_buffer(BufferDescriptor {
+        let buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
             size: data_byte_size,
         })?;

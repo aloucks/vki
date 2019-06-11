@@ -252,7 +252,7 @@ fn create_multi_sample_render_pipeline() {
 
         let uniform_buffer_size = (std::mem::size_of::<f32>() * 16) as _;
 
-        let uniform_buffer = device.create_buffer(BufferDescriptor {
+        let uniform_buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
             size: uniform_buffer_size,
         })?;
@@ -276,7 +276,7 @@ fn create_multi_sample_render_pipeline() {
             normal: [f32; 3],
         }
 
-        let vertex_buffer = device.create_buffer(BufferDescriptor {
+        let vertex_buffer = device.create_buffer(&BufferDescriptor {
             usage: BufferUsageFlags::VERTEX,
             size: (3 * std::mem::size_of::<Vertex>()) as _,
         })?;
@@ -475,15 +475,15 @@ fn set_bind_group() {
 
         let compute_pipeline = device.create_compute_pipeline(compute_pipeline_descriptor)?;
 
-        let uniform_buffer = device.create_buffer(BufferDescriptor {
+        let uniform_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,
             usage: BufferUsageFlags::UNIFORM,
         })?;
-        let storage_buffer = device.create_buffer(BufferDescriptor {
+        let storage_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,
             usage: BufferUsageFlags::STORAGE,
         })?;
-        let image_buffer = device.create_buffer(BufferDescriptor {
+        let image_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,
             usage: BufferUsageFlags::STORAGE, // TODO: texel storage
         })?;
@@ -619,15 +619,15 @@ fn set_bind_group_out_of_order() {
 
         let compute_pipeline = device.create_compute_pipeline(compute_pipeline_descriptor)?;
 
-        let uniform_buffer = device.create_buffer(BufferDescriptor {
+        let uniform_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,
             usage: BufferUsageFlags::UNIFORM,
         })?;
-        let storage_buffer = device.create_buffer(BufferDescriptor {
+        let storage_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,
             usage: BufferUsageFlags::STORAGE,
         })?;
-        let image_buffer = device.create_buffer(BufferDescriptor {
+        let image_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,
             usage: BufferUsageFlags::STORAGE, // TODO: texel storage
         })?;
@@ -765,15 +765,15 @@ fn set_bind_group_dynamic_offsets() {
 
         let compute_pipeline = device.create_compute_pipeline(compute_pipeline_descriptor)?;
 
-        let uniform_buffer = device.create_buffer(BufferDescriptor {
+        let uniform_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,
             usage: BufferUsageFlags::UNIFORM,
         })?;
-        let storage_buffer = device.create_buffer(BufferDescriptor {
+        let storage_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,
             usage: BufferUsageFlags::STORAGE,
         })?;
-        let image_buffer = device.create_buffer(BufferDescriptor {
+        let image_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,
             usage: BufferUsageFlags::STORAGE, // TODO: texel storage
         })?;

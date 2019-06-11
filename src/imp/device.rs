@@ -100,12 +100,12 @@ impl Device {
         }
     }
 
-    pub fn create_buffer(&self, descriptor: BufferDescriptor) -> Result<Buffer, Error> {
+    pub fn create_buffer(&self, descriptor: &BufferDescriptor) -> Result<Buffer, Error> {
         let buffer = BufferInner::new(self.inner.clone(), descriptor)?;
         Ok(buffer.into())
     }
 
-    pub fn create_buffer_mapped(&self, descriptor: BufferDescriptor) -> Result<MappedBuffer, Error> {
+    pub fn create_buffer_mapped(&self, descriptor: &BufferDescriptor) -> Result<MappedBuffer, Error> {
         let buffer = BufferInner::new(self.inner.clone(), descriptor)?;
         let data = unsafe { buffer.get_mapped_ptr()? };
         Ok(MappedBuffer {
