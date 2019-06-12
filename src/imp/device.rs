@@ -139,7 +139,8 @@ impl Device {
         Ok(shader_module.into())
     }
 
-    pub fn create_pipeline_layout(&self, descriptor: PipelineLayoutDescriptor) -> Result<PipelineLayout, Error> {
+    pub fn create_pipeline_layout(&self, descriptor: &PipelineLayoutDescriptor) -> Result<PipelineLayout, Error> {
+        let descriptor = descriptor.clone();
         let pipeline_layout = PipelineLayoutInner::new(self.inner.clone(), descriptor)?;
         Ok(pipeline_layout.into())
     }

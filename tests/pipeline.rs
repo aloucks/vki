@@ -56,7 +56,7 @@ fn create_pipeline_layout() {
             push_constant_ranges: vec![],
         };
 
-        let _pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
+        let _pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor)?;
 
         Ok(instance)
     });
@@ -93,7 +93,7 @@ fn create_compute_pipeline() {
             push_constant_ranges: vec![],
         };
 
-        let pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
+        let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor)?;
 
         let pipeline_stage_descriptor = PipelineStageDescriptor {
             entry_point: Cow::Borrowed("main"),
@@ -135,7 +135,7 @@ fn create_render_pipeline() {
             ],
         })?;
 
-        let pipeline_layout = device.create_pipeline_layout(PipelineLayoutDescriptor {
+        let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout],
             push_constant_ranges: vec![],
         })?;
@@ -265,7 +265,7 @@ fn create_multi_sample_render_pipeline() {
             }],
         })?;
 
-        let pipeline_layout = device.create_pipeline_layout(PipelineLayoutDescriptor {
+        let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout],
             push_constant_ranges: vec![],
         })?;
@@ -461,7 +461,7 @@ fn set_bind_group() {
             push_constant_ranges: vec![],
         };
 
-        let pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
+        let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor)?;
 
         let pipeline_stage_descriptor = PipelineStageDescriptor {
             entry_point: Cow::Borrowed("main"),
@@ -605,7 +605,7 @@ fn set_bind_group_out_of_order() {
             push_constant_ranges: vec![],
         };
 
-        let pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
+        let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor)?;
 
         let pipeline_stage_descriptor = PipelineStageDescriptor {
             entry_point: Cow::Borrowed("main"),
@@ -751,7 +751,7 @@ fn set_bind_group_dynamic_offsets() {
             push_constant_ranges: vec![],
         };
 
-        let pipeline_layout = device.create_pipeline_layout(pipeline_layout_descriptor)?;
+        let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor)?;
 
         let pipeline_stage_descriptor = PipelineStageDescriptor {
             entry_point: Cow::Borrowed("main"),

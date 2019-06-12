@@ -247,12 +247,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ],
     })?;
 
-    let compute_pipeline_layout = app.device.create_pipeline_layout(PipelineLayoutDescriptor {
+    let compute_pipeline_layout = app.device.create_pipeline_layout(&PipelineLayoutDescriptor {
         bind_group_layouts: vec![compute_bind_group_layout],
         push_constant_ranges: vec![],
     })?;
 
-    let render_pipeline_layout = app.device.create_pipeline_layout(PipelineLayoutDescriptor {
+    let render_pipeline_layout = app.device.create_pipeline_layout(&PipelineLayoutDescriptor {
         bind_group_layouts: vec![render_bind_group_layout],
         push_constant_ranges: vec![],
     })?;

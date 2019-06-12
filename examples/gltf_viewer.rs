@@ -1685,7 +1685,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         stages: ShaderStageFlags::VERTEX | ShaderStageFlags::FRAGMENT,
     };
 
-    let render_pipeline_layout = app.device.create_pipeline_layout(PipelineLayoutDescriptor {
+    let render_pipeline_layout = app.device.create_pipeline_layout(&PipelineLayoutDescriptor {
         bind_group_layouts: vec![
             bind_group_0_layout.clone(),
             bind_group_1_layout.clone(),

@@ -35,7 +35,7 @@ fn copy_buffer_with_compute_shader() {
             ],
         })?;
 
-        let pipeline_layout = device.create_pipeline_layout(PipelineLayoutDescriptor {
+        let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout.clone()],
             push_constant_ranges: vec![],
         })?;
@@ -129,7 +129,7 @@ fn push_constants() {
             }],
         })?;
 
-        let pipeline_layout = device.create_pipeline_layout(PipelineLayoutDescriptor {
+        let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout.clone()],
             push_constant_ranges: vec![PushConstantRange {
                 offset: 0,
@@ -244,7 +244,7 @@ fn dispatch_indirect() {
             ],
         })?;
 
-        let pipeline_layout = device.create_pipeline_layout(PipelineLayoutDescriptor {
+        let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
             bind_group_layouts: vec![bind_group_layout.clone()],
             push_constant_ranges: vec![],
         })?;
