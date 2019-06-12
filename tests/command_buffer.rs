@@ -40,7 +40,7 @@ fn copy_buffer_with_compute_shader() {
             push_constant_ranges: vec![],
         })?;
 
-        let pipeline = device.create_compute_pipeline(ComputePipelineDescriptor {
+        let pipeline = device.create_compute_pipeline(&ComputePipelineDescriptor {
             compute_stage: PipelineStageDescriptor {
                 entry_point: Cow::Borrowed("main"),
                 module: compute_module,
@@ -138,7 +138,7 @@ fn push_constants() {
             }],
         })?;
 
-        let pipeline = device.create_compute_pipeline(ComputePipelineDescriptor {
+        let pipeline = device.create_compute_pipeline(&ComputePipelineDescriptor {
             compute_stage: PipelineStageDescriptor {
                 entry_point: Cow::Borrowed("main"),
                 module: compute_module,
@@ -249,7 +249,7 @@ fn dispatch_indirect() {
             push_constant_ranges: vec![],
         })?;
 
-        let pipeline = device.create_compute_pipeline(ComputePipelineDescriptor {
+        let pipeline = device.create_compute_pipeline(&ComputePipelineDescriptor {
             compute_stage: PipelineStageDescriptor {
                 entry_point: Cow::Borrowed("main"),
                 module: compute_module,

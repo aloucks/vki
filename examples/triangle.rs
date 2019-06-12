@@ -217,7 +217,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         sample_count: 1,
     };
 
-    let pipeline = device.create_render_pipeline(render_pipeline_descriptor)?;
+    let pipeline = device.create_render_pipeline(&render_pipeline_descriptor)?;
 
     let start = Instant::now();
 

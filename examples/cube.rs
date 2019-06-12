@@ -144,7 +144,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     #[rustfmt::skip]
-    let render_pipeline = app.device.create_render_pipeline(RenderPipelineDescriptor {
+    let render_pipeline = app.device.create_render_pipeline(&RenderPipelineDescriptor {
         layout: pipeline_layout,
         vertex_stage: PipelineStageDescriptor { module: vs, entry_point: Cow::Borrowed("main") },
         fragment_stage: PipelineStageDescriptor { module: fs, entry_point: Cow::Borrowed("main") },

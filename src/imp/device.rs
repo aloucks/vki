@@ -145,12 +145,12 @@ impl Device {
         Ok(pipeline_layout.into())
     }
 
-    pub fn create_compute_pipeline(&self, descriptor: ComputePipelineDescriptor) -> Result<ComputePipeline, Error> {
+    pub fn create_compute_pipeline(&self, descriptor: &ComputePipelineDescriptor) -> Result<ComputePipeline, Error> {
         let compute_pipeline = ComputePipelineInner::new(self.inner.clone(), descriptor)?;
         Ok(compute_pipeline.into())
     }
 
-    pub fn create_render_pipeline(&self, descriptor: RenderPipelineDescriptor) -> Result<RenderPipeline, Error> {
+    pub fn create_render_pipeline(&self, descriptor: &RenderPipelineDescriptor) -> Result<RenderPipeline, Error> {
         let render_pipeline = RenderPipelineInner::new(self.inner.clone(), descriptor)?;
         Ok(render_pipeline.into())
     }

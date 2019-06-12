@@ -68,7 +68,10 @@ impl Drop for PipelineLayoutInner {
 }
 
 impl ComputePipelineInner {
-    pub fn new(device: Arc<DeviceInner>, descriptor: ComputePipelineDescriptor) -> Result<ComputePipelineInner, Error> {
+    pub fn new(
+        device: Arc<DeviceInner>,
+        descriptor: &ComputePipelineDescriptor,
+    ) -> Result<ComputePipelineInner, Error> {
         // TODO: inspect push constants
 
         let entry_point = CString::new(&*descriptor.compute_stage.entry_point).map_err(|e| {
@@ -394,7 +397,7 @@ pub fn vertex_input_binding_description(descriptor: &VertexBufferDescriptor) -> 
 }
 
 impl RenderPipelineInner {
-    pub fn new(device: Arc<DeviceInner>, descriptor: RenderPipelineDescriptor) -> Result<RenderPipelineInner, Error> {
+    pub fn new(device: Arc<DeviceInner>, descriptor: &RenderPipelineDescriptor) -> Result<RenderPipelineInner, Error> {
         // TODO: inspect push constants
 
         let vertex_entry_point = CString::new(&*descriptor.vertex_stage.entry_point).map_err(|e| {

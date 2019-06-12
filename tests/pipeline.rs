@@ -105,7 +105,7 @@ fn create_compute_pipeline() {
             compute_stage: pipeline_stage_descriptor,
         };
 
-        let _compute_pipeline = device.create_compute_pipeline(compute_pipeline_descriptor)?;
+        let _compute_pipeline = device.create_compute_pipeline(&compute_pipeline_descriptor)?;
 
         Ok(instance)
     });
@@ -220,7 +220,7 @@ fn create_render_pipeline() {
             sample_count: 1,
         };
 
-        let _render_pipeline = device.create_render_pipeline(render_pipeline_descriptor)?;
+        let _render_pipeline = device.create_render_pipeline(&render_pipeline_descriptor)?;
 
         Ok(instance)
     });
@@ -342,7 +342,7 @@ fn create_multi_sample_render_pipeline() {
             sample_count,
         };
 
-        let pipeline = device.create_render_pipeline(render_pipeline_descriptor)?;
+        let pipeline = device.create_render_pipeline(&render_pipeline_descriptor)?;
 
         let size = Extent3D {
             width: 800,
@@ -473,7 +473,7 @@ fn set_bind_group() {
             compute_stage: pipeline_stage_descriptor,
         };
 
-        let compute_pipeline = device.create_compute_pipeline(compute_pipeline_descriptor)?;
+        let compute_pipeline = device.create_compute_pipeline(&compute_pipeline_descriptor)?;
 
         let uniform_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,
@@ -617,7 +617,7 @@ fn set_bind_group_out_of_order() {
             compute_stage: pipeline_stage_descriptor,
         };
 
-        let compute_pipeline = device.create_compute_pipeline(compute_pipeline_descriptor)?;
+        let compute_pipeline = device.create_compute_pipeline(&compute_pipeline_descriptor)?;
 
         let uniform_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,
@@ -763,7 +763,7 @@ fn set_bind_group_dynamic_offsets() {
             compute_stage: pipeline_stage_descriptor,
         };
 
-        let compute_pipeline = device.create_compute_pipeline(compute_pipeline_descriptor)?;
+        let compute_pipeline = device.create_compute_pipeline(&compute_pipeline_descriptor)?;
 
         let uniform_buffer = device.create_buffer(&BufferDescriptor {
             size: 1024,

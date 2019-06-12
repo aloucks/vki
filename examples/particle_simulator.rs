@@ -269,7 +269,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         code: Cow::Borrowed(include_bytes!("shaders/particle_simulator.comp.spv")),
     })?;
 
-    let compute_pipeline = app.device.create_compute_pipeline(ComputePipelineDescriptor {
+    let compute_pipeline = app.device.create_compute_pipeline(&ComputePipelineDescriptor {
         layout: compute_pipeline_layout,
         compute_stage: PipelineStageDescriptor {
             module: cs,
@@ -278,7 +278,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     #[rustfmt::skip]
-    let render_pipeline = app.device.create_render_pipeline(RenderPipelineDescriptor {
+    let render_pipeline = app.device.create_render_pipeline(&RenderPipelineDescriptor {
         layout: render_pipeline_layout,
         vertex_stage: PipelineStageDescriptor { module: vs, entry_point: Cow::Borrowed("main") },
         fragment_stage: PipelineStageDescriptor { module: fs, entry_point: Cow::Borrowed("main") },

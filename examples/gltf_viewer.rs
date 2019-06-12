@@ -1829,7 +1829,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             sample_count: app.get_sample_count(),
         };
 
-        let pipeline = app.device.create_render_pipeline(render_pipeline_descriptor)?;
+        let pipeline = app.device.create_render_pipeline(&render_pipeline_descriptor)?;
         pipelines.insert((material_pipeline_key, mesh_pipeline_key), pipeline);
     }
 
