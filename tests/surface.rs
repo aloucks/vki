@@ -25,7 +25,7 @@ fn winit_surface() {
 
         let surface_descriptor = winit_surface_descriptor!(window);
         let surface = instance.create_surface(&surface_descriptor)?;
-        let _device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
+        let _device = adapter.create_device(&DeviceDescriptor::default().with_surface_support(&surface))?;
 
         Ok(instance)
     });
@@ -47,7 +47,7 @@ fn glfw_surface() {
 
         let surface_descriptor = glfw_surface_descriptor!(window);
         let surface = instance.create_surface(&surface_descriptor)?;
-        let _device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
+        let _device = adapter.create_device(&DeviceDescriptor::default().with_surface_support(&surface))?;
 
         Ok(instance)
     });

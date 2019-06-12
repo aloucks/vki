@@ -39,7 +39,7 @@ fn instance_create_device() {
         let instance = Instance::new()?;
         let options = AdapterOptions::default();
         let adapter = instance.get_adapter(options)?;
-        let _device = adapter.create_device(DeviceDescriptor::default())?;
+        let _device = adapter.create_device(&DeviceDescriptor::default())?;
 
         Ok(instance)
     });

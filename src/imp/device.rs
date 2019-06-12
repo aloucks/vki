@@ -166,7 +166,7 @@ impl Device {
 }
 
 impl DeviceInner {
-    pub fn new(adapter: Arc<AdapterInner>, descriptor: DeviceDescriptor) -> Result<DeviceInner, Error> {
+    pub fn new(adapter: Arc<AdapterInner>, descriptor: &DeviceDescriptor) -> Result<DeviceInner, Error> {
         let extension_names = if descriptor.surface_support.is_some() {
             vec![c_str!("VK_KHR_swapchain")]
         } else {

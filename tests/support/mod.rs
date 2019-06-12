@@ -41,7 +41,7 @@ pub fn init() -> Result<(Instance, Adapter, Device), Box<dyn std::error::Error>>
     log::debug!("power_preference: {:?}", power_preference);
     let instance = Instance::new()?;
     let adapter = instance.get_adapter(AdapterOptions { power_preference })?;
-    let device = adapter.create_device(DeviceDescriptor::default())?;
+    let device = adapter.create_device(&DeviceDescriptor::default())?;
 
     Ok((instance, adapter, device))
 }
@@ -54,7 +54,7 @@ pub fn init_with_window(
     let adapter = instance.get_adapter(AdapterOptions::default())?;
     let surface_descriptor = winit_surface_descriptor!(window);
     let surface = instance.create_surface(&surface_descriptor)?;
-    let device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
+    let device = adapter.create_device(&DeviceDescriptor::default().with_surface_support(&surface))?;
     let swapchain_descriptor = swapchain_descriptor(&surface);
     let swapchain = device.create_swapchain(&swapchain_descriptor, None)?;
 

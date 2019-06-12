@@ -23,7 +23,7 @@ impl Adapter {
         self.inner.properties()
     }
 
-    pub fn create_device(&self, descriptor: DeviceDescriptor) -> Result<Device, Error> {
+    pub fn create_device(&self, descriptor: &DeviceDescriptor) -> Result<Device, Error> {
         let device = DeviceInner::new(self.inner.clone(), descriptor)?;
         Ok(device.into())
     }

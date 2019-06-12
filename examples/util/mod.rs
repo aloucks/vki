@@ -170,7 +170,7 @@ impl<T: 'static> App<T> {
                 Ok(_) | Err(_) => PowerPreference::HighPerformance,
             },
         })?;
-        let device = adapter.create_device(DeviceDescriptor {
+        let device = adapter.create_device(&DeviceDescriptor {
             surface_support: Some(&surface),
             extensions: Extensions {
                 anisotropic_filtering: false,

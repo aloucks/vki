@@ -42,7 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let surface = instance.create_surface(&surface_descriptor)?;
 
     let device_desc = DeviceDescriptor::default().with_surface_support(&surface);
-    let device = adapter.create_device(device_desc)?;
+    let device = adapter.create_device(&device_desc)?;
 
     let formats = device.get_supported_swapchain_formats(&surface)?;
     println!("Supported swapchain formats: {:?}", formats);
