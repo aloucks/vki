@@ -125,7 +125,8 @@ impl Device {
     }
 
     pub fn create_bind_group_layout(&self, descriptor: &BindGroupLayoutDescriptor) -> Result<BindGroupLayout, Error> {
-        let bind_group_layout = BindGroupLayoutInner::new(self.inner.clone(), *descriptor)?;
+        let descriptor = descriptor.clone();
+        let bind_group_layout = BindGroupLayoutInner::new(self.inner.clone(), descriptor)?;
         Ok(bind_group_layout.into())
     }
 

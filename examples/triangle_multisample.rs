@@ -72,7 +72,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-        bindings: &[BindGroupLayoutBinding {
+        bindings: vec![BindGroupLayoutBinding {
             binding: 0,
             visibility: ShaderStageFlags::VERTEX,
             binding_type: BindingType::UniformBuffer,

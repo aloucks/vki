@@ -1465,7 +1465,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let bind_group_0_layout = app.device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-        bindings: &[
+        bindings: vec![
             // CameraAndLightSettings
             BindGroupLayoutBinding {
                 binding: 0,
@@ -1477,7 +1477,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let bind_group_1_layout = app.device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-        bindings: &[
+        bindings: vec![
             // MaterialSettings
             BindGroupLayoutBinding {
                 binding: 0,
@@ -1549,7 +1549,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let bind_group_2_layout = app.device.create_bind_group_layout(&BindGroupLayoutDescriptor {
-        bindings: &[
+        bindings: vec![
             // MeshSettings
             BindGroupLayoutBinding {
                 binding: 0,

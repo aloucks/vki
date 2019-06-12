@@ -12,7 +12,7 @@ fn create_bind_group_layout() {
         let (instance, _adapter, device) = support::init()?;
 
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
-            bindings: &[BindGroupLayoutBinding {
+            bindings: vec![BindGroupLayoutBinding {
                 binding: 0,
                 visibility: ShaderStageFlags::VERTEX,
                 binding_type: BindingType::UniformBuffer,
@@ -67,7 +67,7 @@ fn create_bind_group() {
         let texture_view = texture.create_default_view()?;
 
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
-            bindings: &[
+            bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
                     visibility: ShaderStageFlags::VERTEX,
