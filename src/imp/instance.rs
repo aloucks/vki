@@ -35,9 +35,9 @@ impl Instance {
         Ok(inner.into())
     }
 
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     pub fn get_adapter(&self, options: &AdapterOptions) -> Result<Adapter, Error> {
-        let options = options.clone();
-        let adapter = AdapterInner::new(self.inner.clone(), options)?;
+        let adapter = AdapterInner::new(self.inner.clone(), *options)?;
         Ok(adapter.into())
     }
 
