@@ -130,7 +130,7 @@ impl Device {
         Ok(bind_group_layout.into())
     }
 
-    pub fn create_bind_group(&self, descriptor: BindGroupDescriptor) -> Result<BindGroup, Error> {
+    pub fn create_bind_group(&self, descriptor: &BindGroupDescriptor) -> Result<BindGroup, Error> {
         let bind_group = BindGroupInner::new(descriptor)?;
         Ok(bind_group.into())
     }

@@ -100,7 +100,7 @@ pub fn find_layout_binding(
 }
 
 impl BindGroupInner {
-    pub fn new(descriptor: BindGroupDescriptor) -> Result<BindGroupInner, Error> {
+    pub fn new(descriptor: &BindGroupDescriptor) -> Result<BindGroupInner, Error> {
         // TODO: DescriptorPool management. Dawn specifically calls out that this is inefficient
 
         let device = Arc::clone(&descriptor.layout.inner.device);

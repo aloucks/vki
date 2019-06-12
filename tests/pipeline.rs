@@ -257,7 +257,7 @@ fn create_multi_sample_render_pipeline() {
             size: uniform_buffer_size,
         })?;
 
-        let bind_group = device.create_bind_group(BindGroupDescriptor {
+        let bind_group = device.create_bind_group(&BindGroupDescriptor {
             layout: bind_group_layout.clone(),
             bindings: vec![BindGroupBinding {
                 binding: 0,
@@ -518,7 +518,7 @@ fn set_bind_group() {
         })?;
         let texture_view = texture.create_default_view()?;
 
-        let bind_group = device.create_bind_group(BindGroupDescriptor {
+        let bind_group = device.create_bind_group(&BindGroupDescriptor {
             layout: bind_group_layout,
             bindings: vec![
                 BindGroupBinding {
@@ -662,7 +662,7 @@ fn set_bind_group_out_of_order() {
         })?;
         let texture_view = texture.create_default_view()?;
 
-        let bind_group = device.create_bind_group(BindGroupDescriptor {
+        let bind_group = device.create_bind_group(&BindGroupDescriptor {
             layout: bind_group_layout,
             // Note that the order of the array elements does not match the layout,
             // but the `binding` values correspond to the correct layout bindings.
@@ -808,7 +808,7 @@ fn set_bind_group_dynamic_offsets() {
         })?;
         let texture_view = texture.create_default_view()?;
 
-        let bind_group = device.create_bind_group(BindGroupDescriptor {
+        let bind_group = device.create_bind_group(&BindGroupDescriptor {
             layout: bind_group_layout,
             bindings: vec![
                 BindGroupBinding {

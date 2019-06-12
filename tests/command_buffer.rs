@@ -71,7 +71,7 @@ fn copy_buffer_with_compute_shader() {
             size: data_byte_size,
         })?;
 
-        let bind_group = device.create_bind_group(BindGroupDescriptor {
+        let bind_group = device.create_bind_group(&BindGroupDescriptor {
             layout: bind_group_layout,
             bindings: vec![
                 BindGroupBinding {
@@ -153,7 +153,7 @@ fn push_constants() {
             size: data_byte_size,
         })?;
 
-        let bind_group = device.create_bind_group(BindGroupDescriptor {
+        let bind_group = device.create_bind_group(&BindGroupDescriptor {
             layout: bind_group_layout,
             bindings: vec![BindGroupBinding {
                 binding: 0,
@@ -280,7 +280,7 @@ fn dispatch_indirect() {
             size: data_byte_size,
         })?;
 
-        let bind_group = device.create_bind_group(BindGroupDescriptor {
+        let bind_group = device.create_bind_group(&BindGroupDescriptor {
             layout: bind_group_layout,
             bindings: vec![
                 BindGroupBinding {

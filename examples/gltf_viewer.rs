@@ -1567,7 +1567,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Creating camera and light bind group (0)");
     #[rustfmt::skip]
-    let bind_group_0 = app.device.create_bind_group(BindGroupDescriptor {
+    let bind_group_0 = app.device.create_bind_group(&BindGroupDescriptor {
         layout: bind_group_0_layout.clone(),
         bindings: vec![
             BindGroupBinding {
@@ -1651,7 +1651,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             add_texture_sampler(9, 10, texture_sampler);
         }
 
-        bind_group_1.push(app.device.create_bind_group(BindGroupDescriptor {
+        bind_group_1.push(app.device.create_bind_group(&BindGroupDescriptor {
             layout: bind_group_1_layout.clone(),
             bindings,
         })?);
@@ -1659,7 +1659,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Creating mesh and skin bind group (2)");
     #[rustfmt::skip]
-    let bind_group_2 = app.device.create_bind_group(BindGroupDescriptor {
+    let bind_group_2 = app.device.create_bind_group(&BindGroupDescriptor {
         layout: bind_group_2_layout.clone(),
         bindings: vec![
             BindGroupBinding {

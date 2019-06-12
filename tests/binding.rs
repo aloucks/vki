@@ -113,7 +113,7 @@ fn create_bind_group() {
                 },
             ],
         };
-        let _bind_group = device.create_bind_group(bind_group_descriptor)?;
+        let _bind_group = device.create_bind_group(&bind_group_descriptor)?;
 
         Ok(instance)
     });

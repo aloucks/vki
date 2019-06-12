@@ -115,7 +115,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         time: 0.0,
     };
 
-    let bind_group = device.create_bind_group(BindGroupDescriptor {
+    let bind_group = device.create_bind_group(&BindGroupDescriptor {
         layout: bind_group_layout.clone(),
         bindings: vec![BindGroupBinding {
             binding: 0,

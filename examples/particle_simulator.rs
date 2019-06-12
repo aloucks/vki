@@ -207,7 +207,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     #[rustfmt::skip]
-    let compute_bind_group = app.device.create_bind_group(BindGroupDescriptor {
+    let compute_bind_group = app.device.create_bind_group(&BindGroupDescriptor {
         layout: compute_bind_group_layout.clone(),
         bindings: vec![
             BindGroupBinding {
@@ -237,7 +237,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     #[rustfmt::skip]
-    let render_bind_group = app.device.create_bind_group(BindGroupDescriptor {
+    let render_bind_group = app.device.create_bind_group(&BindGroupDescriptor {
         layout: render_bind_group_layout.clone(),
         bindings: vec![
             BindGroupBinding {

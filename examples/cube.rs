@@ -120,7 +120,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     #[rustfmt::skip]
-    let bind_group = app.device.create_bind_group(BindGroupDescriptor {
+    let bind_group = app.device.create_bind_group(&BindGroupDescriptor {
         layout: bind_group_layout.clone(),
         bindings: vec![
             BindGroupBinding {
