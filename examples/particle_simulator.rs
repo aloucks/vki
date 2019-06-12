@@ -187,7 +187,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let compute_bind_group_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
-        bindings: &[
+        bindings: vec![
             BindGroupLayoutBinding {
                 binding: 0,
                 binding_type: BindingType::StorageTexelBuffer,
@@ -227,7 +227,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let render_bind_group_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
-        bindings: &[
+        bindings: vec![
             BindGroupLayoutBinding {
                 binding: 0,
                 binding_type: BindingType::UniformBuffer,

@@ -449,9 +449,9 @@ pub struct BindGroupLayoutBinding {
     pub binding_type: BindingType,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct BindGroupLayoutDescriptor<'a> {
-    pub bindings: &'a [BindGroupLayoutBinding],
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+pub struct BindGroupLayoutDescriptor {
+    pub bindings: Vec<BindGroupLayoutBinding>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]

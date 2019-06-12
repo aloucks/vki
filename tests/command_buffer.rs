@@ -21,7 +21,7 @@ fn copy_buffer_with_compute_shader() {
         })?;
 
         let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
-            bindings: &[
+            bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
                     visibility: ShaderStageFlags::COMPUTE,
@@ -122,7 +122,7 @@ fn push_constants() {
         })?;
 
         let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
-            bindings: &[BindGroupLayoutBinding {
+            bindings: vec![BindGroupLayoutBinding {
                 binding: 0,
                 visibility: ShaderStageFlags::COMPUTE,
                 binding_type: BindingType::StorageBuffer,
@@ -230,7 +230,7 @@ fn dispatch_indirect() {
         })?;
 
         let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
-            bindings: &[
+            bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
                     visibility: ShaderStageFlags::COMPUTE,
