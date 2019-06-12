@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let instance = Instance::new()?;
     let adapter_options = AdapterOptions::default();
-    let adapter = instance.get_adapter(adapter_options)?;
+    let adapter = instance.get_adapter(&adapter_options)?;
     println!("Adapter: {}", adapter.name());
 
     let surface_descriptor = vki::winit_surface_descriptor!(&window);

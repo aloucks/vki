@@ -164,7 +164,7 @@ impl<T: 'static> App<T> {
         })?;
 
         let surface = instance.create_surface(&vki::winit_surface_descriptor!(&window))?;
-        let adapter = instance.get_adapter(AdapterOptions {
+        let adapter = instance.get_adapter(&AdapterOptions {
             power_preference: match std::env::var("LOW_POWER").as_ref().map(|s| s.as_str()) {
                 Ok("1") | Ok("true") => PowerPreference::LowPower,
                 Ok(_) | Err(_) => PowerPreference::HighPerformance,

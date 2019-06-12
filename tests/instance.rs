@@ -19,13 +19,13 @@ fn instance_request_adapter() {
         let options = AdapterOptions {
             power_preference: PowerPreference::HighPerformance,
         };
-        let adapter = instance.get_adapter(options)?;
+        let adapter = instance.get_adapter(&options)?;
         assert!(!adapter.name().is_empty());
 
         let options = AdapterOptions {
             power_preference: PowerPreference::LowPower,
         };
-        let adapter = instance.get_adapter(options)?;
+        let adapter = instance.get_adapter(&options)?;
         assert!(!adapter.name().is_empty());
 
         Ok(instance)
@@ -38,7 +38,7 @@ fn instance_create_device() {
     vki::validate(|| {
         let instance = Instance::new()?;
         let options = AdapterOptions::default();
-        let adapter = instance.get_adapter(options)?;
+        let adapter = instance.get_adapter(&options)?;
         let _device = adapter.create_device(&DeviceDescriptor::default())?;
 
         Ok(instance)

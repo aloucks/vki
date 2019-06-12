@@ -26,7 +26,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let instance = Instance::new()?;
     let adapter_options = AdapterOptions::default();
-    let adapter = instance.get_adapter(adapter_options)?;
+    let adapter = instance.get_adapter(&adapter_options)?;
     println!("Adapter: {:#?}", adapter.properties());
 
     // The winit_surface_descriptor macro is optional. It creates the platform specific

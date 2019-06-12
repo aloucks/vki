@@ -40,7 +40,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         power_preference: PowerPreference::HighPerformance,
     };
 
-    let adapter = instance.get_adapter(adapter_options)?;
+    let adapter = instance.get_adapter(&adapter_options)?;
     println!("Adapter: {}", adapter.name());
 
     let surface_descriptor = vki::winit_surface_descriptor!(&window);

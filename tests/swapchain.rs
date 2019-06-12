@@ -23,7 +23,7 @@ fn create_swapchain() {
         support::init_environment();
         let (_event_loop, window) = support::headless_window()?;
         let instance = Instance::new()?;
-        let adapter = instance.get_adapter(AdapterOptions::default())?;
+        let adapter = instance.get_adapter(&AdapterOptions::default())?;
         let surface_descriptor = winit_surface_descriptor!(window);
         let surface = instance.create_surface(&surface_descriptor)?;
         let device = adapter.create_device(&DeviceDescriptor::default().with_surface_support(&surface))?;
@@ -44,7 +44,7 @@ fn recreate_swapchain_without_old() {
         support::init_environment();
         let (_event_loop, window) = support::headless_window()?;
         let instance = Instance::new()?;
-        let adapter = instance.get_adapter(AdapterOptions::default())?;
+        let adapter = instance.get_adapter(&AdapterOptions::default())?;
         let surface_descriptor = winit_surface_descriptor!(window);
         let surface = instance.create_surface(&surface_descriptor)?;
         let device = adapter.create_device(&DeviceDescriptor::default().with_surface_support(&surface))?;

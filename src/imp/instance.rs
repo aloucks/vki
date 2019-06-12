@@ -35,7 +35,8 @@ impl Instance {
         Ok(inner.into())
     }
 
-    pub fn get_adapter(&self, options: AdapterOptions) -> Result<Adapter, Error> {
+    pub fn get_adapter(&self, options: &AdapterOptions) -> Result<Adapter, Error> {
+        let options = options.clone();
         let adapter = AdapterInner::new(self.inner.clone(), options)?;
         Ok(adapter.into())
     }
