@@ -509,7 +509,7 @@ impl<'a, T: Copy> DerefMut for WriteData<'a, T> {
 
 impl<'a, T> WriteData<'a, T> {
     fn _flush(&mut self) -> Result<(), Error> {
-        let length_bytes = self.element_count as _;
+        let length_bytes = std::mem::size_of::<T>() * self.element_count as usize;
         let offset_bytes = self.offset_bytes as _;
         self.mapped.inner.device.state.lock().allocator_mut().flush_allocation(
             &self.mapped.inner.allocation,
