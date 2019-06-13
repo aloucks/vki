@@ -143,7 +143,7 @@ fn create_buffer_mapped_write_data() {
             size: data_byte_size,
         })?;
 
-        let mut write_data = write_buffer_mapped.write_data::<u32>(0, data.len())?;
+        let mut write_data = write_buffer_mapped.write::<u32>(0, data.len())?;
 
         assert_eq!(write_data.len(), data.len());
         write_data.copy_from_slice(data);

@@ -380,7 +380,7 @@ impl MappedBuffer {
         Ok(())
     }
 
-    pub fn write_data<T: Copy>(
+    pub fn write<T: Copy>(
         &mut self,
         element_offset: usize,
         element_count: usize,
