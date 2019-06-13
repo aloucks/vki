@@ -101,7 +101,7 @@ fn create_buffer_mapped() {
             size: data_byte_size,
         })?;
 
-        write_buffer_mapped.write(0, data)?;
+        write_buffer_mapped.copy_from_slice(data)?;
 
         let read_buffer = device.create_buffer(BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,

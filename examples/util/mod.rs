@@ -394,7 +394,7 @@ pub fn create_buffer_with_data<U: Copy + 'static>(
 
     if is_write_mapped {
         let mapped_buffer = device.create_buffer_mapped(descriptor)?;
-        mapped_buffer.write(0, data)?;
+        mapped_buffer.copy_from_slice(data)?;
         Ok(mapped_buffer.unmap())
     } else {
         let buffer = device.create_buffer(descriptor)?;
@@ -409,7 +409,7 @@ pub fn create_staging_buffer<U: Copy + 'static>(device: &Device, data: &[U]) -> 
         size: byte_length(data),
     };
     let mapped_buffer = device.create_buffer_mapped(descriptor)?;
-    mapped_buffer.write(0, data)?;
+    mapped_buffer.copy_from_slice(data)?;
     Ok(mapped_buffer.unmap())
 }
 

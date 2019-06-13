@@ -64,7 +64,7 @@ fn copy_buffer_with_compute_shader() {
             size: data_byte_size,
         })?;
 
-        write_buffer_mapped.write(0, data)?;
+        write_buffer_mapped.copy_from_slice(data)?;
 
         let read_buffer = device.create_buffer(BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE,
@@ -273,7 +273,7 @@ fn dispatch_indirect() {
             size: data_byte_size,
         })?;
 
-        write_buffer_mapped.write(0, data)?;
+        write_buffer_mapped.copy_from_slice(data)?;
 
         let read_buffer = device.create_buffer(BufferDescriptor {
             usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE,

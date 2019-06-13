@@ -376,7 +376,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         let mapped_attractor_data = attractor_buffer.map_write()?;
-        mapped_attractor_data.write(0, &attractor_block_data)?;
+        mapped_attractor_data.copy_from_slice(&attractor_block_data)?;
 
         let frame = match app.swapchain.acquire_next_image() {
             Ok(frame) => frame,

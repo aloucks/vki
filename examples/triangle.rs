@@ -158,7 +158,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         usage: BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::MAP_WRITE,
     })?;
 
-    staging_vertex_buffer.write(0, vertices)?;
+    staging_vertex_buffer.copy_from_slice(vertices)?;
 
     let mut encoder = device.create_command_encoder()?;
 

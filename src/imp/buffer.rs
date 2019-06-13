@@ -359,18 +359,18 @@ impl Drop for BufferInner {
 }
 
 impl MappedBuffer {
-    fn validate_write_mapping<T: Copy>(&self, element_offset: usize, element_count: usize) -> Result<(), Error> {
+    fn validate_mapping<T: Copy>(&self, element_offset: usize, element_count: usize, flags: BufferUsageFlags) -> Result<(), Error> {
         let element_size = mem::size_of::<T>();
         let data_size = element_size * element_count;
         let buffer_size = self.inner.descriptor.size as usize;
         let offset_bytes = element_size * element_offset;
-        if !self.inner.descriptor.usage.intersects(BufferUsageFlags::MAP_WRITE) {
-            log::error!("buffer not write mapped: {:?}", self.inner.handle);
-            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
+        if !self.inner.descriptor.usage.intersects(flags) {
+            let msg = format!("missing required usage: {:?}", flags);
+            return Err(Error::from(msg));
         }
         if buffer_size < offset_bytes + data_size {
             log::error!(
-                "write data range exceeds buffer size: offset_bytes: {}, data_size: {}, buffer_size: {}",
+                "mapping range exceeds buffer size: offset_bytes: {}, data_size: {}, buffer_size: {}",
                 offset_bytes,
                 data_size,
                 buffer_size
@@ -388,7 +388,7 @@ impl MappedBuffer {
         let element_size = mem::size_of::<T>();
         let offset_bytes = element_size * element_offset;
 
-        self.validate_write_mapping::<T>(element_offset, element_count)?;
+        self.validate_mapping::<T>(element_offset, element_count, BufferUsageFlags::MAP_WRITE)?;
 
         Ok(WriteData {
             mapped: self,
@@ -398,25 +398,17 @@ impl MappedBuffer {
         })
     }
 
-    pub fn write<T: Copy>(&self, element_offset: usize, data: &[T]) -> Result<(), Error> {
-        let count = data.len();
+    /// Fill the buffer with the provided slice
+    pub fn copy_from_slice<T: Copy>(&self, data: &[T]) -> Result<(), Error> {
+        let element_offset = 0;
+        let element_count = data.len();
         let element_size = mem::size_of::<T>();
-        let data_size = element_size * count;
+        let data_size = element_size * element_count;
         let buffer_size = self.inner.descriptor.size as usize;
         let offset_bytes = element_size * element_offset;
-        if !self.inner.descriptor.usage.intersects(BufferUsageFlags::MAP_WRITE) {
-            log::error!("buffer not write mapped: {:?}", self.inner.handle);
-            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
-        }
-        if buffer_size < offset_bytes + data_size {
-            log::error!(
-                "write data range exceeds buffer size: offset_bytes: {}, data_size: {}, buffer_size: {}",
-                offset_bytes,
-                data_size,
-                buffer_size
-            );
-            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
-        }
+
+        self.validate_mapping::<T>(element_offset, element_count, BufferUsageFlags::MAP_WRITE)?;
+
         log::trace!(
             "map write data_size: offset_bytes: {}, {}, buffer_size: {}",
             offset_bytes,
@@ -442,21 +434,10 @@ impl MappedBuffer {
     pub fn read<T: Copy>(&self, element_offset: usize, element_count: usize) -> Result<&[T], Error> {
         let element_size = mem::size_of::<T>();
         let data_size = element_size * element_count;
-        let buffer_size = self.inner.descriptor.size as usize;
         let offset_bytes = element_size * element_offset;
-        if !self.inner.descriptor.usage.intersects(BufferUsageFlags::MAP_READ) {
-            log::error!("buffer not read mapped: {:?}", self.inner.handle);
-            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
-        }
-        if buffer_size < offset_bytes + data_size {
-            log::error!(
-                "read data range exceeds buffer size: offset_bytes: {}, data_size: {}, buffer_size: {}",
-                offset_bytes,
-                data_size,
-                buffer_size
-            );
-            return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
-        }
+
+        self.validate_mapping::<T>(element_offset, element_count, BufferUsageFlags::MAP_READ)?;
+
         unsafe {
             let src_ptr = self.data.add(offset_bytes);
             let data = slice::from_raw_parts(src_ptr as *const T, element_count);
