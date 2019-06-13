@@ -307,14 +307,19 @@ impl BufferInner {
         let mut buffer_state = self.buffer_state.lock();
         match *buffer_state {
             BufferState::Mapped(_) => {
-                log::warn!("buffer already mapped: {:?}", self.handle);
+                log::error!("buffer already mapped: {:?}", self.handle);
+                // TODO: Validation
                 Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
             }
             BufferState::Unmapped => {
                 let mut state = self.device.state.lock();
                 let ptr = state.allocator_mut().map_memory(&self.allocation).map_err(|e| {
                     log::error!("failed to map buffer memory: {:?}", e);
-                    vk::Result::ERROR_MEMORY_MAP_FAILED // TODO
+                    match e.kind() {
+                        vk_mem::ErrorKind::Vulkan(e) => Error::from(*e),
+                        // TODO: Better error handling
+                        _ => Error::from(format!("map_memory error: {:?}", e))
+                    }
                 })?;
                 *buffer_state = BufferState::Mapped(AtomicPtr::new(ptr));
                 Ok(ptr)
@@ -329,7 +334,11 @@ impl BufferInner {
                 let mut state = self.device.state.lock();
                 state.allocator_mut().unmap_memory(&self.allocation).map_err(|e| {
                     log::error!("failed to unmap buffer: {:?}", e);
-                    Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT) // TODO
+                    match e.kind() {
+                        vk_mem::ErrorKind::Vulkan(e) => Error::from(*e),
+                        // TODO: Better error handling
+                        _ => Error::from(format!("unmap_memory error: {:?}", e))
+                    }
                 })?;
                 *buffer_state = BufferState::Unmapped;
                 Ok(())
@@ -348,7 +357,7 @@ impl Into<Buffer> for BufferInner {
 impl Drop for BufferInner {
     fn drop(&mut self) {
         self.unmap()
-            .map_err(|e| log::warn!("failed to unmap_memory: {:?}", e))
+            .map_err(|e| log::error!("failed to unmap_memory: {:?}", e))
             .ok();
         let mut state = self.device.state.lock();
         let serial = state.get_next_pending_serial();
