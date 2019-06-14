@@ -307,7 +307,7 @@ impl BufferInner {
         let mut buffer_state = self.buffer_state.lock();
         match *buffer_state {
             BufferState::Mapped(_) => {
-                log::error!("buffer already mapped: {:?}", self.handle);
+                log::warn!("buffer already mapped: {:?}", self.handle);
                 // TODO: Validation
                 Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
             }
