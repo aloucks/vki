@@ -318,7 +318,7 @@ impl BufferInner {
                     match e.kind() {
                         vk_mem::ErrorKind::Vulkan(e) => Error::from(*e),
                         // TODO: Better error handling
-                        _ => Error::from(format!("map_memory error: {:?}", e))
+                        _ => Error::from(format!("map_memory error: {:?}", e)),
                     }
                 })?;
                 *buffer_state = BufferState::Mapped(AtomicPtr::new(ptr));
@@ -337,7 +337,7 @@ impl BufferInner {
                     match e.kind() {
                         vk_mem::ErrorKind::Vulkan(e) => Error::from(*e),
                         // TODO: Better error handling
-                        _ => Error::from(format!("unmap_memory error: {:?}", e))
+                        _ => Error::from(format!("unmap_memory error: {:?}", e)),
                     }
                 })?;
                 *buffer_state = BufferState::Unmapped;
@@ -368,7 +368,12 @@ impl Drop for BufferInner {
 }
 
 impl MappedBuffer {
-    fn validate_mapping<T: Copy>(&self, element_offset: usize, element_count: usize, flags: BufferUsageFlags) -> Result<(), Error> {
+    fn validate_mapping<T: Copy>(
+        &self,
+        element_offset: usize,
+        element_count: usize,
+        flags: BufferUsageFlags,
+    ) -> Result<(), Error> {
         let element_size = mem::size_of::<T>();
         let data_size = element_size * element_count;
         let buffer_size = self.inner.descriptor.size as usize;
@@ -389,11 +394,7 @@ impl MappedBuffer {
         Ok(())
     }
 
-    pub fn write<T: Copy>(
-        &mut self,
-        element_offset: usize,
-        element_count: usize,
-    ) -> Result<WriteData<'_, T>, Error> {
+    pub fn write<T: Copy>(&mut self, element_offset: usize, element_count: usize) -> Result<WriteData<'_, T>, Error> {
         let element_size = mem::size_of::<T>();
         let offset_bytes = element_size * element_offset;
 
