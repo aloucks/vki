@@ -76,7 +76,7 @@ pub fn headless_window() -> Result<(EventLoop<()>, Window), Box<dyn std::error::
             width: 1024 as _,
             height: 768 as _,
         })
-        .with_visibility(false)
+        .with_visible(false)
         .build(&event_loop)?;
 
     Ok((event_loop, window))

@@ -43,7 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let window = winit::window::WindowBuilder::new()
         .with_title("triangle_multisample.rs")
         .with_inner_size(LogicalSize::from((window_width, window_height)))
-        .with_visibility(false)
+        .with_visible(false)
         .build(&event_loop)?;
 
     let instance = Instance::new()?;

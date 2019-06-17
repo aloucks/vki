@@ -845,7 +845,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let monitor = window.current_monitor();
     let dpi_factor = window.hidpi_factor();
-    let monitor_physical_size = monitor.dimensions();
+    let monitor_physical_size = monitor.size();
     let monitor_logical_size = monitor_physical_size.to_logical(dpi_factor);
     let window_size = window.outer_size();
     let pos_x = (monitor_logical_size.width / 2.0) - (window_size.width / 2.0);

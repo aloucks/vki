@@ -20,7 +20,7 @@ fn winit_surface() {
                 width: 1024 as _,
                 height: 768 as _,
             })
-            .with_visibility(false)
+            .with_visible(false)
             .build(&event_loop)?;
 
         let surface_descriptor = winit_surface_descriptor!(window);
