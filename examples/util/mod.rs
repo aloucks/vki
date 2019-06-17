@@ -164,7 +164,7 @@ impl<T: 'static> App<T> {
         let window = WindowBuilder::new()
             .with_inner_size(LogicalSize::from((window_width, window_height)))
             .with_title(title)
-            .with_visibility(false)
+            .with_visible(false)
             .build(&event_loop)
             .map_err(|e| {
                 log::error!("Failed to initialize window: {:?}", e);
@@ -252,7 +252,7 @@ impl<T: 'static> App<T> {
                     let x = monitor.position().x as _;
 
                     // If the window is wider than the current monitor, stretch it across all monitors
-                    let mut inner_physical_size = monitor.dimensions();
+                    let mut inner_physical_size = monitor.size();
                     if last_size.to_physical(dpi_factor).width > inner_physical_size.width {
                         let monitor_count = self.window.available_monitors().count();
                         inner_physical_size.width *= monitor_count as f64;
