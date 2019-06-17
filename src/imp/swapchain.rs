@@ -98,8 +98,9 @@ impl SwapchainInner {
             //       1) No swapchain has ever been created for this surface
             //       2) The previous swapchain was dropped (and will be purged here)
             //       2) The previous swapchain was passed in as `old_swapchain`
-            if old_swapchain.is_none() {
+            {
                 let mut state = device.state.lock();
+                device.raw.device_wait_idle()?;
                 state.get_fenced_deleter().purge_swapchains(&device);
             }
 
