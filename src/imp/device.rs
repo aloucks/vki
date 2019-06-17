@@ -293,7 +293,9 @@ impl Drop for DeviceInner {
             }
 
             // All fences should be complete after waiting for the device to become idle
-            assert_eq!(0, state.fences_in_flight.len());
+            if !std::thread::panicking() {
+                assert_eq!(0, state.fences_in_flight.len());
+            }
 
             // Increment the completed serial to account for any pending deletes
             log::trace!("drop: setting last_completed_serial to last_submitted_serial and incrementing");
@@ -305,7 +307,9 @@ impl Drop for DeviceInner {
             {
                 let state = &mut *state;
                 state.fenced_deleter.tick(serial, &self, &mut state.allocator);
-                assert!(state.fenced_deleter.is_empty());
+                if !std::thread::panicking() {
+                    assert!(state.fenced_deleter.is_empty());
+                }
             }
 
             for (fence, _) in state.fences_in_flight.drain(..) {
