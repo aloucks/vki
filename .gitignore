@@ -6,3 +6,4 @@
 **/*.rs.bk
 /target
 Cargo.lock
+scratch.txt
