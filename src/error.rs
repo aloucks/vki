@@ -82,30 +82,45 @@ fn backtrace() -> Option<Backtrace> {
     }
 }
 
-impl From<String> for Error {
-    fn from(msg: String) -> Error {
+impl From<(String, Option<Backtrace>)> for Error {
+    fn from((msg, backtrace): (String, Option<Backtrace>)) -> Error {
         Error {
             kind: ErrorKind::Message(msg),
-            backtrace: backtrace(),
+            backtrace,
         }
+    }
+}
+
+impl<'a> From<(&'a str, Option<Backtrace>)> for Error {
+    fn from((msg, backtrace): (&'a str, Option<Backtrace>)) -> Error {
+        Error::from((msg.to_owned(), backtrace))
+    }
+}
+
+impl From<String> for Error {
+    fn from(msg: String) -> Error {
+        Error::from((msg, backtrace()))
     }
 }
 
 impl<'a> From<&'a str> for Error {
     fn from(msg: &'a str) -> Error {
+        Error::from((msg.to_owned(), backtrace()))
+    }
+}
+
+impl From<(vk::Result, Option<Backtrace>)> for Error {
+    fn from((code, backtrace): (vk::Result, Option<Backtrace>)) -> Error {
         Error {
-            kind: ErrorKind::Message(msg.to_owned()),
-            backtrace: backtrace(),
+            kind: ErrorKind::Code(code),
+            backtrace,
         }
     }
 }
 
 impl From<vk::Result> for Error {
     fn from(code: vk::Result) -> Error {
-        Error {
-            kind: ErrorKind::Code(code),
-            backtrace: backtrace(),
-        }
+        Error::from((code, backtrace()))
     }
 }
 
