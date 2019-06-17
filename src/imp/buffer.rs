@@ -666,3 +666,12 @@ impl Drop for BufferViewInner {
         state.get_fenced_deleter().delete_when_unused(self.handle, serial);
     }
 }
+
+impl BufferView {
+    /// Returns a handle to the associated `Buffer`.
+    pub fn buffer(&self) -> Buffer {
+        Buffer {
+            inner: self.inner.buffer.clone(),
+        }
+    }
+}

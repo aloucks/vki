@@ -320,6 +320,14 @@ pub fn default_texture_view_descriptor(texture: &TextureInner) -> TextureViewDes
     }
 }
 
+fn allocation_flags(format: TextureFormat) -> AllocationCreateFlags {
+    let mut flags = AllocationCreateFlags::NONE;
+    if is_depth_or_stencil(format) {
+        flags |= AllocationCreateFlags::DEDICATED_MEMORY;
+    }
+    flags
+}
+
 impl Texture {
     pub fn create_view(&self, descriptor: TextureViewDescriptor) -> Result<TextureView, Error> {
         let texture_view = TextureViewInner::new(self.inner.clone(), descriptor)?;
@@ -371,7 +379,7 @@ impl TextureInner {
             user_data: None,
             required_flags: MemoryPropertyFlags::empty(),
             preferred_flags: MemoryPropertyFlags::empty(),
-            flags: AllocationCreateFlags::NONE,
+            flags: allocation_flags(descriptor.format),
             memory_type_bits: 0,
             usage: memory_usage(descriptor.usage),
         };
@@ -612,6 +620,15 @@ impl Drop for TextureViewInner {
         let mut state = self.texture.device.state.lock();
         let serial = state.get_next_pending_serial();
         state.get_fenced_deleter().delete_when_unused(self.handle, serial);
+    }
+}
+
+impl TextureView {
+    /// Returns a handle to the associated `Texture`.
+    pub fn texture(&self) -> Texture {
+        Texture {
+            inner: self.inner.texture.clone(),
+        }
     }
 }
 
