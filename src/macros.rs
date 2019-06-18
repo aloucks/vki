@@ -68,7 +68,7 @@ macro_rules! winit_surface_descriptor {
             {
                 use winit::platform::macos::WindowExtMacOS;
                 $crate::SurfaceDescriptorMacOS {
-                    nsview: $window.nsview(),
+                    nsview: $window.ns_view(),
                 }
             }
 
