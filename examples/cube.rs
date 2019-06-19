@@ -1,4 +1,6 @@
 #[macro_use]
+extern crate memoffset;
+
 pub mod util;
 
 use cgmath::Point3;

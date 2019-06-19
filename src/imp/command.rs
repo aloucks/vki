@@ -1,5 +1,8 @@
 use std::sync::Arc;
 
+use smallvec::SmallVec;
+
+use crate::imp::command_buffer::MAX_BIND_GROUPS;
 use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::{BindGroupInner, BufferInner, ComputePipelineInner, RenderPipelineInner, TextureInner};
 use crate::{Buffer, Color, Extent3D, FilterMode, Origin3D, ShaderStageFlags};
@@ -130,7 +133,7 @@ pub enum Command {
     SetBindGroup {
         index: u32,
         bind_group: Arc<BindGroupInner>,
-        dynamic_offsets: Option<Vec<u32>>,
+        dynamic_offsets: Option<SmallVec<[u32; MAX_BIND_GROUPS]>>,
     },
     SetIndexBuffer {
         buffer: Arc<BufferInner>,
@@ -138,8 +141,9 @@ pub enum Command {
     },
     SetVertexBuffers {
         start_slot: u32,
-        buffers: Vec<Arc<BufferInner>>,
-        offsets: Vec<u64>,
+        // 3 is the max that we can use without increasing the size of the enum
+        buffers: SmallVec<[Arc<BufferInner>; 3]>,
+        offsets: SmallVec<[u64; 3]>,
     },
     SetViewport {
         x: f32,

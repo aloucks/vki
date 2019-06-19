@@ -1,5 +1,8 @@
 #![allow(unused_imports)]
 
+#[macro_use]
+extern crate memoffset;
+
 use std::borrow::Cow;
 use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
@@ -14,18 +17,6 @@ use vki::{
 };
 
 pub mod support;
-
-macro_rules! offset_of {
-    ($base:path, $field:ident) => {{
-        #[allow(unused_unsafe)]
-        unsafe {
-            let b: $base = std::mem::uninitialized();
-            let offset = (&b.$field as *const _ as isize) - (&b as *const _ as isize);
-            std::mem::forget(b);
-            offset as _
-        }
-    }};
-}
 
 // Emulate a SwpachainImage
 struct Frame {
@@ -852,7 +843,7 @@ fn set_bind_group_dynamic_offsets() {
         let mut compute_pass = encoder.begin_compute_pass();
         compute_pass.set_pipeline(&compute_pipeline);
 
-        let dynamic_offsets: Option<&[u32]> = Some(&[0, 0]);
+        let dynamic_offsets: Option<&[usize]> = Some(&[0, 0]);
 
         compute_pass.set_bind_group(0, &bind_group, dynamic_offsets);
 

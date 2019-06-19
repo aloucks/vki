@@ -1,5 +1,7 @@
 use ash::vk;
 
+use std::convert::TryFrom;
+
 use crate::{
     BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder,
     ComputePassEncoder, ComputePipeline, Extent3D, FilterMode, LoadOp, RenderPassColorAttachmentDescriptor,
@@ -131,7 +133,7 @@ impl CommandEncoderInner {
         &mut self,
         index: u32,
         bind_group: &BindGroup,
-        dynamic_offsets: Option<&[u32]>,
+        dynamic_offsets: Option<&[usize]>,
         usage_tracker: &mut PassResourceUsageTracker,
     ) {
         let layout_bindings = &bind_group.inner.layout.bindings;
@@ -174,7 +176,11 @@ impl CommandEncoderInner {
             }
         }
 
-        let dynamic_offsets = dynamic_offsets.map(|v| v.to_vec());
+        let dynamic_offsets = dynamic_offsets.map(|v| {
+            v.iter()
+                .map(|v| u32::try_from(*v).expect("offset > u32::MAX"))
+                .collect()
+        });
 
         self.push(Command::SetBindGroup {
             index,
@@ -453,7 +459,7 @@ impl<'a> ComputePassEncoder<'a> {
         })
     }
 
-    pub fn set_bind_group(&mut self, index: u32, bind_group: &BindGroup, dynamic_offsets: Option<&[u32]>) {
+    pub fn set_bind_group(&mut self, index: u32, bind_group: &BindGroup, dynamic_offsets: Option<&[usize]>) {
         let usage_tracker = &mut self.inner.usage_tracker;
         self.inner
             .top_level_encoder
@@ -602,14 +608,14 @@ impl<'a> RenderPassEncoder<'a> {
         /* drop */
     }
 
-    pub fn set_bind_group(&mut self, index: u32, bind_group: &BindGroup, dynamic_offsets: Option<&[u32]>) {
+    pub fn set_bind_group(&mut self, index: u32, bind_group: &BindGroup, dynamic_offsets: Option<&[usize]>) {
         let usage_tracker = &mut self.inner.usage_tracker;
         self.inner
             .top_level_encoder
             .set_bind_group(index, bind_group, dynamic_offsets, usage_tracker);
     }
 
-    pub fn set_index_buffer(&mut self, buffer: &Buffer, offset: u32) {
+    pub fn set_index_buffer(&mut self, buffer: &Buffer, offset: usize) {
         // TODO: If the pipeline isn't set first, this will fail in the recording phase
         // state.set_index_buffer
         self.inner
@@ -618,7 +624,7 @@ impl<'a> RenderPassEncoder<'a> {
 
         self.inner.top_level_encoder.push(Command::SetIndexBuffer {
             buffer: Arc::clone(&buffer.inner),
-            offset,
+            offset: u32::try_from(offset).expect("offset > u32::MAX"),
         });
     }
 
@@ -627,12 +633,12 @@ impl<'a> RenderPassEncoder<'a> {
     /// ## Panics
     ///
     /// Panics if the length of `buffers` is not equal to the length of `offsets`.
-    pub fn set_vertex_buffers(&mut self, start_slot: u32, buffers: &[Buffer], offsets: &[u64]) {
+    pub fn set_vertex_buffers(&mut self, start_slot: u32, buffers: &[Buffer], offsets: &[usize]) {
         // state.set_vertex_buffers
 
         assert_eq!(buffers.len(), offsets.len(), "buffers.len() != offsets.len()");
 
-        let mut buffers_vec = Vec::with_capacity(buffers.len());
+        let mut buffers_vec = smallvec::SmallVec::with_capacity(buffers.len());
 
         for buffer in buffers.iter() {
             buffers_vec.push(Arc::clone(&buffer.inner));
@@ -641,10 +647,15 @@ impl<'a> RenderPassEncoder<'a> {
                 .buffer_used_as(Arc::clone(&buffer.inner), BufferUsageFlags::VERTEX);
         }
 
+        let offsets = offsets
+            .iter()
+            .map(|v| u64::try_from(*v).expect("offset > u64::MAX"))
+            .collect();
+
         self.inner.top_level_encoder.push(Command::SetVertexBuffers {
             buffers: buffers_vec,
             start_slot,
-            offsets: offsets.to_owned(),
+            offsets,
         });
     }
 

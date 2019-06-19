@@ -1,3 +1,6 @@
+#[macro_use]
+extern crate memoffset;
+
 use vki::{
     AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
@@ -16,18 +19,6 @@ use winit::platform::desktop::EventLoopExtDesktop;
 
 use std::borrow::Cow;
 use std::time::{Duration, Instant};
-
-macro_rules! offset_of {
-    ($base:path, $field:ident) => {{
-        #[allow(unused_unsafe)]
-        unsafe {
-            let b: $base = std::mem::uninitialized();
-            let offset = (&b.$field as *const _ as isize) - (&b as *const _ as isize);
-            std::mem::forget(b);
-            offset as _
-        }
-    }};
-}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     if std::env::var("VK_INSTANCE_LAYERS").is_err() {

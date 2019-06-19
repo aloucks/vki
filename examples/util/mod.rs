@@ -25,19 +25,6 @@ use winit::window::{Window, WindowBuilder};
 pub const DEFAULT_DEPTH_FORMAT: TextureFormat = TextureFormat::D32FloatS8Uint;
 pub const DEFAULT_COLOR_FORMAT: TextureFormat = TextureFormat::B8G8R8A8Unorm;
 
-#[allow(unused_macros)]
-macro_rules! offset_of {
-    ($base:path, $field:ident) => {{
-        #[allow(unused_unsafe)]
-        unsafe {
-            let b: $base = std::mem::uninitialized();
-            let offset = (&b.$field as *const _ as isize) - (&b as *const _ as isize);
-            std::mem::forget(b);
-            offset as _
-        }
-    }};
-}
-
 fn create_swapchain_and_depth_view_and_color_view(
     device: &Device,
     surface: &Surface,

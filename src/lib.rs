@@ -800,7 +800,7 @@ pub struct VertexAttributeDescriptor {
     pub shader_location: u32,
     /// The index of the vertex buffer containing this attribute. See `RenderPassEncoder::set_vertex_buffers`.
     pub input_slot: u32,
-    pub offset: u32,
+    pub offset: usize,
     pub format: VertexFormat,
 }
 

@@ -1,4 +1,3 @@
-#[macro_use]
 pub mod util;
 
 use cgmath::SquareMatrix;

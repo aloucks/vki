@@ -375,10 +375,11 @@ pub fn input_rate(mode: InputStepMode) -> vk::VertexInputRate {
 pub fn vertex_input_attribute_description(
     descriptor: &VertexAttributeDescriptor,
 ) -> vk::VertexInputAttributeDescription {
+    use std::convert::TryFrom;
     vk::VertexInputAttributeDescription {
         format: vertex_format(descriptor.format),
         binding: descriptor.input_slot,
-        offset: descriptor.offset,
+        offset: u32::try_from(descriptor.offset).expect("offset > u32::MAX"),
         location: descriptor.shader_location,
     }
 }

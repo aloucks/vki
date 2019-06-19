@@ -582,7 +582,7 @@ impl CommandBufferInner {
                     bind_group,
                     dynamic_offsets,
                 } => {
-                    let dynamic_offsets = dynamic_offsets.as_ref().map(Vec::as_slice);
+                    let dynamic_offsets = dynamic_offsets.as_ref().map(SmallVec::as_slice);
                     descriptor_sets.on_set_bind_group(*index, bind_group.handle, dynamic_offsets);
                 }
                 Command::SetBlendColor { color } => {
@@ -724,7 +724,7 @@ impl CommandBufferInner {
                     bind_group,
                     dynamic_offsets,
                 } => {
-                    let dynamic_offsets = dynamic_offsets.as_ref().map(Vec::as_slice);
+                    let dynamic_offsets = dynamic_offsets.as_ref().map(SmallVec::as_slice);
                     descriptor_sets.on_set_bind_group(*index, bind_group.handle, dynamic_offsets);
                 }
                 Command::SetPushConstants {

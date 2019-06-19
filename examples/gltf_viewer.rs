@@ -1,4 +1,6 @@
 #[macro_use]
+extern crate memoffset;
+
 pub mod util;
 
 use cgmath::{
@@ -236,8 +238,8 @@ struct Primitive {
     material_index: Option<usize>,
     bounding_box: BoundingBox,
     vertex_count: usize,
-    vertex_buffer_offset: u32,
-    index_buffer_offset: Option<u32>,
+    vertex_buffer_offset: usize,
+    index_buffer_offset: Option<usize>,
     index_count: usize,
     mesh_pipeline_key: MeshPipelineKey,
     settings: PrimitiveSettings,
@@ -1324,8 +1326,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 bounding_box: primitive.bounding_box().into(),
                 settings: primitive_settings,
                 vertex_count,
-                vertex_buffer_offset: (vertices_offset * std::mem::size_of::<Vertex>()) as u32,
-                index_buffer_offset: index_info.map(|info| info.0 as u32),
+                vertex_buffer_offset: (vertices_offset * std::mem::size_of::<Vertex>()),
+                index_buffer_offset: index_info.map(|info| info.0),
                 index_count,
                 mesh_pipeline_key,
             });
@@ -1970,7 +1972,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 .unwrap_or_else(|| format!("material-{}", material_index));
             render_pass.push_debug_group(&material_name);
             let material_pipeline_key = material.material_pipeline_key();
-            let dynamic_offsets = &[material_settings_offset as u32];
+            let dynamic_offsets = &[material_settings_offset];
             render_pass.set_bind_group(1, &bind_group_1[material_index], Some(dynamic_offsets));
 
             for (mesh_index, primitive_index) in mesh_primitives.iter() {
@@ -1988,7 +1990,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let mesh_pipeline_key = primitive.mesh_pipeline_key;
                 let skin_index = nodes[mesh.node_index].skin_index.unwrap_or(skin_settings.len() - 1);
                 let skin_settings_offset = util::byte_stride(&skin_settings) * skin_index;
-                let dynamic_offsets = &[mesh_settings_offset as u32, skin_settings_offset as u32];
+                let dynamic_offsets = &[mesh_settings_offset, skin_settings_offset];
                 render_pass.set_bind_group(2, &bind_group_2, Some(dynamic_offsets));
 
                 let pipeline_key = (material_pipeline_key, mesh_pipeline_key);
@@ -2004,7 +2006,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
                 let stages = ShaderStageFlags::VERTEX | ShaderStageFlags::FRAGMENT;
                 render_pass.set_push_constants(stages, 0, primitive.settings)?;
-                render_pass.set_vertex_buffers(0, &[vertex_buffer.clone()], &[primitive.vertex_buffer_offset as u64]);
+                render_pass.set_vertex_buffers(0, &[vertex_buffer.clone()], &[primitive.vertex_buffer_offset]);
                 match primitive.index_buffer_offset {
                     Some(index_buffer_offset) => {
                         match primitive.mesh_pipeline_key.index_format.unwrap() {
