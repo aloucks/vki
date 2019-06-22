@@ -165,7 +165,10 @@ impl<T: 'static> App<T> {
 
         let surface = instance.create_surface(&vki::winit_surface_descriptor!(&window))?;
         let adapter = instance.get_adapter(AdapterOptions {
-            power_preference: PowerPreference::HighPerformance,
+            power_preference: match std::env::var("LOW_POWER").as_ref().map(|s| s.as_str()) {
+                Ok("1") | Ok("true") => PowerPreference::LowPower,
+                Ok(_) | Err(_) => PowerPreference::HighPerformance,
+            },
         })?;
         let device = adapter.create_device(DeviceDescriptor {
             surface_support: Some(&surface),
@@ -192,13 +195,22 @@ impl<T: 'static> App<T> {
         let camera = Camera::new(window_width, window_height);
         let window_mode = WindowMode::Windowed;
         let last_frame_time = Instant::now();
-        let max_fps = if cfg!(target_os = "linux") {
-            // Winit on X11 is eating events with eventloop-2.0.
-            // Limiting the FPS seems to help mitigate the issue.
-            println!("FIXME (Winit/X11): FPS Limit: 15");
-            15
-        } else {
-            60
+        let max_fps = match std::env::var("MAX_FPS") {
+            Ok(val) => val.parse().expect("Invalid MAX_FPS"),
+            Err(_) => {
+                if cfg!(target_os = "linux") {
+                    // Winit on X11 is eating events with eventloop-2.0.
+                    // Limiting the FPS seems to help mitigate the issue.
+                    let max_fps = 30;
+                    println!(
+                        "Limiting FPS: {} ({})",
+                        max_fps, "https://github.com/rust-windowing/winit/issues/865"
+                    );
+                    max_fps
+                } else {
+                    60
+                }
+            }
         };
 
         log::debug!("{:#?}", adapter);
