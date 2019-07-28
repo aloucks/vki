@@ -25,7 +25,7 @@ steps:
       rustup toolchain install stable
       rustup component add rustfmt --toolchain stable
     displayName: Configure rust
-  - script: |
+  - bash: |
       set -x
       rustc -Vv
       cargo -Vv
