@@ -25,7 +25,7 @@ use vki::{
     PushConstantRange, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, Sampler,
     SamplerDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp, SwapchainError,
-    TextureFormat, TextureView, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
+    TextureFormat, TextureView, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
 };
 
 const MAX_MORPH_TARGETS: usize = 2;
@@ -1746,98 +1746,84 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ),
             input_state: InputStateDescriptor {
                 index_format: mesh_pipeline_key.index_format.unwrap_or(IndexFormat::U16),
-                inputs: vec![
-                    VertexInputDescriptor {
+                vertex_buffers: vec![
+                    VertexBufferDescriptor {
                         input_slot: 0,
                         step_mode: InputStepMode::Vertex,
                         stride: std::mem::size_of::<Vertex>(),
+                        attributes: vec![
+                            VertexAttributeDescriptor {
+                                shader_location: 0,
+                                offset: offset_of!(Vertex, position),
+                                format: VertexFormat::Float3,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 1,
+                                offset: offset_of!(Vertex, normal),
+                                format: VertexFormat::Float3,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 2,
+                                offset: offset_of!(Vertex, tangent),
+                                format: VertexFormat::Float4,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 3,
+                                offset: offset_of!(Vertex, texcoord0),
+                                format: VertexFormat::Float2,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 4,
+                                offset: offset_of!(Vertex, texcoord1),
+                                format: VertexFormat::Float2,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 5,
+                                offset: offset_of!(Vertex, color),
+                                format: VertexFormat::Float4,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 6,
+                                offset: offset_of!(Vertex, joint),
+                                format: VertexFormat::UShort4,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 7,
+                                offset: offset_of!(Vertex, weight),
+                                format: VertexFormat::Float4,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 8,
+                                offset: offset_of!(Vertex, morph_position0),
+                                format: VertexFormat::Float3,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 9,
+                                offset: offset_of!(Vertex, morph_position1),
+                                format: VertexFormat::Float3,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 10,
+                                offset: offset_of!(Vertex, morph_normal0),
+                                format: VertexFormat::Float3,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 11,
+                                offset: offset_of!(Vertex, morph_normal1),
+                                format: VertexFormat::Float3,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 12,
+                                offset: offset_of!(Vertex, morph_tangent0),
+                                format: VertexFormat::Float3,
+                            },
+                            VertexAttributeDescriptor {
+                                shader_location: 13,
+                                offset: offset_of!(Vertex, morph_tangent1),
+                                format: VertexFormat::Float3,
+                            },
+                        ],
                     }
-                ],
-                attributes: vec![
-                    VertexAttributeDescriptor {
-                        shader_location: 0,
-                        offset: offset_of!(Vertex, position),
-                        format: VertexFormat::Float3,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 1,
-                        offset: offset_of!(Vertex, normal),
-                        format: VertexFormat::Float3,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 2,
-                        offset: offset_of!(Vertex, tangent),
-                        format: VertexFormat::Float4,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 3,
-                        offset: offset_of!(Vertex, texcoord0),
-                        format: VertexFormat::Float2,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 4,
-                        offset: offset_of!(Vertex, texcoord1),
-                        format: VertexFormat::Float2,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 5,
-                        offset: offset_of!(Vertex, color),
-                        format: VertexFormat::Float4,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 6,
-                        offset: offset_of!(Vertex, joint),
-                        format: VertexFormat::UShort4,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 7,
-                        offset: offset_of!(Vertex, weight),
-                        format: VertexFormat::Float4,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 8,
-                        offset: offset_of!(Vertex, morph_position0),
-                        format: VertexFormat::Float3,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 9,
-                        offset: offset_of!(Vertex, morph_position1),
-                        format: VertexFormat::Float3,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 10,
-                        offset: offset_of!(Vertex, morph_normal0),
-                        format: VertexFormat::Float3,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 11,
-                        offset: offset_of!(Vertex, morph_normal1),
-                        format: VertexFormat::Float3,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 12,
-                        offset: offset_of!(Vertex, morph_tangent0),
-                        format: VertexFormat::Float3,
-                        input_slot: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        shader_location: 13,
-                        offset: offset_of!(Vertex, morph_tangent1),
-                        format: VertexFormat::Float3,
-                        input_slot: 0,
-                    },
                 ],
             },
             sample_count: app.get_sample_count(),

@@ -798,25 +798,23 @@ pub enum VertexFormat {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct VertexAttributeDescriptor {
     pub shader_location: u32,
-    /// The index of the vertex buffer containing this attribute. See `RenderPassEncoder::set_vertex_buffers`.
-    pub input_slot: u32,
     pub offset: usize,
     pub format: VertexFormat,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct VertexInputDescriptor {
+#[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub struct VertexBufferDescriptor {
     /// The index of the vertex buffer containing these attributes. See `RenderPassEncoder::set_vertex_buffers`.
     pub input_slot: u32,
     pub stride: usize,
     pub step_mode: InputStepMode,
+    pub attributes: Vec<VertexAttributeDescriptor>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct InputStateDescriptor {
     pub index_format: IndexFormat,
-    pub attributes: Vec<VertexAttributeDescriptor>,
-    pub inputs: Vec<VertexInputDescriptor>,
+    pub vertex_buffers: Vec<VertexBufferDescriptor>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]

@@ -17,7 +17,7 @@ use vki::{
     PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
     RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor,
     RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp,
-    SwapchainError, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
+    SwapchainError, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
 };
 
 #[repr(C)]
@@ -175,25 +175,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }),
         input_state: InputStateDescriptor {
             index_format: IndexFormat::U16,
-            inputs: vec![
-                VertexInputDescriptor {
+            vertex_buffers: vec![
+                VertexBufferDescriptor {
                     input_slot: 0,
                     stride: util::byte_stride(&vertices),
                     step_mode: InputStepMode::Vertex,
-                }
-            ],
-            attributes: vec![
-                VertexAttributeDescriptor {
-                    format: VertexFormat::Float3,
-                    offset: offset_of!(PositionColor, position),
-                    input_slot: 0,
-                    shader_location: 0,
-                },
-                VertexAttributeDescriptor {
-                    format: VertexFormat::Float4,
-                    offset: offset_of!(PositionColor, color),
-                    input_slot: 0,
-                    shader_location: 1,
+                    attributes: vec![
+                        VertexAttributeDescriptor {
+                            format: VertexFormat::Float3,
+                            offset: offset_of!(PositionColor, position),
+                            shader_location: 0,
+                        },
+                        VertexAttributeDescriptor {
+                            format: VertexFormat::Float4,
+                            offset: offset_of!(PositionColor, color),
+                            shader_location: 1,
+                        }
+                    ],
                 }
             ],
         },

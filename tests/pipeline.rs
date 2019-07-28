@@ -13,7 +13,7 @@ use vki::{
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
     SamplerDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilOperation, StencilStateFaceDescriptor, StoreOp,
     Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView,
-    VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
+    VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
 };
 
 pub mod support;
@@ -173,26 +173,24 @@ fn create_render_pipeline() {
             },
             input_state: InputStateDescriptor {
                 index_format: IndexFormat::U16,
-                inputs: vec![
-                    VertexInputDescriptor {
+                vertex_buffers: vec![
+                    VertexBufferDescriptor {
                         input_slot: 0,
                         step_mode: InputStepMode::Vertex,
                         stride: std::mem::size_of::<Vertex>(),
+                        attributes: vec![
+                            VertexAttributeDescriptor {
+                                format: VertexFormat::Float3,
+                                offset: offset_of!(Vertex, position),
+                                shader_location: 0,
+                            },
+                            VertexAttributeDescriptor {
+                                format: VertexFormat::Float3,
+                                offset: offset_of!(Vertex, normal),
+                                shader_location: 1,
+                            },
+                        ],
                     }
-                ],
-                attributes: vec![
-                    VertexAttributeDescriptor {
-                        input_slot: 0,
-                        format: VertexFormat::Float3,
-                        offset: offset_of!(Vertex, position),
-                        shader_location: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        input_slot: 0,
-                        format: VertexFormat::Float3,
-                        offset: offset_of!(Vertex, normal),
-                        shader_location: 1,
-                    },
                 ],
             },
             color_states: vec![
@@ -305,26 +303,24 @@ fn create_multi_sample_render_pipeline() {
             },
             input_state: InputStateDescriptor {
                 index_format: IndexFormat::U16,
-                inputs: vec![
-                    VertexInputDescriptor {
+                vertex_buffers: vec![
+                    VertexBufferDescriptor {
                         input_slot: 0,
                         step_mode: InputStepMode::Vertex,
                         stride: std::mem::size_of::<Vertex>(),
+                        attributes: vec![
+                            VertexAttributeDescriptor {
+                                format: VertexFormat::Float3,
+                                offset: offset_of!(Vertex, position),
+                                shader_location: 0,
+                            },
+                            VertexAttributeDescriptor {
+                                format: VertexFormat::Float3,
+                                offset: offset_of!(Vertex, normal),
+                                shader_location: 1,
+                            },
+                        ],
                     }
-                ],
-                attributes: vec![
-                    VertexAttributeDescriptor {
-                        input_slot: 0,
-                        format: VertexFormat::Float3,
-                        offset: offset_of!(Vertex, position),
-                        shader_location: 0,
-                    },
-                    VertexAttributeDescriptor {
-                        input_slot: 0,
-                        format: VertexFormat::Float3,
-                        offset: offset_of!(Vertex, normal),
-                        shader_location: 1,
-                    },
                 ],
             },
             color_states: vec![

@@ -22,7 +22,7 @@ use vki::{
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, SamplerDescriptor,
     ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp, SwapchainError, TextureBlitView,
     TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor,
-    VertexFormat, VertexInputDescriptor,
+    VertexBufferDescriptor, VertexFormat,
 };
 
 #[repr(C)]
@@ -275,25 +275,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }),
         input_state: InputStateDescriptor {
             index_format: IndexFormat::U16,
-            inputs: vec![
-                VertexInputDescriptor {
+            vertex_buffers: vec![
+                VertexBufferDescriptor {
                     input_slot: 0,
                     stride: util::byte_stride(&vertices),
                     step_mode: InputStepMode::Vertex,
-                }
-            ],
-            attributes: vec![
-                VertexAttributeDescriptor {
-                    format: VertexFormat::Float3,
-                    offset: offset_of!(PositionTexcoord, position),
-                    input_slot: 0,
-                    shader_location: 0,
-                },
-                VertexAttributeDescriptor {
-                    format: VertexFormat::Float2,
-                    offset: offset_of!(PositionTexcoord, texcoord),
-                    input_slot: 0,
-                    shader_location: 1,
+                    attributes: vec![
+                        VertexAttributeDescriptor {
+                            format: VertexFormat::Float3,
+                            offset: offset_of!(PositionTexcoord, position),
+                            shader_location: 0,
+                        },
+                        VertexAttributeDescriptor {
+                            format: VertexFormat::Float4,
+                            offset: offset_of!(PositionTexcoord, texcoord),
+                            shader_location: 1,
+                        }
+                    ],
                 }
             ],
         },

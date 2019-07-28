@@ -16,7 +16,7 @@ use vki::{
     FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor,
     PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
     RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainError,
-    TextureFormat, VertexAttributeDescriptor, VertexFormat, VertexInputDescriptor,
+    TextureFormat, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
 };
 
 use rand::Rng;
@@ -305,19 +305,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         depth_stencil_state: None,
         input_state: InputStateDescriptor {
             index_format: IndexFormat::U16,
-            inputs: vec![
-                VertexInputDescriptor {
+            vertex_buffers: vec![
+                VertexBufferDescriptor {
                     input_slot: 0,
                     stride: util::byte_stride(&position_data),
                     step_mode: InputStepMode::Vertex,
-                }
-            ],
-            attributes: vec![
-                VertexAttributeDescriptor {
-                    format: VertexFormat::Float4,
-                    offset: 0,
-                    input_slot: 0,
-                    shader_location: 0,
+                    attributes: vec![
+                        VertexAttributeDescriptor {
+                            format: VertexFormat::Float4,
+                            offset: 0,
+                            shader_location: 0,
+                        }
+                    ],
                 }
             ],
         },

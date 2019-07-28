@@ -14,7 +14,7 @@ use crate::{
     ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, FrontFace, InputStepMode, LoadOp, PipelineLayout,
     PipelineLayoutDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPipeline,
     RenderPipelineDescriptor, StencilOperation, StencilStateFaceDescriptor, TextureFormat, VertexAttributeDescriptor,
-    VertexFormat, VertexInputDescriptor,
+    VertexBufferDescriptor, VertexFormat,
 };
 
 pub const MAX_PUSH_CONSTANTS_SIZE: usize = 128;
@@ -373,18 +373,19 @@ pub fn input_rate(mode: InputStepMode) -> vk::VertexInputRate {
 }
 
 pub fn vertex_input_attribute_description(
+    input_slot: u32,
     descriptor: &VertexAttributeDescriptor,
 ) -> vk::VertexInputAttributeDescription {
     use std::convert::TryFrom;
     vk::VertexInputAttributeDescription {
         format: vertex_format(descriptor.format),
-        binding: descriptor.input_slot,
+        binding: input_slot,
         offset: u32::try_from(descriptor.offset).expect("offset > u32::MAX"),
         location: descriptor.shader_location,
     }
 }
 
-pub fn vertex_input_binding_description(descriptor: &VertexInputDescriptor) -> vk::VertexInputBindingDescription {
+pub fn vertex_input_binding_description(descriptor: &VertexBufferDescriptor) -> vk::VertexInputBindingDescription {
     vk::VertexInputBindingDescription {
         binding: descriptor.input_slot,
         stride: descriptor.stride as u32,
@@ -482,14 +483,15 @@ impl RenderPipelineInner {
 
         let vertex_attribute_descriptions: Vec<vk::VertexInputAttributeDescription> = descriptor
             .input_state
-            .attributes
+            .vertex_buffers
             .iter()
-            .map(vertex_input_attribute_description)
+            .flat_map(|vb| vb.attributes.iter().map(move |a| (vb.input_slot, a)))
+            .map(|(input_slot, a)| vertex_input_attribute_description(input_slot, a))
             .collect();
 
         let vertex_binding_descriptions: Vec<vk::VertexInputBindingDescription> = descriptor
             .input_state
-            .inputs
+            .vertex_buffers
             .iter()
             .map(vertex_input_binding_description)
             .collect();

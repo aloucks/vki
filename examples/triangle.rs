@@ -8,8 +8,8 @@ use vki::{
     InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
     PowerPreference, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
     RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp,
-    SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor, VertexFormat,
-    VertexInputDescriptor,
+    SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor,
+    VertexBufferDescriptor, VertexFormat,
 };
 
 use winit::dpi::LogicalSize;
@@ -182,25 +182,23 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
         input_state: InputStateDescriptor {
             index_format: IndexFormat::U16,
-            inputs: vec![VertexInputDescriptor {
+            vertex_buffers: vec![VertexBufferDescriptor {
                 input_slot: 0,
                 step_mode: InputStepMode::Vertex,
                 stride: std::mem::size_of::<Vertex>(),
+                attributes: vec![
+                    VertexAttributeDescriptor {
+                        format: VertexFormat::Float3,
+                        offset: offset_of!(Vertex, position),
+                        shader_location: 0,
+                    },
+                    VertexAttributeDescriptor {
+                        format: VertexFormat::Float3,
+                        offset: offset_of!(Vertex, color),
+                        shader_location: 1,
+                    },
+                ],
             }],
-            attributes: vec![
-                VertexAttributeDescriptor {
-                    input_slot: 0,
-                    format: VertexFormat::Float3,
-                    offset: offset_of!(Vertex, position),
-                    shader_location: 0,
-                },
-                VertexAttributeDescriptor {
-                    input_slot: 0,
-                    format: VertexFormat::Float3,
-                    offset: offset_of!(Vertex, color),
-                    shader_location: 1,
-                },
-            ],
         },
         color_states: vec![ColorStateDescriptor {
             format: swapchain_format,
