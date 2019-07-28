@@ -1,7 +1,7 @@
 steps:
   - bash: |
       set -e -x
-      cargo fmt --all -- --check
+      cargo +stable fmt --all -- --check
     displayName: Check formatting
   - bash: |
       set -e -x
