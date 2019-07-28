@@ -29,5 +29,5 @@ steps:
       set -x
       rustc -Vv
       cargo -Vv
-      rustfmt -V
+      cargo +stable fmt --version
     displayName: Query rustc, cargo, and rustfmt versions
