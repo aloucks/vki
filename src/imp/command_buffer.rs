@@ -596,7 +596,7 @@ impl CommandBufferInner {
                 Command::SetIndexBuffer { buffer, offset } => {
                     // TODO: set_index_buffer / set_pipeline error handling
                     let pipeline = last_pipeline.expect("RenderPass: set_index_buffer called before set_pipeline");
-                    let index_type = index_type(pipeline.descriptor.input_state.index_format);
+                    let index_type = index_type(pipeline.index_format);
                     let offset = vk::DeviceSize::from(*offset);
                     unsafe {
                         self.device

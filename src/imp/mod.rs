@@ -35,8 +35,8 @@ mod vec;
 pub use crate::imp::debug::validate;
 
 use crate::{
-    AdapterOptions, BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions, Limits,
-    PipelineLayoutDescriptor, RenderPipelineDescriptor, SamplerDescriptor, TextureDescriptor, TextureUsageFlags,
+    AdapterOptions, BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions,
+    IndexFormat, Limits, PipelineLayoutDescriptor, SamplerDescriptor, TextureDescriptor, TextureUsageFlags,
     TextureViewDescriptor,
 };
 
@@ -316,7 +316,7 @@ handle_traits!(ComputePipelineInner);
 pub struct RenderPipelineInner {
     handle: vk::Pipeline,
     layout: Arc<PipelineLayoutInner>,
-    descriptor: RenderPipelineDescriptor,
+    index_format: IndexFormat,
 }
 
 handle_traits!(RenderPipelineInner);

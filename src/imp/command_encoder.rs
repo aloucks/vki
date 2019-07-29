@@ -128,7 +128,6 @@ impl CommandEncoderInner {
         }
     }
 
-    /// TODO: return an error instead of panic when there's a binding mismatch
     fn set_bind_group(
         &mut self,
         index: u32,
@@ -138,8 +137,16 @@ impl CommandEncoderInner {
     ) {
         let layout_bindings = &bind_group.inner.layout.bindings;
         for (index, binding) in bind_group.inner.bindings.iter().enumerate() {
-            let layout_binding = binding::find_layout_binding(index, binding.binding, &layout_bindings)
-                .unwrap_or_else(|| panic!("layout binding not found for bind_group binding: {}", binding.binding));
+            // TODO: Verify that these panics can not happen due to the checks in BindGroupInner::new.
+            //       If they can, these should return a Result instead.
+
+            let layout_binding =
+                binding::find_layout_binding(index, binding.binding, &layout_bindings).unwrap_or_else(|| {
+                    unreachable!(
+                        "BindGroupLayoutBinding not found for BindGroup (binding: {}, index: {})",
+                        binding.binding, index
+                    )
+                });
 
             match layout_binding.binding_type {
                 BindingType::UniformBuffer | BindingType::DynamicUniformBuffer => {

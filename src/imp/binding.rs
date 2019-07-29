@@ -173,8 +173,13 @@ impl BindGroupInner {
         let mut num_writes = 0;
 
         for (index, binding) in descriptor.bindings.iter().enumerate() {
-            let layout_binding = find_layout_binding(index, binding.binding, &layout_bindings)
-                .unwrap_or_else(|| panic!("layout binding not found for bind_group binding: {}", binding.binding));
+            let layout_binding = find_layout_binding(index, binding.binding, &layout_bindings).ok_or_else(|| {
+                let msg = format!(
+                    "BindGroupLayout mismatch: BindGroupLayoutBinding not found (binding: {}, index: {})",
+                    binding.binding, index
+                );
+                Error::from(msg)
+            })?;
 
             let write = &mut writes[num_writes];
             write.dst_set = bind_group.handle;
@@ -208,11 +213,15 @@ impl BindGroupInner {
                     write.p_texel_buffer_view = &texel_buffer_views[num_writes];
                 }
                 _ => {
-                    // TODO
-                    panic!(
-                        "binding mismatch: binding.binding_type: {:?}, binding.resource: {:?}",
-                        layout_binding.binding_type, binding.resource
-                    );
+                    let resource_type = match binding.resource {
+                        BindingResource::TextureView(_) => "TextureView",
+                        BindingResource::Sampler(_) => "Sampler",
+                        BindingResource::Buffer(_, _) => "Buffer",
+                        BindingResource::BufferView(_) => "BufferView",
+                    };
+                    let msg = format!("BindingType is not valid for the BindingResource (binding: {}, index: {}): BindingType: {:?}, BindingResource: {:?}",
+                          binding.binding, index, layout_binding.binding_type, resource_type);
+                    return Err(Error::from(msg));
                 }
             }
 

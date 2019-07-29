@@ -1,6 +1,7 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
+use std::convert::TryFrom;
 use std::ffi::CString;
 use std::sync::Arc;
 
@@ -376,7 +377,6 @@ pub fn vertex_input_attribute_description(
     input_slot: u32,
     descriptor: &VertexAttributeDescriptor,
 ) -> vk::VertexInputAttributeDescription {
-    use std::convert::TryFrom;
     vk::VertexInputAttributeDescription {
         format: vertex_format(descriptor.format),
         binding: input_slot,
@@ -388,7 +388,7 @@ pub fn vertex_input_attribute_description(
 pub fn vertex_input_binding_description(descriptor: &VertexBufferDescriptor) -> vk::VertexInputBindingDescription {
     vk::VertexInputBindingDescription {
         binding: descriptor.input_slot,
-        stride: descriptor.stride as u32,
+        stride: u32::try_from(descriptor.stride).expect("stride > u32::MAX"),
         input_rate: input_rate(descriptor.step_mode),
     }
 }
@@ -578,7 +578,7 @@ impl RenderPipelineInner {
         Ok(RenderPipelineInner {
             handle,
             layout,
-            descriptor,
+            index_format: descriptor.input_state.index_format,
         })
     }
 }
