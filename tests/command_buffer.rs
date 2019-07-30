@@ -15,9 +15,7 @@ fn copy_buffer_with_compute_shader() {
         let (instance, _adapter, device) = support::init()?;
 
         let compute_module = device.create_shader_module(&ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!(
-                "shaders/command_buffer.copy_buffer_with_compute_shader.comp.spv"
-            )),
+            code: include_bytes!("shaders/command_buffer.copy_buffer_with_compute_shader.comp.spv"),
         })?;
 
         let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
@@ -118,7 +116,7 @@ fn push_constants() {
         let data_byte_size = data_byte_size;
 
         let compute_module = device.create_shader_module(&ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("shaders/command_buffer.push_constants.comp.spv")),
+            code: include_bytes!("shaders/command_buffer.push_constants.comp.spv"),
         })?;
 
         let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
@@ -224,9 +222,7 @@ fn dispatch_indirect() {
         let (instance, _adapter, device) = support::init()?;
 
         let compute_module = device.create_shader_module(&ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!(
-                "shaders/command_buffer.copy_buffer_with_compute_shader.comp.spv"
-            )),
+            code: include_bytes!("shaders/command_buffer.copy_buffer_with_compute_shader.comp.spv"),
         })?;
 
         let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {

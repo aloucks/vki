@@ -68,7 +68,7 @@ fn create_compute_pipeline() {
         let (instance, _adapter, device) = support::init()?;
 
         let shader_module_descriptor = ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("shaders/pipeline.comp.spv")),
+            code: include_bytes!("shaders/pipeline.comp.spv"),
         };
         let shader_module = device.create_shader_module(&shader_module_descriptor)?;
 
@@ -117,11 +117,11 @@ fn create_render_pipeline() {
         let (instance, _adapter, device) = support::init()?;
 
         let vertex_shader_module = device.create_shader_module(&ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("shaders/pipeline.vert.spv")),
+            code: include_bytes!("shaders/pipeline.vert.spv"),
         })?;
 
         let fragment_shader_module = device.create_shader_module(&ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("shaders/pipeline.frag.spv")),
+            code: include_bytes!("shaders/pipeline.frag.spv"),
         })?;
 
         #[rustfmt::skip]
@@ -232,11 +232,11 @@ fn create_multi_sample_render_pipeline() {
         let (instance, _adapter, device) = support::init()?;
 
         let vertex_shader_module = device.create_shader_module(&ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("shaders/pipeline.vert.spv")),
+            code: include_bytes!("shaders/pipeline.vert.spv"),
         })?;
 
         let fragment_shader_module = device.create_shader_module(&ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("shaders/pipeline.frag.spv")),
+            code: include_bytes!("shaders/pipeline.frag.spv"),
         })?;
 
         #[rustfmt::skip]
@@ -421,7 +421,7 @@ fn set_bind_group() {
         let (instance, _adapter, device) = support::init()?;
 
         let shader_module_descriptor = ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("shaders/pipeline.set_bind_group.comp.spv")),
+            code: include_bytes!("shaders/pipeline.set_bind_group.comp.spv"),
         };
         let shader_module = device.create_shader_module(&shader_module_descriptor)?;
 
@@ -565,7 +565,7 @@ fn set_bind_group_out_of_order() {
         let (instance, _adapter, device) = support::init()?;
 
         let shader_module_descriptor = ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("shaders/pipeline.set_bind_group.comp.spv")),
+            code: include_bytes!("shaders/pipeline.set_bind_group.comp.spv"),
         };
         let shader_module = device.create_shader_module(&shader_module_descriptor)?;
 
@@ -711,7 +711,7 @@ fn set_bind_group_dynamic_offsets() {
         let (instance, _adapter, device) = support::init()?;
 
         let shader_module_descriptor = ShaderModuleDescriptor {
-            code: Cow::Borrowed(include_bytes!("shaders/pipeline.set_bind_group.comp.spv")),
+            code: include_bytes!("shaders/pipeline.set_bind_group.comp.spv"),
         };
         let shader_module = device.create_shader_module(&shader_module_descriptor)?;
 

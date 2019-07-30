@@ -66,11 +66,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     window.set_visible(true);
 
     let vertex_shader = device.create_shader_module(&ShaderModuleDescriptor {
-        code: Cow::Borrowed(include_bytes!("shaders/triangle.vert.spv")),
+        code: include_bytes!("shaders/triangle.vert.spv"),
     })?;
 
     let fragment_shader = device.create_shader_module(&ShaderModuleDescriptor {
-        code: Cow::Borrowed(include_bytes!("shaders/triangle.frag.spv")),
+        code: include_bytes!("shaders/triangle.frag.spv"),
     })?;
 
     let bind_group_layout = device.create_bind_group_layout(&BindGroupLayoutDescriptor {
