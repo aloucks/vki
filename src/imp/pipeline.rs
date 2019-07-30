@@ -48,7 +48,7 @@ impl PipelineLayoutInner {
         Ok(PipelineLayoutInner {
             handle,
             device,
-            descriptor,
+            bind_group_layouts: descriptor.bind_group_layouts.to_vec(),
         })
     }
 }
