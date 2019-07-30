@@ -121,8 +121,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let bind_group = app.device.create_bind_group(&BindGroupDescriptor {
-        layout: bind_group_layout.clone(),
-        bindings: vec![
+        layout: &bind_group_layout,
+        bindings: &[
             BindGroupBinding {
                 binding: 0,
                 resource: BindingResource::Buffer(uniform_buffer.clone(), 0..util::byte_length(&uniforms)),
@@ -131,8 +131,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     let pipeline_layout = app.device.create_pipeline_layout(&PipelineLayoutDescriptor {
-        bind_group_layouts: vec![bind_group_layout],
-        push_constant_ranges: vec![],
+        bind_group_layouts: &[bind_group_layout],
+        push_constant_ranges: &[],
     })?;
 
     let vs = app.device.create_shader_module(&ShaderModuleDescriptor {

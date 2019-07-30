@@ -52,8 +52,8 @@ fn create_pipeline_layout() {
         let bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
-            bind_group_layouts: vec![bind_group_layout],
-            push_constant_ranges: vec![],
+            bind_group_layouts: &[bind_group_layout],
+            push_constant_ranges: &[],
         };
 
         let _pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor)?;
@@ -89,8 +89,8 @@ fn create_compute_pipeline() {
         let bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
-            bind_group_layouts: vec![bind_group_layout],
-            push_constant_ranges: vec![],
+            bind_group_layouts: &[bind_group_layout],
+            push_constant_ranges: &[],
         };
 
         let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor)?;
@@ -136,8 +136,8 @@ fn create_render_pipeline() {
         })?;
 
         let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
-            bind_group_layouts: vec![bind_group_layout],
-            push_constant_ranges: vec![],
+            bind_group_layouts: &[bind_group_layout],
+            push_constant_ranges: &[],
         })?;
 
         #[repr(C)]
@@ -258,16 +258,16 @@ fn create_multi_sample_render_pipeline() {
         })?;
 
         let bind_group = device.create_bind_group(&BindGroupDescriptor {
-            layout: bind_group_layout.clone(),
-            bindings: vec![BindGroupBinding {
+            layout: &bind_group_layout,
+            bindings: &[BindGroupBinding {
                 binding: 0,
                 resource: BindingResource::Buffer(uniform_buffer, 0..uniform_buffer_size),
             }],
         })?;
 
         let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
-            bind_group_layouts: vec![bind_group_layout],
-            push_constant_ranges: vec![],
+            bind_group_layouts: &[bind_group_layout],
+            push_constant_ranges: &[],
         })?;
 
         #[repr(C)]
@@ -457,8 +457,8 @@ fn set_bind_group() {
         let bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
-            bind_group_layouts: vec![bind_group_layout.clone()],
-            push_constant_ranges: vec![],
+            bind_group_layouts: &[bind_group_layout.clone()],
+            push_constant_ranges: &[],
         };
 
         let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor)?;
@@ -519,8 +519,8 @@ fn set_bind_group() {
         let texture_view = texture.create_default_view()?;
 
         let bind_group = device.create_bind_group(&BindGroupDescriptor {
-            layout: bind_group_layout,
-            bindings: vec![
+            layout: &bind_group_layout,
+            bindings: &[
                 BindGroupBinding {
                     binding: 0,
                     resource: BindingResource::Buffer(uniform_buffer, 0..1024),
@@ -601,8 +601,8 @@ fn set_bind_group_out_of_order() {
         let bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
-            bind_group_layouts: vec![bind_group_layout.clone()],
-            push_constant_ranges: vec![],
+            bind_group_layouts: &[bind_group_layout.clone()],
+            push_constant_ranges: &[],
         };
 
         let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor)?;
@@ -663,10 +663,10 @@ fn set_bind_group_out_of_order() {
         let texture_view = texture.create_default_view()?;
 
         let bind_group = device.create_bind_group(&BindGroupDescriptor {
-            layout: bind_group_layout,
+            layout: &bind_group_layout,
             // Note that the order of the array elements does not match the layout,
             // but the `binding` values correspond to the correct layout bindings.
-            bindings: vec![
+            bindings: &[
                 BindGroupBinding {
                     binding: 4,
                     resource: BindingResource::TextureView(texture_view),
@@ -747,8 +747,8 @@ fn set_bind_group_dynamic_offsets() {
         let bind_group_layout = device.create_bind_group_layout(&bind_group_layout_descriptor)?;
 
         let pipeline_layout_descriptor = PipelineLayoutDescriptor {
-            bind_group_layouts: vec![bind_group_layout.clone()],
-            push_constant_ranges: vec![],
+            bind_group_layouts: &[bind_group_layout.clone()],
+            push_constant_ranges: &[],
         };
 
         let pipeline_layout = device.create_pipeline_layout(&pipeline_layout_descriptor)?;
@@ -809,8 +809,8 @@ fn set_bind_group_dynamic_offsets() {
         let texture_view = texture.create_default_view()?;
 
         let bind_group = device.create_bind_group(&BindGroupDescriptor {
-            layout: bind_group_layout,
-            bindings: vec![
+            layout: &bind_group_layout,
+            bindings: &[
                 BindGroupBinding {
                     binding: 0,
                     resource: BindingResource::Buffer(uniform_buffer, 0..1024),

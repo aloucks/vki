@@ -82,8 +82,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
-        bind_group_layouts: vec![bind_group_layout.clone()],
-        push_constant_ranges: vec![],
+        bind_group_layouts: &[bind_group_layout.clone()],
+        push_constant_ranges: &[],
     })?;
 
     #[repr(C)]
@@ -116,8 +116,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let bind_group = device.create_bind_group(&BindGroupDescriptor {
-        layout: bind_group_layout.clone(),
-        bindings: vec![BindGroupBinding {
+        layout: &bind_group_layout,
+        bindings: &[BindGroupBinding {
             binding: 0,
             resource: BindingResource::Buffer(uniform_buffer.clone(), 0..uniforms_size_bytes),
         }],

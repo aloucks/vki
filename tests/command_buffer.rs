@@ -34,8 +34,8 @@ fn copy_buffer_with_compute_shader() {
         })?;
 
         let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
-            bind_group_layouts: vec![bind_group_layout.clone()],
-            push_constant_ranges: vec![],
+            bind_group_layouts: &[bind_group_layout.clone()],
+            push_constant_ranges: &[],
         })?;
 
         let pipeline = device.create_compute_pipeline(&ComputePipelineDescriptor {
@@ -70,8 +70,8 @@ fn copy_buffer_with_compute_shader() {
         })?;
 
         let bind_group = device.create_bind_group(&BindGroupDescriptor {
-            layout: bind_group_layout,
-            bindings: vec![
+            layout: &bind_group_layout,
+            bindings: &[
                 BindGroupBinding {
                     binding: 0,
                     resource: BindingResource::Buffer(write_buffer_mapped.unmap(), 0..data_byte_size),
@@ -128,8 +128,8 @@ fn push_constants() {
         })?;
 
         let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
-            bind_group_layouts: vec![bind_group_layout.clone()],
-            push_constant_ranges: vec![PushConstantRange {
+            bind_group_layouts: &[bind_group_layout.clone()],
+            push_constant_ranges: &[PushConstantRange {
                 offset: 0,
                 stages: ShaderStageFlags::COMPUTE,
                 size: data_byte_size,
@@ -152,8 +152,8 @@ fn push_constants() {
         })?;
 
         let bind_group = device.create_bind_group(&BindGroupDescriptor {
-            layout: bind_group_layout,
-            bindings: vec![BindGroupBinding {
+            layout: &bind_group_layout,
+            bindings: &[BindGroupBinding {
                 binding: 0,
                 resource: BindingResource::Buffer(read_buffer.clone(), 0..data_byte_size),
             }],
@@ -241,8 +241,8 @@ fn dispatch_indirect() {
         })?;
 
         let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
-            bind_group_layouts: vec![bind_group_layout.clone()],
-            push_constant_ranges: vec![],
+            bind_group_layouts: &[bind_group_layout.clone()],
+            push_constant_ranges: &[],
         })?;
 
         let pipeline = device.create_compute_pipeline(&ComputePipelineDescriptor {
@@ -277,8 +277,8 @@ fn dispatch_indirect() {
         })?;
 
         let bind_group = device.create_bind_group(&BindGroupDescriptor {
-            layout: bind_group_layout,
-            bindings: vec![
+            layout: &bind_group_layout,
+            bindings: &[
                 BindGroupBinding {
                     binding: 0,
                     resource: BindingResource::Buffer(write_buffer_mapped.unmap(), 0..data_byte_size),

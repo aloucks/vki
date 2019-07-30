@@ -515,9 +515,9 @@ pub struct BindGroupBinding {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct BindGroupDescriptor {
-    pub layout: BindGroupLayout,
-    pub bindings: Vec<BindGroupBinding>,
+pub struct BindGroupDescriptor<'a> {
+    pub layout: &'a BindGroupLayout,
+    pub bindings: &'a [BindGroupBinding],
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
@@ -526,9 +526,9 @@ pub struct BindGroup {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct PipelineLayoutDescriptor {
-    pub bind_group_layouts: Vec<BindGroupLayout>,
-    pub push_constant_ranges: Vec<PushConstantRange>,
+pub struct PipelineLayoutDescriptor<'a> {
+    pub bind_group_layouts: &'a [BindGroupLayout],
+    pub push_constant_ranges: &'a [PushConstantRange],
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]

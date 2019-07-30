@@ -208,8 +208,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let compute_bind_group = app.device.create_bind_group(&BindGroupDescriptor {
-        layout: compute_bind_group_layout.clone(),
-        bindings: vec![
+        layout: &compute_bind_group_layout,
+        bindings: &[
             BindGroupBinding {
                 binding: 0,
                 resource: BindingResource::BufferView(velocity_buffer_view),
@@ -238,8 +238,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let render_bind_group = app.device.create_bind_group(&BindGroupDescriptor {
-        layout: render_bind_group_layout.clone(),
-        bindings: vec![
+        layout: &render_bind_group_layout,
+        bindings: &[
             BindGroupBinding {
                 binding: 0,
                 resource: BindingResource::Buffer(mvp_buffer.clone(), 0..util::byte_length(&mvp_block_data)),
@@ -248,13 +248,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     let compute_pipeline_layout = app.device.create_pipeline_layout(&PipelineLayoutDescriptor {
-        bind_group_layouts: vec![compute_bind_group_layout],
-        push_constant_ranges: vec![],
+        bind_group_layouts: &[compute_bind_group_layout],
+        push_constant_ranges: &[],
     })?;
 
     let render_pipeline_layout = app.device.create_pipeline_layout(&PipelineLayoutDescriptor {
-        bind_group_layouts: vec![render_bind_group_layout],
-        push_constant_ranges: vec![],
+        bind_group_layouts: &[render_bind_group_layout],
+        push_constant_ranges: &[],
     })?;
 
     let vs = app.device.create_shader_module(&ShaderModuleDescriptor {

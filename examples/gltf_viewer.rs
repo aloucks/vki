@@ -1568,8 +1568,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Creating camera and light bind group (0)");
     #[rustfmt::skip]
     let bind_group_0 = app.device.create_bind_group(&BindGroupDescriptor {
-        layout: bind_group_0_layout.clone(),
-        bindings: vec![
+        layout: &bind_group_0_layout,
+        bindings: &[
             BindGroupBinding {
                 binding: 0,
                 resource: BindingResource::Buffer(
@@ -1584,8 +1584,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     println!("Creating material bind groups (1): {}", materials.len());
     for material in materials.iter() {
-        let mut bindings = Vec::with_capacity(9);
-        bindings.push(BindGroupBinding {
+        let mut bind_group_1_bindings = Vec::with_capacity(9);
+        bind_group_1_bindings.push(BindGroupBinding {
             binding: 0,
             resource: BindingResource::Buffer(
                 material_settings_buffer.clone(),
@@ -1594,11 +1594,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
 
         let mut add_texture_sampler = |sampler_binding: u32, texture_binding: u32, texture_sampler: &TextureSampler| {
-            bindings.push(BindGroupBinding {
+            bind_group_1_bindings.push(BindGroupBinding {
                 binding: sampler_binding,
                 resource: BindingResource::Sampler(texture_sampler.sampler.clone()),
             });
-            bindings.push(BindGroupBinding {
+            bind_group_1_bindings.push(BindGroupBinding {
                 binding: texture_binding,
                 resource: BindingResource::TextureView(texture_sampler.view.clone()),
             });
@@ -1652,16 +1652,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
 
         bind_group_1.push(app.device.create_bind_group(&BindGroupDescriptor {
-            layout: bind_group_1_layout.clone(),
-            bindings,
+            layout: &bind_group_1_layout,
+            bindings: &bind_group_1_bindings,
         })?);
     }
 
     println!("Creating mesh and skin bind group (2)");
     #[rustfmt::skip]
     let bind_group_2 = app.device.create_bind_group(&BindGroupDescriptor {
-        layout: bind_group_2_layout.clone(),
-        bindings: vec![
+        layout: &bind_group_2_layout,
+        bindings: &[
             BindGroupBinding {
                 binding: 0,
                 resource: BindingResource::Buffer(
@@ -1686,12 +1686,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
 
     let render_pipeline_layout = app.device.create_pipeline_layout(&PipelineLayoutDescriptor {
-        bind_group_layouts: vec![
+        bind_group_layouts: &[
             bind_group_0_layout.clone(),
             bind_group_1_layout.clone(),
             bind_group_2_layout.clone(),
         ],
-        push_constant_ranges: vec![push_constant_range],
+        push_constant_ranges: &[push_constant_range],
     })?;
 
     let mut pipelines = HashMap::with_capacity(pipeline_keys.len());
