@@ -1697,11 +1697,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut pipelines = HashMap::with_capacity(pipeline_keys.len());
 
     let vs = app.device.create_shader_module(ShaderModuleDescriptor {
-        code: Cow::Borrowed(include_bytes!("shaders/gltf_viewer.vert.spv")),
+        code: include_bytes!("shaders/gltf_viewer.vert.spv"),
     })?;
 
     let fs = app.device.create_shader_module(ShaderModuleDescriptor {
-        code: Cow::Borrowed(include_bytes!("shaders/gltf_viewer.frag.spv")),
+        code: include_bytes!("shaders/gltf_viewer.frag.spv"),
     })?;
 
     println!("Creating pipelines: {}", pipeline_keys.len());

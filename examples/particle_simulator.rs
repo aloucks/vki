@@ -258,15 +258,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     let vs = app.device.create_shader_module(ShaderModuleDescriptor {
-        code: Cow::Borrowed(include_bytes!("shaders/particle_simulator.vert.spv")),
+        code: include_bytes!("shaders/particle_simulator.vert.spv"),
     })?;
 
     let fs = app.device.create_shader_module(ShaderModuleDescriptor {
-        code: Cow::Borrowed(include_bytes!("shaders/particle_simulator.frag.spv")),
+        code: include_bytes!("shaders/particle_simulator.frag.spv"),
     })?;
 
     let cs = app.device.create_shader_module(ShaderModuleDescriptor {
-        code: Cow::Borrowed(include_bytes!("shaders/particle_simulator.comp.spv")),
+        code: include_bytes!("shaders/particle_simulator.comp.spv"),
     })?;
 
     let compute_pipeline = app.device.create_compute_pipeline(ComputePipelineDescriptor {
