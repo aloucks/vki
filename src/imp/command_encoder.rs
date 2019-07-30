@@ -135,7 +135,7 @@ impl CommandEncoderInner {
         dynamic_offsets: Option<&[usize]>,
         usage_tracker: &mut PassResourceUsageTracker,
     ) {
-        let layout_bindings = &bind_group.inner.layout.bindings;
+        let layout_bindings = &bind_group.inner.layout.layout_bindings;
         for (index, binding) in bind_group.inner.bindings.iter().enumerate() {
             // TODO: Verify that these panics can not happen due to the checks in BindGroupInner::new.
             //       If they can, these should return a Result instead.
