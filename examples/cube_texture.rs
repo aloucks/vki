@@ -236,11 +236,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     let vs = app.device.create_shader_module(ShaderModuleDescriptor {
-        code: Cow::Borrowed(include_bytes!("shaders/cube_texture.vert.spv")),
+        code: include_bytes!("shaders/cube_texture.vert.spv"),
     })?;
 
     let fs = app.device.create_shader_module(ShaderModuleDescriptor {
-        code: Cow::Borrowed(include_bytes!("shaders/cube_texture.frag.spv")),
+        code: include_bytes!("shaders/cube_texture.frag.spv"),
     })?;
 
     #[rustfmt::skip]

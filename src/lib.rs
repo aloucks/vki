@@ -675,8 +675,8 @@ pub struct DepthStencilStateDescriptor {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct ShaderModuleDescriptor {
-    pub code: Cow<'static, [u8]>,
+pub struct ShaderModuleDescriptor<'a> {
+    pub code: &'a [u8],
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
