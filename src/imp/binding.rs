@@ -60,7 +60,7 @@ impl BindGroupLayoutInner {
         Ok(BindGroupLayoutInner {
             handle,
             device,
-            bindings: descriptor.bindings.to_vec(),
+            layout_bindings: descriptor.bindings.to_vec(),
         })
     }
 }
@@ -105,7 +105,7 @@ impl BindGroupInner {
 
         let device = Arc::clone(&descriptor.layout.inner.device);
 
-        let layout_bindings = &descriptor.layout.inner.bindings;
+        let layout_bindings = &descriptor.layout.inner.layout_bindings;
         let mut pool_sizes = HashMap::with_capacity(layout_bindings.len());
 
         for layout_binding in layout_bindings.iter() {

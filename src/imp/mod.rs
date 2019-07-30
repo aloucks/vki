@@ -270,7 +270,7 @@ handle_traits!(SamplerInner);
 pub struct BindGroupLayoutInner {
     handle: vk::DescriptorSetLayout,
     device: Arc<DeviceInner>,
-    bindings: Vec<BindGroupLayoutBinding>,
+    layout_bindings: Vec<BindGroupLayoutBinding>,
 }
 
 handle_traits!(BindGroupLayoutInner);
