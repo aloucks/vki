@@ -35,9 +35,8 @@ mod vec;
 pub use crate::imp::debug::validate;
 
 use crate::{
-    AdapterOptions, BindGroupBinding, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags, Extensions,
-    IndexFormat, Limits, PipelineLayoutDescriptor, SamplerDescriptor, TextureDescriptor, TextureUsageFlags,
-    TextureViewDescriptor,
+    AdapterOptions, BindGroupBinding, BindGroupLayout, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags,
+    Extensions, IndexFormat, Limits, SamplerDescriptor, TextureDescriptor, TextureUsageFlags, TextureViewDescriptor,
 };
 
 use std::collections::HashMap;
@@ -299,7 +298,7 @@ handle_traits!(ShaderModuleInner);
 pub struct PipelineLayoutInner {
     handle: vk::PipelineLayout,
     device: Arc<DeviceInner>,
-    descriptor: PipelineLayoutDescriptor,
+    bind_group_layouts: Vec<BindGroupLayout>,
 }
 
 handle_traits!(PipelineLayoutInner);

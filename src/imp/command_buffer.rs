@@ -795,8 +795,8 @@ impl<'a> DescriptorSetTracker<'a> {
 
         if self.current_layout.is_some() {
             let current_layout = self.current_layout.as_ref().unwrap();
-            for (index, old_bind_group_layout) in current_layout.descriptor.bind_group_layouts.iter().enumerate() {
-                if let Some(new_bind_group_layout) = layout.descriptor.bind_group_layouts.get(index) {
+            for (index, old_bind_group_layout) in current_layout.bind_group_layouts.iter().enumerate() {
+                if let Some(new_bind_group_layout) = layout.bind_group_layouts.get(index) {
                     // The spec states identically defined sets are compatible, but we'll only consider them compatible
                     // if they used the same DescriptorSetLayout, as this is cheaper to compare.
                     if new_bind_group_layout.inner.handle != old_bind_group_layout.inner.handle {
