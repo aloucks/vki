@@ -163,7 +163,7 @@ impl<T: 'static> App<T> {
             vk::Result::ERROR_INITIALIZATION_FAILED
         })?;
 
-        let surface = instance.create_surface(&vki::winit_surface_descriptor!(&window))?;
+        let surface = instance.create_surface_raw(&window)?;
         let adapter = instance.get_adapter(AdapterOptions {
             power_preference: match std::env::var("LOW_POWER").as_ref().map(|s| s.as_str()) {
                 Ok("1") | Ok("true") => PowerPreference::LowPower,

@@ -5,11 +5,53 @@ use crate::Surface;
 use ash::vk;
 
 use parking_lot::Mutex;
+use raw_window_handle::RawWindowHandle;
 
 use std::collections::HashMap;
 use std::sync::Arc;
 
 impl SurfaceInner {
+    pub fn from_raw_window_handle(
+        instance: Arc<InstanceInner>,
+        handle: RawWindowHandle,
+    ) -> Result<SurfaceInner, Error> {
+        match handle {
+            #[cfg(target_os = "windows")]
+            RawWindowHandle::Windows(raw) => {
+                SurfaceInner::new(instance, &crate::SurfaceDescriptorWin32 { hwnd: raw.hwnd })
+            }
+            #[cfg(all(unix, target_os = "macos"))]
+            RawWindowHandle::MacOS(raw) => {
+                SurfaceInner::new(instance, &crate::SurfaceDescriptorMacOS { nsview: raw.ns_view })
+            }
+            #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+            RawWindowHandle::X11(raw) => SurfaceInner::new(
+                instance,
+                &crate::SurfaceDescriptorUnix {
+                    xlib_window: Some(raw.window),
+                    xlib_display: Some(raw.display),
+                    xcb_window: None,
+                    xcb_connection: None,
+                    wayland_surface: None,
+                    wayland_display: None,
+                },
+            ),
+            #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+            RawWindowHandle::Wayland(raw) => SurfaceInner::new(
+                instance,
+                &crate::SurfaceDescriptorUnix {
+                    xlib_window: None,
+                    xlib_display: None,
+                    xcb_window: None,
+                    xcb_connection: None,
+                    wayland_surface: Some(raw.surface),
+                    wayland_display: Some(raw.display),
+                },
+            ),
+            _ => unimplemented!(),
+        }
+    }
+
     #[cfg(target_os = "windows")]
     pub fn new(
         instance: Arc<InstanceInner>,
