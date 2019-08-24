@@ -20,7 +20,7 @@ use winit::event::{
     DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, VirtualKeyCode, WindowEvent,
 };
 use winit::event_loop::{ControlFlow, EventLoop};
-use winit::window::{Window, WindowBuilder};
+use winit::window::{Fullscreen, Window, WindowBuilder};
 
 pub const DEFAULT_DEPTH_FORMAT: TextureFormat = TextureFormat::D32FloatS8Uint;
 pub const DEFAULT_COLOR_FORMAT: TextureFormat = TextureFormat::B8G8R8A8Unorm;
@@ -263,7 +263,7 @@ impl<T: 'static> App<T> {
                     self.window.set_inner_size(inner_physical_size.to_logical(dpi_factor));
                     self.window.set_visible(true);
                 } else {
-                    self.window.set_fullscreen(Some(monitor));
+                    self.window.set_fullscreen(Some(Fullscreen::Borderless(monitor)));
                 }
 
                 self.window_mode = WindowMode::Fullscreen {
