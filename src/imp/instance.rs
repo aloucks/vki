@@ -13,6 +13,7 @@ use std::sync::Arc;
 use crate::imp::{debug, AdapterInner, InstanceExt, InstanceInner, SurfaceInner};
 use crate::{Adapter, AdapterOptions, Error, Instance, Surface, SurfaceDescriptor};
 
+use raw_window_handle::HasRawWindowHandle;
 use std::fmt::Debug;
 use std::sync::atomic::Ordering;
 
@@ -42,6 +43,11 @@ impl Instance {
 
     pub fn create_surface(&self, descriptor: &SurfaceDescriptor) -> Result<Surface, Error> {
         let surface = SurfaceInner::new(self.inner.clone(), descriptor)?;
+        Ok(surface.into())
+    }
+
+    pub fn create_surface_raw<W: HasRawWindowHandle>(&self, window: &W) -> Result<Surface, Error> {
+        let surface = SurfaceInner::from_raw_window_handle(self.inner.clone(), window.raw_window_handle())?;
         Ok(surface.into())
     }
 }
