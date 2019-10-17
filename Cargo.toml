@@ -34,8 +34,7 @@ pretty_env_logger = "0.3.0"
 #winit = { git = "https://github.com/rust-windowing/winit.git", rev = "0636483" } # branch = "eventloop-2.0"
 winit = "0.20.0-alpha3"
 # winit = { path = "../winit" }
-# glfw = "0.30.0"
-glfw = { git = "https://github.com/aloucks/glfw-rs.git", branch = "raw_window_handle" }
+glfw = "0.33.0"
 num-traits = "0.2.6"
 cgmath = "0.17.0"
 image = "0.21.1"
