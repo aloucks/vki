@@ -25,13 +25,25 @@ impl SurfaceInner {
                 SurfaceInner::new(instance, &crate::SurfaceDescriptorMacOS { nsview: raw.ns_view })
             }
             #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
-            RawWindowHandle::X11(raw) => SurfaceInner::new(
+            RawWindowHandle::Xlib(raw) => SurfaceInner::new(
                 instance,
                 &crate::SurfaceDescriptorUnix {
                     xlib_window: Some(raw.window),
                     xlib_display: Some(raw.display),
                     xcb_window: None,
                     xcb_connection: None,
+                    wayland_surface: None,
+                    wayland_display: None,
+                },
+            ),
+            #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+            RawWindowHandle::Xcb(raw) => SurfaceInner::new(
+                instance,
+                &crate::SurfaceDescriptorUnix {
+                    xlib_window: None,
+                    xlib_display: None,
+                    xcb_window: Some(raw.window as _),
+                    xcb_connection: Some(raw.connection),
                     wayland_surface: None,
                     wayland_display: None,
                 },
