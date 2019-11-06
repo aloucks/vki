@@ -16,7 +16,7 @@ bitflags = "1.0.4"
 log = "0.4.8"
 smallvec = "0.6.10"
 backtrace = "0.3.33"
-raw-window-handle = "0.1"
+raw-window-handle = "0.3"
 
 [target.'cfg(target_os = "macos")'.dependencies]
 cocoa = "0.18.4"
@@ -33,7 +33,7 @@ winit-eventloop-2 = [] # configures the winit_surface_descriptor macro
 [dev-dependencies]
 pretty_env_logger = "0.3.0"
 #winit = { git = "https://github.com/rust-windowing/winit.git", rev = "0636483" } # branch = "eventloop-2.0"
-winit = "0.20.0-alpha3"
+winit = "0.20.0-alpha4"
 # winit = { path = "../winit" }
 glfw = "0.33.0"
 num-traits = "0.2.6"

@@ -14,7 +14,7 @@ fn winit_surface() {
         let instance = Instance::new()?;
         let adapter = instance.get_adapter(AdapterOptions::default())?;
 
-        let event_loop = winit::event_loop::EventLoop::new();
+        let event_loop = support::new_event_loop();
         let window = winit::window::WindowBuilder::new()
             .with_inner_size(winit::dpi::LogicalSize {
                 width: 1024 as _,
