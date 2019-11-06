@@ -7,7 +7,7 @@ use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepth
 use crate::imp::{BindGroupInner, BufferInner, ComputePipelineInner, RenderPipelineInner, TextureInner};
 use crate::{Buffer, Color, Extent3D, FilterMode, Origin3D, ShaderStageFlags};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct BufferCopy {
     pub buffer: Arc<BufferInner>,
     pub offset: usize,
@@ -15,7 +15,7 @@ pub struct BufferCopy {
     pub image_height: u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TextureCopy {
     pub texture: Arc<TextureInner>,
     pub mip_level: u32,
@@ -23,7 +23,7 @@ pub struct TextureCopy {
     pub origin_texels: Origin3D,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct TextureBlit {
     pub texture: Arc<TextureInner>,
     pub mip_level: u32,
@@ -31,7 +31,7 @@ pub struct TextureBlit {
     pub bounds_texels: [Origin3D; 2],
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Command {
     BeginComputePass,
     BeginRenderPass {

@@ -1,4 +1,5 @@
 use ash::vk;
+use typed_arena::Arena;
 
 use std::convert::TryFrom;
 
@@ -68,15 +69,25 @@ impl<'a> From<RenderPassDepthStencilAttachmentDescriptor<'a>> for RenderPassDept
     }
 }
 
-#[derive(Debug)]
 pub struct CommandEncoderState {
-    pub commands: Vec<Command>,
+    pub commands: Arena<Command>,
     pub resource_usages: CommandBufferResourceUsage,
+}
+
+impl std::fmt::Debug for CommandEncoderState {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        // TODO: The command arena would need to also be wrapped in an UnsafeCell
+        //       in order for us to iterate and collect command references.
+        f.debug_struct("CommandBufferState")
+            .field("commands", &"<commands>")
+            .field("resource_usages", &self.resource_usages)
+            .finish()
+    }
 }
 
 impl CommandEncoderState {
     pub fn new() -> CommandEncoderState {
-        let commands = Vec::new();
+        let commands = Arena::new();
         let resource_usages = CommandBufferResourceUsage::default();
         CommandEncoderState {
             commands,
@@ -85,7 +96,7 @@ impl CommandEncoderState {
     }
 
     fn push(&mut self, command: Command) {
-        self.commands.push(command);
+        self.commands.alloc(command);
     }
 }
 
@@ -199,10 +210,7 @@ impl CommandEncoderInner {
 
 impl Into<CommandBufferState> for CommandEncoderState {
     fn into(self) -> CommandBufferState {
-        CommandBufferState {
-            commands: self.commands,
-            resource_usages: self.resource_usages,
-        }
+        CommandBufferState::new(self)
     }
 }
 
@@ -366,68 +374,13 @@ impl CommandEncoder {
     }
 
     pub fn finish(self) -> Result<CommandBuffer, Error> {
-        let mut command_index = 0;
-        while let Some(command) = self.inner.state.commands.get(command_index) {
-            match command {
-                Command::BeginComputePass => {
-                    command_index = validate_compute_pass(&self, command_index)?;
-                }
-                Command::BeginRenderPass { .. } => {
-                    command_index = validate_render_pass(&self, command_index)?;
-                }
-                _ => {}
-            }
-            command_index += 1;
-        }
-        debug_assert_eq!(command_index, self.inner.state.commands.len());
+        // TODO: Validation?
         let command_buffer = CommandBufferInner {
             state: self.inner.state.into(),
             device: self.inner.device,
         };
         Ok(CommandBuffer { inner: command_buffer })
     }
-}
-
-// TODO: validate_render_pass
-fn validate_render_pass(encoder: &CommandEncoder, mut command_index: usize) -> Result<usize, Error> {
-    let begin_render_pass_command_index = command_index;
-
-    //let mut state_tracker = .. ;
-    while let Some(command) = encoder.inner.state.commands.get(command_index) {
-        match command {
-            Command::BeginRenderPass { .. } => {
-                debug_assert_eq!(begin_render_pass_command_index, command_index);
-            }
-            Command::SetRenderPipeline { .. } => {}
-            Command::SetBindGroup { .. } => {}
-            Command::SetIndexBuffer { .. } => {}
-            Command::SetVertexBuffers { .. } => {}
-            Command::EndRenderPass => {
-                return Ok(command_index);
-            }
-            _ => {}
-        }
-        command_index += 1;
-    }
-    unreachable!()
-}
-
-// TODO: validate_compute_pass
-fn validate_compute_pass(encoder: &CommandEncoder, mut command_index: usize) -> Result<usize, Error> {
-    let begin_compute_pass_command_index = command_index;
-    while let Some(command) = encoder.inner.state.commands.get(command_index) {
-        match command {
-            Command::BeginComputePass => {
-                debug_assert_eq!(begin_compute_pass_command_index, command_index);
-            }
-            Command::EndComputePass => {
-                return Ok(command_index);
-            }
-            _ => {}
-        }
-        command_index += 1;
-    }
-    unreachable!()
 }
 
 impl<'a> Drop for ComputePassEncoderInner<'a> {

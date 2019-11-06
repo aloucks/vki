@@ -6,7 +6,7 @@ use std::sync::Arc;
 
 use std::collections::{HashMap, HashSet};
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct PassResourceUsage {
     pub buffers: Vec<(Arc<BufferInner>, BufferUsageFlags)>,
     pub textures: Vec<(Arc<TextureInner>, TextureUsageFlags)>,
@@ -24,7 +24,7 @@ impl PassResourceUsage {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct CommandBufferResourceUsage {
     pub per_pass: Vec<PassResourceUsage>,
     pub top_level_buffers: HashSet<Arc<BufferInner>>,

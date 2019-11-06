@@ -1,6 +1,7 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 use smallvec::SmallVec;
+use typed_arena::Arena;
 
 use crate::imp::command::{BufferCopy, Command, TextureBlit, TextureCopy};
 use crate::imp::fenced_deleter::DeleteWhenUnused;
@@ -11,18 +12,67 @@ use crate::imp::{render_pass, sampler, texture, util, DeviceInner, PipelineLayou
 use crate::imp::{CommandBufferInner, RenderPipelineInner};
 use crate::{BufferUsageFlags, DrawIndirectCommand, Error, Extent3D, IndexFormat, ShaderStageFlags, TextureUsageFlags};
 
-use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
+use crate::imp::command_encoder::{
+    CommandEncoderState, RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo,
+};
 use crate::imp::device::DeviceState;
 
+use std::cell::UnsafeCell;
 use std::sync::Arc;
 
 pub const MAX_VERTEX_INPUTS: usize = 16;
 pub const MAX_BIND_GROUPS: usize = 4;
 
-#[derive(Debug)]
 pub struct CommandBufferState {
-    pub commands: Vec<Command>,
-    pub resource_usages: CommandBufferResourceUsage,
+    commands: UnsafeCell<Arena<Command>>,
+    resource_usages: CommandBufferResourceUsage,
+}
+
+impl std::fmt::Debug for CommandBufferState {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        let arena = unsafe { &mut *self.commands.get() };
+        let commands: Vec<&Command> = CommandIter::new(arena).collect();
+        f.debug_struct("CommandBufferState")
+            .field("commands", &commands)
+            .field("resource_usages", &self.resource_usages)
+            .finish()
+    }
+}
+
+pub struct CommandIter<'a> {
+    inner: typed_arena::IterMut<'a, Command>,
+}
+
+impl<'a> CommandIter<'a> {
+    pub fn new(arena: &'a mut Arena<Command>) -> CommandIter<'a> {
+        CommandIter {
+            inner: arena.iter_mut(),
+        }
+    }
+}
+
+impl<'a> Iterator for CommandIter<'a> {
+    type Item = &'a Command;
+    fn next(&mut self) -> Option<&'a Command> {
+        self.inner.next().map(|v| &*v)
+    }
+    fn size_hint(&self) -> (usize, Option<usize>) {
+        self.inner.size_hint()
+    }
+}
+
+impl CommandBufferState {
+    pub fn new(encoder_state: CommandEncoderState) -> CommandBufferState {
+        CommandBufferState {
+            commands: UnsafeCell::new(encoder_state.commands),
+            resource_usages: encoder_state.resource_usages,
+        }
+    }
+
+    pub fn iter(&self) -> CommandIter {
+        let arena = unsafe { &mut *self.commands.get() };
+        CommandIter::new(arena)
+    }
 }
 
 fn index_type(format: IndexFormat) -> vk::IndexType {
@@ -171,8 +221,8 @@ fn pop_debug_group(device: &DeviceInner, command_buffer: vk::CommandBuffer) {
 impl CommandBufferInner {
     pub fn record_commands(&self, command_buffer: vk::CommandBuffer, state: &mut DeviceState) -> Result<(), Error> {
         let mut pass = 0;
-        let mut command_index = 0;
-        while let Some(command) = self.state.commands.get(command_index) {
+        let mut command_iter = self.state.iter();
+        while let Some(command) = command_iter.next() {
             match command {
                 Command::CopyBufferToBuffer { src, dst, size_bytes } => {
                     src.buffer
@@ -294,9 +344,9 @@ impl CommandBufferInner {
                     sample_count,
                 } => {
                     self.state.resource_usages.per_pass[pass].transition_for_pass(command_buffer)?;
-                    command_index = self.record_render_pass(
+                    command_iter = self.record_render_pass(
                         command_buffer,
-                        command_index + 1,
+                        command_iter,
                         color_attachments,
                         depth_stencil_attachment,
                         *width,
@@ -308,7 +358,7 @@ impl CommandBufferInner {
                 }
                 Command::BeginComputePass => {
                     self.state.resource_usages.per_pass[pass].transition_for_pass(command_buffer)?;
-                    command_index = self.record_compute_pass(command_buffer, command_index + 1)?;
+                    command_iter = self.record_compute_pass(command_buffer, command_iter)?;
                     pass += 1;
                 }
                 Command::PushDebugGroup { group_label } => push_debug_group(&self.device, command_buffer, &group_label),
@@ -318,8 +368,6 @@ impl CommandBufferInner {
                 Command::PopDebugGroup => pop_debug_group(&self.device, command_buffer),
                 _ => unreachable!("command: {:?}", command),
             }
-
-            command_index += 1;
         }
 
         Ok(())
@@ -461,17 +509,17 @@ impl CommandBufferInner {
     }
 
     #[allow(clippy::too_many_arguments)]
-    fn record_render_pass(
+    fn record_render_pass<'a, I: Iterator<Item = &'a Command>>(
         &self,
         command_buffer: vk::CommandBuffer,
-        mut command_index: usize,
+        mut command_iter: I,
         color_attachments: &[RenderPassColorAttachmentInfo],
         depth_stencil_attachment: &Option<RenderPassDepthStencilAttachmentInfo>,
         width: u32,
         height: u32,
         sample_count: u32,
         state: &mut DeviceState,
-    ) -> Result<usize, Error> {
+    ) -> Result<I, Error> {
         self.record_render_pass_begin(
             command_buffer,
             color_attachments,
@@ -488,11 +536,11 @@ impl CommandBufferInner {
 
         let mut descriptor_sets = DescriptorSetTracker::default();
 
-        while let Some(command) = self.state.commands.get(command_index) {
+        while let Some(command) = command_iter.next() {
             match command {
                 Command::EndRenderPass => unsafe {
                     self.device.raw.cmd_end_render_pass(command_buffer);
-                    return Ok(command_index);
+                    return Ok(command_iter);
                 },
                 Command::Draw {
                     vertex_count,
@@ -677,19 +725,22 @@ impl CommandBufferInner {
                 Command::PopDebugGroup => pop_debug_group(&self.device, command_buffer),
                 _ => unreachable!("command: {:?}", command),
             }
-            command_index += 1;
         }
 
         unreachable!()
     }
 
-    fn record_compute_pass(&self, command_buffer: vk::CommandBuffer, mut command_index: usize) -> Result<usize, Error> {
+    fn record_compute_pass<'a, I: Iterator<Item = &'a Command>>(
+        &self,
+        command_buffer: vk::CommandBuffer,
+        mut command_iter: I,
+    ) -> Result<I, Error> {
         let mut descriptor_sets = DescriptorSetTracker::default();
 
-        while let Some(command) = self.state.commands.get(command_index) {
+        while let Some(command) = command_iter.next() {
             match command {
                 Command::EndComputePass => {
-                    return Ok(command_index);
+                    return Ok(command_iter);
                 }
                 Command::Dispatch { x, y, z } => unsafe {
                     let bind_point = vk::PipelineBindPoint::COMPUTE;
@@ -747,8 +798,6 @@ impl CommandBufferInner {
                 Command::PopDebugGroup => pop_debug_group(&self.device, command_buffer),
                 _ => {}
             }
-
-            command_index += 1;
         }
 
         unreachable!()
