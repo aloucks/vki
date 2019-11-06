@@ -83,19 +83,27 @@ pub fn headless_window() -> Result<(EventLoop<()>, Window), Box<dyn std::error::
 }
 
 pub fn new_event_loop() -> winit::event_loop::EventLoop<()> {
-    //    #[cfg(windows)]
-    //    use winit::platform::windows::EventLoopExtWindows;
-    //
-    //    #[cfg(any(
-    //        target_os = "linux",
-    //        target_os = "dragonfly",
-    //        target_os = "freebsd",
-    //        target_os = "netbsd",
-    //        target_os = "openbsd"
-    //    ))]
-    //    use winit::platform::unix::EventLoopExtUnix;
-    //
-    //    winit::event_loop::EventLoop::new_any_thread()
+    #[cfg(windows)]
+    use winit::platform::windows::EventLoopExtWindows;
 
-    winit::event_loop::EventLoop::new()
+    #[cfg(any(
+        target_os = "linux",
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "netbsd",
+        target_os = "openbsd"
+    ))]
+    use winit::platform::unix::EventLoopExtUnix;
+
+    // TODO: This will panic ...
+    // https://github.com/rust-windowing/winit/blob/72fc6a74ec3da62355bacf860950e03b42dbd11b/src/platform_impl/macos/event_loop.rs#L46
+    #[cfg(target_os = "macos")]
+    {
+        winit::event_loop::EventLoop::new()
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        winit::event_loop::EventLoop::new_any_thread()
+    }
 }
