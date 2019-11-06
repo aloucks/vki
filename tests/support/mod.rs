@@ -86,7 +86,13 @@ pub fn new_event_loop() -> winit::event_loop::EventLoop<()> {
     #[cfg(windows)]
     use winit::platform::windows::EventLoopExtWindows;
 
-    #[cfg(any(target_os = "linux", target_os = "dragonfly", target_os = "freebsd", target_os = "netbsd", target_os = "openbsd"))]
+    #[cfg(any(
+        target_os = "linux",
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "netbsd",
+        target_os = "openbsd"
+    ))]
     use winit::platform::unix::EventLoopExtUnix;
 
     winit::event_loop::EventLoop::new_any_thread()
