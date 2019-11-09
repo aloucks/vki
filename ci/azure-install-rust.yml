@@ -19,6 +19,7 @@ steps:
   - bash: |
       set -x
       rustup --version
+      rustup set profile minimal || true
       rustup component remove --toolchain $TOOLCHAIN rust-docs || true
       rustup default $TOOLCHAIN
       rustup update --no-self-update $TOOLCHAIN
