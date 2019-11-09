@@ -152,7 +152,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             let w = 0.0;
             Vector4::new(x, y, z, w)
         })
-        .collect();;
+        .collect();
 
     let velocity_buffer =
         util::create_buffer_with_data(&app.device, &mut encoder, BufferUsageFlags::STORAGE, &velocity_data)?;
