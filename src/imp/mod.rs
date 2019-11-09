@@ -36,7 +36,7 @@ pub use crate::imp::debug::validate;
 
 use crate::{
     AdapterOptions, BindGroupBinding, BindGroupLayout, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags,
-    Extensions, IndexFormat, Limits, SamplerDescriptor, TextureDescriptor, TextureUsageFlags, TextureViewDescriptor,
+    Extensions, IndexFormat, Limits, SamplerDescriptor, TextureDescriptor, TextureViewDescriptor,
 };
 
 use std::collections::HashMap;

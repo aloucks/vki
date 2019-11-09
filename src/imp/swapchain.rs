@@ -1,4 +1,5 @@
 use crate::imp::fenced_deleter::DeleteWhenUnused;
+use crate::imp::texture::SubresourceUsageTracker;
 use crate::imp::{texture, AdapterInner, SurfaceInner, TextureViewInner};
 use crate::imp::{DeviceInner, InstanceInner, SwapchainInner, TextureInner};
 use crate::{
@@ -12,7 +13,6 @@ use ash::vk;
 use ash::vk::StructureType;
 use parking_lot::Mutex;
 
-use crate::imp::texture::SubresourceUsageTracker;
 use std::sync::Arc;
 use std::time::Duration;
 

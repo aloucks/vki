@@ -1,10 +1,9 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 
-use crate::error::Error;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{DeviceInner, SamplerInner};
-use crate::{AddressMode, CompareFunction, FilterMode, Sampler, SamplerDescriptor};
+use crate::{AddressMode, CompareFunction, Error, FilterMode, Sampler, SamplerDescriptor};
 
 use std::sync::Arc;
 

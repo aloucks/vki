@@ -1,5 +1,5 @@
-use crate::imp::{BufferInner, BufferUsageFlags, TextureInner, TextureUsageFlags};
-use crate::Error;
+use crate::imp::{BufferInner, TextureInner};
+use crate::{BufferUsageFlags, Error, TextureUsageFlags};
 
 use ash::vk;
 use std::sync::Arc;

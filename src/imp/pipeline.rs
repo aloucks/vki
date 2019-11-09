@@ -5,15 +5,14 @@ use std::convert::TryFrom;
 use std::ffi::CString;
 use std::sync::Arc;
 
-use crate::error::Error;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::render_pass::{self, ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
 use crate::imp::{binding, sampler};
 use crate::imp::{ComputePipelineInner, DeviceInner, PipelineLayoutInner, RenderPipelineInner};
 use crate::{
     BlendFactor, BlendOperation, ColorStateDescriptor, ColorWriteFlags, CompareFunction, ComputePipeline,
-    ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, FrontFace, InputStepMode, LoadOp, PipelineLayout,
-    PipelineLayoutDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPipeline,
+    ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, Error, FrontFace, InputStepMode, LoadOp,
+    PipelineLayout, PipelineLayoutDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPipeline,
     RenderPipelineDescriptor, StencilOperation, StencilStateFaceDescriptor, TextureFormat, VertexAttributeDescriptor,
     VertexBufferDescriptor, VertexFormat,
 };
