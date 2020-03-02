@@ -21,6 +21,8 @@ use std::hash::{Hash, Hasher};
 use std::marker::PhantomData;
 use std::ops::Range;
 
+use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
+
 #[derive(Clone, Debug)]
 pub struct Instance {
     inner: Arc<imp::InstanceInner>,
@@ -102,19 +104,20 @@ pub struct Swapchain {
     inner: Arc<imp::SwapchainInner>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct SurfaceDescriptorWin32 {
     pub hwnd: *const std::ffi::c_void,
+    pub hinstance: *const std::ffi::c_void,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct SurfaceDescriptorMacOS {
     pub nsview: *const std::ffi::c_void,
 }
 
 unsafe impl Send for SurfaceDescriptorWin32 {}
 
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub struct SurfaceDescriptorUnix {
     pub xlib_window: Option<std::os::raw::c_ulong>,
     pub xlib_display: Option<*mut std::ffi::c_void>,
@@ -134,6 +137,54 @@ pub type SurfaceDescriptor = SurfaceDescriptorUnix;
 
 #[cfg(all(unix, target_os = "macos"))]
 pub type SurfaceDescriptor = SurfaceDescriptorMacOS;
+
+impl SurfaceDescriptor {
+    pub fn from_window<W: HasRawWindowHandle>(window: &W) -> SurfaceDescriptor {
+        window.raw_window_handle().into()
+    }
+}
+
+impl From<RawWindowHandle> for SurfaceDescriptor {
+    fn from(handle: RawWindowHandle) -> SurfaceDescriptor {
+        match handle {
+            #[cfg(target_os = "windows")]
+            RawWindowHandle::Windows(raw) => SurfaceDescriptorWin32 {
+                hwnd: raw.hwnd,
+                hinstance: raw.hinstance,
+            },
+            #[cfg(all(unix, target_os = "macos"))]
+            RawWindowHandle::MacOS(raw) => SurfaceDescriptorMacOS { nsview: raw.ns_view },
+            #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+            RawWindowHandle::Xlib(raw) => crate::SurfaceDescriptorUnix {
+                xlib_window: Some(raw.window),
+                xlib_display: Some(raw.display),
+                xcb_window: None,
+                xcb_connection: None,
+                wayland_surface: None,
+                wayland_display: None,
+            },
+            #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+            RawWindowHandle::Xcb(raw) => crate::SurfaceDescriptorUnix {
+                xlib_window: None,
+                xlib_display: None,
+                xcb_window: Some(raw.window as _),
+                xcb_connection: Some(raw.connection),
+                wayland_surface: None,
+                wayland_display: None,
+            },
+            #[cfg(all(unix, not(target_os = "android"), not(target_os = "macos")))]
+            RawWindowHandle::Wayland(raw) => crate::SurfaceDescriptorUnix {
+                xlib_window: None,
+                xlib_display: None,
+                xcb_window: None,
+                xcb_connection: None,
+                wayland_surface: Some(raw.surface),
+                wayland_display: Some(raw.display),
+            },
+            _ => panic!("unsupported window handle: {:?}", handle),
+        }
+    }
+}
 
 #[derive(Clone, Debug)]
 pub struct Surface {

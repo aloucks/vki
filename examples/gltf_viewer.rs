@@ -16,6 +16,7 @@ use smallvec::SmallVec;
 
 use std::borrow::Cow;
 
+use image::GenericImageView;
 use std::time::{Duration, Instant};
 use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
@@ -890,9 +891,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             image::DynamicImage::ImageRgba8(_) => gltf::image::Format::R8G8B8A8,
             image::DynamicImage::ImageBgr8(_) => gltf::image::Format::B8G8R8,
             image::DynamicImage::ImageBgra8(_) => gltf::image::Format::B8G8R8A8,
+
+            image::DynamicImage::ImageLuma16(_)
+            | image::DynamicImage::ImageLumaA16(_)
+            | image::DynamicImage::ImageRgb16(_)
+            | image::DynamicImage::ImageRgba16(_) => {
+                panic!("unsupported gltf image format");
+            }
         };
         let (width, height) = img.dimensions();
-        let pixels = img.raw_pixels();
+        let pixels = img.to_bytes();
         gltf::image::Data {
             format,
             width,
