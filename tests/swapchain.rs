@@ -1,5 +1,4 @@
-use vki::winit_surface_descriptor;
-use vki::{AdapterOptions, DeviceDescriptor, Instance};
+use vki::{AdapterOptions, DeviceDescriptor, Instance, SurfaceDescriptor};
 
 use winit::dpi::LogicalSize;
 use winit::event::{Event, WindowEvent};
@@ -24,7 +23,7 @@ fn create_swapchain() {
         let (_event_loop, window) = support::headless_window()?;
         let instance = Instance::new()?;
         let adapter = instance.get_adapter(AdapterOptions::default())?;
-        let surface_descriptor = winit_surface_descriptor!(window);
+        let surface_descriptor = SurfaceDescriptor::from_window(&window);
         let surface = instance.create_surface(&surface_descriptor)?;
         let device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
         let swapchain_descriptor = support::swapchain_descriptor(&surface);
@@ -45,7 +44,7 @@ fn recreate_swapchain_without_old() {
         let (_event_loop, window) = support::headless_window()?;
         let instance = Instance::new()?;
         let adapter = instance.get_adapter(AdapterOptions::default())?;
-        let surface_descriptor = winit_surface_descriptor!(window);
+        let surface_descriptor = SurfaceDescriptor::from_window(&window);
         let surface = instance.create_surface(&surface_descriptor)?;
         let device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
         let swapchain_descriptor = support::swapchain_descriptor(&surface);

@@ -17,9 +17,13 @@ impl SurfaceInner {
     ) -> Result<SurfaceInner, Error> {
         match handle {
             #[cfg(target_os = "windows")]
-            RawWindowHandle::Windows(raw) => {
-                SurfaceInner::new(instance, &crate::SurfaceDescriptorWin32 { hwnd: raw.hwnd })
-            }
+            RawWindowHandle::Windows(raw) => SurfaceInner::new(
+                instance,
+                &crate::SurfaceDescriptorWin32 {
+                    hwnd: raw.hwnd,
+                    hinstance: raw.hinstance,
+                },
+            ),
             #[cfg(all(unix, target_os = "macos"))]
             RawWindowHandle::MacOS(raw) => {
                 SurfaceInner::new(instance, &crate::SurfaceDescriptorMacOS { nsview: raw.ns_view })
@@ -71,6 +75,7 @@ impl SurfaceInner {
     ) -> Result<SurfaceInner, Error> {
         let create_info = vk::Win32SurfaceCreateInfoKHR {
             hwnd: descriptor.hwnd,
+            hinstance: descriptor.hinstance,
             ..Default::default()
         };
 
