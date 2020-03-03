@@ -5,7 +5,7 @@ use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{render_pass, util};
 use crate::imp::{DeviceInner, TextureInner, TextureViewInner};
 use crate::{
-    Error, Extent3D, Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView,
+    Error, Extent3d, Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView,
     TextureViewDescriptor, TextureViewDimension,
 };
 
@@ -339,7 +339,7 @@ impl Texture {
         self.create_view(descriptor)
     }
 
-    pub fn size(&self) -> Extent3D {
+    pub fn size(&self) -> Extent3d {
         self.inner.descriptor.size
     }
 
@@ -597,14 +597,14 @@ impl TextureViewInner {
 
     /// Returns the sample count and the size of the texture,
     /// adjusted by the base mipmap level.
-    pub fn get_sample_count_and_mipmap_size(&self) -> (u32, Extent3D) {
+    pub fn get_sample_count_and_mipmap_size(&self) -> (u32, Extent3d) {
         let base_mip_level = self.descriptor.base_mip_level;
         let sample_count = self.texture.descriptor.sample_count;
         let width = self.texture.descriptor.size.width >> base_mip_level;
         let height = self.texture.descriptor.size.height >> base_mip_level;
         let depth = self.texture.descriptor.size.depth >> base_mip_level;
 
-        (sample_count, Extent3D { width, height, depth })
+        (sample_count, Extent3d { width, height, depth })
     }
 }
 

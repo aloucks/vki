@@ -16,8 +16,8 @@ use std::time::Instant;
 use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
     BindingResource, BindingType, BlendDescriptor, BufferCopyView, BufferUsageFlags, Color, ColorStateDescriptor,
-    ColorWriteFlags, CompareFunction, CullMode, DepthStencilStateDescriptor, Extent3D, FilterMode, FrontFace,
-    IndexFormat, InputStateDescriptor, InputStepMode, LoadOp, Origin3D, PipelineLayoutDescriptor,
+    ColorWriteFlags, CompareFunction, CullMode, DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace,
+    IndexFormat, InputStateDescriptor, InputStepMode, LoadOp, Origin3d, PipelineLayoutDescriptor,
     PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, SamplerDescriptor,
     ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp, SwapchainError, TextureBlitView,
@@ -89,7 +89,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let image = image::load_from_memory(include_bytes!("assets/container2.png"))?.to_rgba();
 
-    let texture_size = Extent3D {
+    let texture_size = Extent3d {
         width: image.width(),
         height: image.height(),
         depth: 1,
@@ -136,7 +136,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
         TextureCopyView {
             texture: &container_texture,
-            origin: Origin3D { x: 0, y: 0, z: 0 },
+            origin: Origin3d { x: 0, y: 0, z: 0 },
             mip_level: 0,
             array_layer: 0,
         },
@@ -154,8 +154,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             mip_level: i - 1,
             array_layer: 0,
             bounds: [
-                Origin3D { x: 0, y: 0, z: 0 },
-                Origin3D {
+                Origin3d { x: 0, y: 0, z: 0 },
+                Origin3d {
                     x: mip_width as i32,
                     y: mip_height as i32,
                     z: 1,
@@ -176,8 +176,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             mip_level: i,
             array_layer: 0,
             bounds: [
-                Origin3D { x: 0, y: 0, z: 0 },
-                Origin3D {
+                Origin3d { x: 0, y: 0, z: 0 },
+                Origin3d {
                     x: mip_width as i32,
                     y: mip_height as i32,
                     z: 1,

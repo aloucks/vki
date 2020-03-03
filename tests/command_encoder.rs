@@ -1,5 +1,5 @@
 use vki::{
-    Color, Extent3D, LoadOp, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, StoreOp, TextureDescriptor,
+    Color, Extent3d, LoadOp, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, StoreOp, TextureDescriptor,
     TextureDimension, TextureFormat, TextureUsageFlags,
 };
 
@@ -22,7 +22,7 @@ fn create_command_encoder() {
             mip_level_count: 1,
             dimension: TextureDimension::D2,
             array_layer_count: 1,
-            size: Extent3D {
+            size: Extent3d {
                 width: 1024,
                 height: 1024,
                 depth: 1,
@@ -71,7 +71,7 @@ fn submit_command_buffer() {
             mip_level_count: 1,
             dimension: TextureDimension::D2,
             array_layer_count: 1,
-            size: Extent3D {
+            size: Extent3d {
                 width: 1024,
                 height: 1024,
                 depth: 1,

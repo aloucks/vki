@@ -9,7 +9,7 @@ use std::slice;
 
 use vki::{
     Adapter, AdapterOptions, Buffer, BufferCopyView, BufferDescriptor, BufferUsageFlags, CommandEncoder, Device,
-    DeviceDescriptor, Error, Extensions, Extent3D, FilterMode, Instance, Origin3D, PowerPreference, Surface, Swapchain,
+    DeviceDescriptor, Error, Extensions, Extent3d, FilterMode, Instance, Origin3d, PowerPreference, Surface, Swapchain,
     SwapchainDescriptor, Texture, TextureBlitView, TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat,
     TextureUsageFlags, TextureView,
 };
@@ -48,7 +48,7 @@ fn create_swapchain_and_depth_view_and_color_view(
         })?;
 
     let depth_texture = device.create_texture(TextureDescriptor {
-        size: Extent3D {
+        size: Extent3d {
             width,
             height,
             depth: 1,
@@ -64,7 +64,7 @@ fn create_swapchain_and_depth_view_and_color_view(
     let depth_view = depth_texture.create_default_view()?;
 
     let color_texture = device.create_texture(TextureDescriptor {
-        size: Extent3D {
+        size: Extent3d {
             width,
             height,
             depth: 1,
@@ -435,7 +435,7 @@ pub fn create_texture_with_data(
     width: u32,
     height: u32,
 ) -> Result<Texture, Error> {
-    let size = Extent3D {
+    let size = Extent3d {
         width,
         height,
         depth: 1,
@@ -469,7 +469,7 @@ pub fn create_texture_with_data(
         },
         TextureCopyView {
             texture: &texture,
-            origin: Origin3D { x: 0, y: 0, z: 0 },
+            origin: Origin3d { x: 0, y: 0, z: 0 },
             mip_level: 0,
             array_layer: 0,
         },
@@ -513,8 +513,8 @@ pub fn generate_mipmaps(encoder: &mut CommandEncoder, texture: &Texture) -> Resu
             mip_level: i - 1,
             array_layer: 0,
             bounds: [
-                Origin3D { x: 0, y: 0, z: 0 },
-                Origin3D {
+                Origin3d { x: 0, y: 0, z: 0 },
+                Origin3d {
                     x: mip_width as i32,
                     y: mip_height as i32,
                     z: 1,
@@ -535,8 +535,8 @@ pub fn generate_mipmaps(encoder: &mut CommandEncoder, texture: &Texture) -> Resu
             mip_level: i,
             array_layer: 0,
             bounds: [
-                Origin3D { x: 0, y: 0, z: 0 },
-                Origin3D {
+                Origin3d { x: 0, y: 0, z: 0 },
+                Origin3d {
                     x: mip_width as i32,
                     y: mip_height as i32,
                     z: 1,

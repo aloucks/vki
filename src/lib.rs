@@ -120,14 +120,14 @@ pub struct SwapchainImage {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Hash, PartialOrd, Ord)]
-pub struct Extent3D {
+pub struct Extent3d {
     pub width: u32,
     pub height: u32,
     pub depth: u32,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Default, Hash, PartialOrd, Ord)]
-pub struct Origin3D {
+pub struct Origin3d {
     pub x: i32,
     pub y: i32,
     pub z: i32,
@@ -204,7 +204,7 @@ pub enum TextureViewDimension {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct TextureDescriptor {
-    pub size: Extent3D,
+    pub size: Extent3d,
     pub array_layer_count: u32,
     pub mip_level_count: u32,
     pub sample_count: u32,
@@ -880,7 +880,7 @@ pub struct TextureCopyView<'a> {
     pub texture: &'a Texture,
     pub mip_level: u32,
     pub array_layer: u32,
-    pub origin: Origin3D,
+    pub origin: Origin3d,
 }
 
 /// Not in the GPUWeb spec as of 2019/04/13
@@ -889,7 +889,7 @@ pub struct TextureBlitView<'a> {
     pub texture: &'a Texture,
     pub mip_level: u32,
     pub array_layer: u32,
-    pub bounds: [Origin3D; 2],
+    pub bounds: [Origin3d; 2],
 }
 
 /// Vulkan: `VkDrawIndirectCommand`

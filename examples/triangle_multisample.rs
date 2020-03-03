@@ -4,7 +4,7 @@ extern crate memoffset;
 use vki::{
     AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
-    Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, Extent3D, FrontFace, IndexFormat,
+    Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, Extent3d, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
     PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
     RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainDescriptor, SwapchainError,
@@ -166,7 +166,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         dimension: TextureDimension::D2,
         array_layer_count: 1,
         mip_level_count: 1,
-        size: Extent3D {
+        size: Extent3d {
             width: window_width,
             height: window_height,
             depth: 1,

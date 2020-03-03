@@ -5,7 +5,7 @@ use std::convert::TryFrom;
 
 use crate::{
     BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder,
-    ComputePassEncoder, ComputePipeline, Extent3D, FilterMode, LoadOp, RenderPassColorAttachmentDescriptor,
+    ComputePassEncoder, ComputePipeline, Extent3d, FilterMode, LoadOp, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPassEncoder, RenderPipeline,
     ShaderStageFlags, StoreOp, TextureBlitView, TextureCopyView, TextureUsageFlags,
 };
@@ -261,7 +261,7 @@ impl CommandEncoder {
     }
 
     // TODO: row_pitch bytes vs texels
-    pub fn copy_buffer_to_texture(&mut self, src: BufferCopyView, dst: TextureCopyView, copy_size: Extent3D) {
+    pub fn copy_buffer_to_texture(&mut self, src: BufferCopyView, dst: TextureCopyView, copy_size: Extent3d) {
         self.inner.push(Command::CopyBufferToTexture {
             src: BufferCopy {
                 buffer: Arc::clone(&src.buffer.inner),
@@ -286,7 +286,7 @@ impl CommandEncoder {
     }
 
     // TODO: row_pitch bytes vs texels
-    pub fn copy_texture_to_texture(&mut self, src: TextureCopyView, dst: TextureCopyView, copy_size: Extent3D) {
+    pub fn copy_texture_to_texture(&mut self, src: TextureCopyView, dst: TextureCopyView, copy_size: Extent3d) {
         self.inner.push(Command::CopyTextureToTexture {
             src: TextureCopy {
                 texture: Arc::clone(&src.texture.inner),
@@ -310,7 +310,7 @@ impl CommandEncoder {
     }
 
     // TODO: row_pitch bytes vs texels
-    pub fn copy_texture_to_buffer(&mut self, src: TextureCopyView, dst: BufferCopyView, copy_size: Extent3D) {
+    pub fn copy_texture_to_buffer(&mut self, src: TextureCopyView, dst: BufferCopyView, copy_size: Extent3d) {
         self.inner.push(Command::CopyTextureToBuffer {
             src: TextureCopy {
                 texture: Arc::clone(&src.texture.inner),

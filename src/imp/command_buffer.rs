@@ -10,7 +10,7 @@ use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery}
 use crate::imp::{binding, pipeline};
 use crate::imp::{render_pass, sampler, texture, util, DeviceInner, PipelineLayoutInner};
 use crate::imp::{CommandBufferInner, RenderPipelineInner};
-use crate::{BufferUsageFlags, DrawIndirectCommand, Error, Extent3D, IndexFormat, ShaderStageFlags, TextureUsageFlags};
+use crate::{BufferUsageFlags, DrawIndirectCommand, Error, Extent3d, IndexFormat, ShaderStageFlags, TextureUsageFlags};
 
 use crate::imp::command_encoder::{
     CommandEncoderState, RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo,
@@ -85,7 +85,7 @@ fn index_type(format: IndexFormat) -> vk::IndexType {
 fn buffer_image_copy(
     buffer_copy: &BufferCopy,
     texture_copy: &TextureCopy,
-    size_texels: Extent3D,
+    size_texels: Extent3d,
 ) -> vk::BufferImageCopy {
     vk::BufferImageCopy {
         buffer_offset: buffer_copy.offset as vk::DeviceSize,
@@ -110,7 +110,7 @@ fn buffer_image_copy(
     }
 }
 
-fn image_copy(src: &TextureCopy, dst: &TextureCopy, size_texels: Extent3D) -> vk::ImageCopy {
+fn image_copy(src: &TextureCopy, dst: &TextureCopy, size_texels: Extent3d) -> vk::ImageCopy {
     vk::ImageCopy {
         src_subresource: vk::ImageSubresourceLayers {
             aspect_mask: texture::aspect_mask(src.texture.descriptor.format),

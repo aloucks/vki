@@ -5,7 +5,7 @@ use smallvec::SmallVec;
 use crate::imp::command_buffer::MAX_BIND_GROUPS;
 use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::{BindGroupInner, BufferInner, ComputePipelineInner, RenderPipelineInner, TextureInner};
-use crate::{Buffer, Color, Extent3D, FilterMode, Origin3D, ShaderStageFlags};
+use crate::{Buffer, Color, Extent3d, FilterMode, Origin3d, ShaderStageFlags};
 
 #[derive(Debug, Clone)]
 pub struct BufferCopy {
@@ -20,7 +20,7 @@ pub struct TextureCopy {
     pub texture: Arc<TextureInner>,
     pub mip_level: u32,
     pub array_layer: u32,
-    pub origin_texels: Origin3D,
+    pub origin_texels: Origin3d,
 }
 
 #[derive(Debug, Clone)]
@@ -28,7 +28,7 @@ pub struct TextureBlit {
     pub texture: Arc<TextureInner>,
     pub mip_level: u32,
     pub array_layer: u32,
-    pub bounds_texels: [Origin3D; 2],
+    pub bounds_texels: [Origin3d; 2],
 }
 
 #[derive(Debug, Clone)]
@@ -50,17 +50,17 @@ pub enum Command {
     CopyBufferToTexture {
         src: BufferCopy,
         dst: TextureCopy,
-        size_texels: Extent3D,
+        size_texels: Extent3d,
     },
     CopyTextureToBuffer {
         src: TextureCopy,
         dst: BufferCopy,
-        size_texels: Extent3D,
+        size_texels: Extent3d,
     },
     CopyTextureToTexture {
         src: TextureCopy,
         dst: TextureCopy,
-        size_texels: Extent3D,
+        size_texels: Extent3d,
     },
     BlitTextureToTexture {
         src: TextureBlit,

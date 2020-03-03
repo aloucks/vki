@@ -1,5 +1,5 @@
 use vki::{
-    BufferCopyView, BufferDescriptor, BufferUsageFlags, Extent3D, FilterMode, Origin3D, TextureAspectFlags,
+    BufferCopyView, BufferDescriptor, BufferUsageFlags, Extent3d, FilterMode, Origin3d, TextureAspectFlags,
     TextureBlitView, TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
     TextureViewDescriptor, TextureViewDimension,
 };
@@ -13,7 +13,7 @@ fn create_texture() {
 
         let descriptor = TextureDescriptor {
             usage: TextureUsageFlags::SAMPLED,
-            size: Extent3D {
+            size: Extent3d {
                 width: 1024,
                 height: 1024,
                 depth: 1,
@@ -38,7 +38,7 @@ fn create_default_texture_view() {
 
         let descriptor = TextureDescriptor {
             usage: TextureUsageFlags::SAMPLED,
-            size: Extent3D {
+            size: Extent3d {
                 width: 1024,
                 height: 1024,
                 depth: 1,
@@ -66,7 +66,7 @@ fn create_texture_and_cube_view() {
 
         let descriptor = TextureDescriptor {
             usage: TextureUsageFlags::SAMPLED,
-            size: Extent3D {
+            size: Extent3d {
                 width: 1024,
                 height: 1024,
                 depth: 1,
@@ -103,7 +103,7 @@ fn copy_texture_to_texture() {
 
         let (width, height, depth) = (1024, 1024, 1);
 
-        let size = Extent3D { width, height, depth };
+        let size = Extent3d { width, height, depth };
 
         let texture1 = device.create_texture(TextureDescriptor {
             usage: TextureUsageFlags::TRANSFER_SRC,
@@ -129,14 +129,14 @@ fn copy_texture_to_texture() {
             texture: &texture1,
             mip_level: 0,
             array_layer: 0,
-            origin: Origin3D { x: 0, y: 0, z: 0 },
+            origin: Origin3d { x: 0, y: 0, z: 0 },
         };
 
         let dst = TextureCopyView {
             texture: &texture2,
             mip_level: 0,
             array_layer: 0,
-            origin: Origin3D { x: 0, y: 0, z: 0 },
+            origin: Origin3d { x: 0, y: 0, z: 0 },
         };
 
         let mut encoder = device.create_command_encoder()?;
@@ -172,7 +172,7 @@ fn blit_texture_to_texture_generate_mipmaps() {
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
-            size: Extent3D { width, height, depth },
+            size: Extent3d { width, height, depth },
             array_layer_count: 1,
             mip_level_count,
         })?;
@@ -188,8 +188,8 @@ fn blit_texture_to_texture_generate_mipmaps() {
                 mip_level: i - 1,
                 array_layer: 0,
                 bounds: [
-                    Origin3D { x: 0, y: 0, z: 0 },
-                    Origin3D {
+                    Origin3d { x: 0, y: 0, z: 0 },
+                    Origin3d {
                         x: mip_width as i32,
                         y: mip_height as i32,
                         z: 1,
@@ -210,8 +210,8 @@ fn blit_texture_to_texture_generate_mipmaps() {
                 mip_level: i,
                 array_layer: 0,
                 bounds: [
-                    Origin3D { x: 0, y: 0, z: 0 },
-                    Origin3D {
+                    Origin3d { x: 0, y: 0, z: 0 },
+                    Origin3d {
                         x: mip_width as i32,
                         y: mip_height as i32,
                         z: 1,
@@ -244,7 +244,7 @@ fn create_depth_texture_and_view() {
 
         let descriptor = TextureDescriptor {
             usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
-            size: Extent3D {
+            size: Extent3d {
                 width: 1024,
                 height: 1024,
                 depth: 1,
@@ -271,7 +271,7 @@ fn create_depth_stencil_texture_and_view() {
 
         let descriptor = TextureDescriptor {
             usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
-            size: Extent3D {
+            size: Extent3d {
                 width: 1024,
                 height: 1024,
                 depth: 1,
@@ -297,7 +297,7 @@ fn copy_buffer_to_texture() {
         let (instance, _adapter, device) = support::init()?;
 
         let (width, height, depth) = (1024, 1024, 1);
-        let size = Extent3D { width, height, depth };
+        let size = Extent3d { width, height, depth };
 
         let buffer1 = device.create_buffer(BufferDescriptor {
             size: (width * height) as usize * std::mem::size_of::<f32>(),
@@ -325,7 +325,7 @@ fn copy_buffer_to_texture() {
             texture: &texture1,
             mip_level: 0,
             array_layer: 0,
-            origin: Origin3D { x: 0, y: 0, z: 0 },
+            origin: Origin3d { x: 0, y: 0, z: 0 },
         };
 
         let mut encoder = device.create_command_encoder()?;
@@ -353,7 +353,7 @@ fn copy_texture_to_buffer() {
         let (instance, _adapter, device) = support::init()?;
 
         let (width, height, depth) = (1024, 1024, 1);
-        let size = Extent3D { width, height, depth };
+        let size = Extent3d { width, height, depth };
 
         let buffer1 = device.create_buffer(BufferDescriptor {
             size: (width * height) as usize * std::mem::size_of::<f32>(),
@@ -381,7 +381,7 @@ fn copy_texture_to_buffer() {
             texture: &texture1,
             mip_level: 0,
             array_layer: 0,
-            origin: Origin3D { x: 0, y: 0, z: 0 },
+            origin: Origin3d { x: 0, y: 0, z: 0 },
         };
 
         let mut encoder = device.create_command_encoder()?;

@@ -1,6 +1,6 @@
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BufferDescriptor, BufferUsageFlags, BufferViewDescriptor, BufferViewFormat, Extent3D,
+    BindingType, BufferDescriptor, BufferUsageFlags, BufferViewDescriptor, BufferViewFormat, Extent3d,
     SamplerDescriptor, ShaderStageFlags, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
 };
 
@@ -51,7 +51,7 @@ fn create_bind_group() {
         let sampler = device.create_sampler(sampler_descriptor)?;
 
         let texture_descriptor = TextureDescriptor {
-            size: Extent3D {
+            size: Extent3d {
                 width: 256,
                 height: 256,
                 depth: 1,

@@ -3,7 +3,7 @@ use crate::imp::texture::SubresourceUsageTracker;
 use crate::imp::{texture, AdapterInner, SurfaceInner, TextureViewInner};
 use crate::imp::{DeviceInner, InstanceInner, SwapchainInner, TextureInner};
 use crate::{
-    Error, Extent3D, PowerPreference, Swapchain, SwapchainDescriptor, SwapchainError, SwapchainImage, Texture,
+    Error, Extent3d, PowerPreference, Swapchain, SwapchainDescriptor, SwapchainError, SwapchainImage, Texture,
     TextureDescriptor, TextureDimension, TextureUsageFlags, TextureView,
 };
 
@@ -110,7 +110,7 @@ impl SwapchainInner {
             let images = device.raw_ext.swapchain.get_swapchain_images(swapchain)?;
 
             let texture_descriptor = TextureDescriptor {
-                size: Extent3D {
+                size: Extent3d {
                     width: surface_image_extent.width,
                     height: surface_image_extent.height,
                     depth: 1,

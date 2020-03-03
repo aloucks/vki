@@ -8,7 +8,7 @@ use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
     BufferViewDescriptor, BufferViewFormat, Color, ColorStateDescriptor, ColorWriteFlags, CompareFunction,
-    ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, Extent3D, FilterMode, FrontFace, IndexFormat,
+    ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
     SamplerDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilOperation, StencilStateFaceDescriptor, StoreOp,
@@ -344,7 +344,7 @@ fn create_multi_sample_render_pipeline() {
 
         let pipeline = device.create_render_pipeline(render_pipeline_descriptor)?;
 
-        let size = Extent3D {
+        let size = Extent3d {
             width: 800,
             height: 600,
             depth: 1,
@@ -504,7 +504,7 @@ fn set_bind_group() {
             compare_function: CompareFunction::Never,
         })?;
         let texture = device.create_texture(TextureDescriptor {
-            size: Extent3D {
+            size: Extent3d {
                 width: 256,
                 height: 256,
                 depth: 1,
@@ -648,7 +648,7 @@ fn set_bind_group_out_of_order() {
             compare_function: CompareFunction::Never,
         })?;
         let texture = device.create_texture(TextureDescriptor {
-            size: Extent3D {
+            size: Extent3d {
                 width: 256,
                 height: 256,
                 depth: 1,
@@ -794,7 +794,7 @@ fn set_bind_group_dynamic_offsets() {
             compare_function: CompareFunction::Never,
         })?;
         let texture = device.create_texture(TextureDescriptor {
-            size: Extent3D {
+            size: Extent3d {
                 width: 256,
                 height: 256,
                 depth: 1,
