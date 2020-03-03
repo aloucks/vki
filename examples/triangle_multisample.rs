@@ -42,9 +42,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let adapter = instance.get_adapter(adapter_options)?;
     println!("Adapter: {}", adapter.name());
 
-    let surface_descriptor = vki::winit_surface_descriptor!(&window);
-
-    let surface = instance.create_surface(&surface_descriptor)?;
+    let surface = instance.create_surface(&window)?;
 
     let device_desc = DeviceDescriptor::default().with_surface_support(&surface);
     let device = adapter.create_device(device_desc)?;

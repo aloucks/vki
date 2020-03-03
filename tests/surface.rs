@@ -2,9 +2,7 @@
 #[macro_use]
 extern crate objc;
 
-#[allow(deprecated)]
-use vki::{glfw_surface_descriptor, winit_surface_descriptor};
-use vki::{AdapterOptions, DeviceDescriptor, Instance, SurfaceDescriptor};
+use vki::{AdapterOptions, DeviceDescriptor, Instance};
 
 pub mod support;
 
@@ -24,9 +22,7 @@ fn winit_surface() {
             .with_visible(false)
             .build(&event_loop)?;
 
-        let surface_descriptor = SurfaceDescriptor::from_window(&window);
-        assert_eq!(surface_descriptor, winit_surface_descriptor!(&window));
-        let surface = instance.create_surface(&surface_descriptor)?;
+        let surface = instance.create_surface(&window)?;
         let _device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
 
         Ok(instance)
@@ -47,9 +43,7 @@ fn glfw_surface() {
             .create_window(800, 600, "GLFW", glfw::WindowMode::Windowed)
             .unwrap();
 
-        let surface_descriptor = SurfaceDescriptor::from_window(&window);
-        assert_eq!(surface_descriptor, glfw_surface_descriptor!(&window));
-        let surface = instance.create_surface(&surface_descriptor)?;
+        let surface = instance.create_surface(&window)?;
         let _device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
 
         Ok(instance)

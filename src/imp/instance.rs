@@ -1,21 +1,20 @@
+use std::ffi::CStr;
+use std::fmt;
+use std::fmt::Debug;
+use std::mem;
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
+
 use ash::extensions::{ext, khr};
 use ash::version::{EntryV1_0, InstanceV1_0};
 use ash::{self, vk};
+use parking_lot::{RwLock, RwLockReadGuard};
+use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
 
 use lazy_static::lazy_static;
-use parking_lot::{RwLock, RwLockReadGuard};
-
-use std::ffi::CStr;
-use std::fmt;
-use std::mem;
-use std::sync::Arc;
 
 use crate::imp::{debug, AdapterInner, InstanceExt, InstanceInner, SurfaceInner};
-use crate::{Adapter, AdapterOptions, Error, Instance, Surface, SurfaceDescriptor};
-
-use raw_window_handle::HasRawWindowHandle;
-use std::fmt::Debug;
-use std::sync::atomic::Ordering;
+use crate::{Adapter, AdapterOptions, Error, Instance, Surface};
 
 lazy_static! {
     static ref ENTRY: RwLock<Result<ash::Entry, Error>> = {
@@ -41,13 +40,12 @@ impl Instance {
         Ok(adapter.into())
     }
 
-    pub fn create_surface(&self, descriptor: &SurfaceDescriptor) -> Result<Surface, Error> {
-        let surface = SurfaceInner::new(self.inner.clone(), descriptor)?;
-        Ok(surface.into())
+    pub fn create_surface<W: HasRawWindowHandle>(&self, window: &W) -> Result<Surface, Error> {
+        self.create_surface_from_raw_window_handle(window.raw_window_handle())
     }
 
-    pub fn create_surface_raw<W: HasRawWindowHandle>(&self, window: &W) -> Result<Surface, Error> {
-        let surface = SurfaceInner::from_raw_window_handle(self.inner.clone(), window.raw_window_handle())?;
+    pub fn create_surface_from_raw_window_handle(&self, raw_window_handle: RawWindowHandle) -> Result<Surface, Error> {
+        let surface = SurfaceInner::from_raw_window_handle(self.inner.clone(), raw_window_handle)?;
         Ok(surface.into())
     }
 }

@@ -4,8 +4,8 @@
 #![allow(dead_code)]
 
 use vki::{
-    Adapter, AdapterOptions, Device, DeviceDescriptor, Instance, PowerPreference, Surface, SurfaceDescriptor,
-    Swapchain, SwapchainDescriptor, TextureFormat, TextureUsageFlags,
+    Adapter, AdapterOptions, Device, DeviceDescriptor, Instance, PowerPreference, Surface, Swapchain,
+    SwapchainDescriptor, TextureFormat, TextureUsageFlags,
 };
 
 use winit::dpi::LogicalSize;
@@ -51,8 +51,7 @@ pub fn init_with_window(
     init_environment();
     let instance = Instance::new()?;
     let adapter = instance.get_adapter(AdapterOptions::default())?;
-    let surface_descriptor = SurfaceDescriptor::from_window(window);
-    let surface = instance.create_surface(&surface_descriptor)?;
+    let surface = instance.create_surface(window)?;
     let device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
     let swapchain_descriptor = swapchain_descriptor(&surface);
     let swapchain = device.create_swapchain(swapchain_descriptor, None)?;

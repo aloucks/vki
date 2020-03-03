@@ -16,7 +16,6 @@ use smallvec::SmallVec;
 
 use std::borrow::Cow;
 
-use image::GenericImageView;
 use std::time::{Duration, Instant};
 use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,

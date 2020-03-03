@@ -29,17 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let adapter = instance.get_adapter(adapter_options)?;
     println!("Adapter: {:#?}", adapter.properties());
 
-    // The winit_surface_descriptor macro is optional. It creates the platform specific
-    // descriptor without vki requiring a dependency on winit (or a specific version of winit).
-    //
-    // On windows, this evaluates to:
-    //
-    // SurfaceDescriptorWin32 {
-    //    hwnd: window.get_hwnd()
-    // }
-    let surface_descriptor = vki::winit_surface_descriptor!(&window);
-
-    let surface = instance.create_surface(&surface_descriptor)?;
+    let surface = instance.create_surface(&window)?;
 
     let device_desc = DeviceDescriptor::default().with_surface_support(&surface);
     let device = adapter.create_device(device_desc)?;
