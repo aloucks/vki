@@ -372,14 +372,14 @@ impl DeviceState {
         let mut result = Ok(());
         for (fence, serial) in self.fences_in_flight.iter().cloned() {
             match unsafe { device.raw.get_fence_status(fence) } {
-                Ok(()) => {
+                Ok(true) => {
                     last_completed_serial = Some(serial);
                 }
-                Err(vk::Result::NOT_READY) => {
+                Ok(false) | Err(vk::Result::NOT_READY) => {
                     break;
                 }
-                e => {
-                    result = e;
+                Err(e) => {
+                    result = Err(e);
                     break;
                 }
             }

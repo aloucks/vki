@@ -194,12 +194,12 @@ impl AdapterInner {
     }
 
     pub fn properties(&self) -> AdapterProperties {
-        let api_major = ash::vk_version_major!(self.physical_device_properties.api_version);
-        let api_minor = ash::vk_version_minor!(self.physical_device_properties.api_version);
-        let api_patch = ash::vk_version_patch!(self.physical_device_properties.api_version);
-        let driver_major = ash::vk_version_major!(self.physical_device_properties.driver_version);
-        let driver_minor = ash::vk_version_minor!(self.physical_device_properties.driver_version);
-        let driver_patch = ash::vk_version_patch!(self.physical_device_properties.driver_version);
+        let api_major = ash::vk::version_major(self.physical_device_properties.api_version);
+        let api_minor = ash::vk::version_minor(self.physical_device_properties.api_version);
+        let api_patch = ash::vk::version_patch(self.physical_device_properties.api_version);
+        let driver_major = ash::vk::version_major(self.physical_device_properties.driver_version);
+        let driver_minor = ash::vk::version_minor(self.physical_device_properties.driver_version);
+        let driver_patch = ash::vk::version_patch(self.physical_device_properties.driver_version);
         let device_name = unsafe {
             std::ffi::CStr::from_ptr(self.physical_device_properties.device_name.as_ptr())
                 .to_str()

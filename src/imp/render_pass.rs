@@ -133,12 +133,12 @@ pub fn depth_stencil_attachment_reference(attachment: u32) -> vk::AttachmentRefe
 
 pub fn depth_stencil_attachment_description(
     depth_stencil_info: &DepthStencilInfo,
-    sample_count: vk::SampleCountFlags,
+    sample_count_flag: vk::SampleCountFlags,
 ) -> vk::AttachmentDescription {
     vk::AttachmentDescription {
         flags: vk::AttachmentDescriptionFlags::empty(),
         format: texture::image_format(depth_stencil_info.format),
-        samples: sample_count,
+        samples: sample_count_flag,
         load_op: attachment_load_op(depth_stencil_info.depth_load_op),
         store_op: vk::AttachmentStoreOp::STORE,
         stencil_load_op: attachment_load_op(depth_stencil_info.stencil_load_op),
@@ -182,7 +182,7 @@ impl RenderPassCache {
         query: RenderPassCacheQuery,
         device: &DeviceInner,
     ) -> Result<vk::RenderPass, Error> {
-        let sample_count = sample_count_flags(query.sample_count)?;
+        let sample_count_flag = sample_count_flags(query.sample_count)?;
 
         let color_attachments = query
             .color
@@ -207,18 +207,21 @@ impl RenderPassCache {
             .color
             .iter()
             .enumerate()
-            .map(|(attachment, color_info)| (attachment as u32 + total_attachment_count, color_info))
-            .map(|(attachment, color_info)| resolve_attachment_reference(attachment as u32, *color_info))
+            .map(|(attachment, color_info)| (attachment as u32 + total_attachment_count, *color_info))
+            .map(|(attachment, color_info)| resolve_attachment_reference(attachment, color_info))
             .collect::<SmallVec<[vk::AttachmentReference; MAX_COLOR_ATTACHMENTS]>>();
 
         let mut attachment_descriptions = SmallVec::<[vk::AttachmentDescription; 2 * MAX_COLOR_ATTACHMENTS + 1]>::new();
 
         for color_info in query.color.iter().cloned() {
-            attachment_descriptions.push(color_attachment_description(color_info, sample_count));
+            attachment_descriptions.push(color_attachment_description(color_info, sample_count_flag));
         }
 
         if let Some(ref depth_stencil_info) = query.depth_stencil {
-            attachment_descriptions.push(depth_stencil_attachment_description(depth_stencil_info, sample_count));
+            attachment_descriptions.push(depth_stencil_attachment_description(
+                depth_stencil_info,
+                sample_count_flag,
+            ));
         }
 
         let mut resolve_attachment_count = 0;

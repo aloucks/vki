@@ -942,6 +942,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Format::R8G8B8A8 => (TextureFormat::R8G8B8A8Unorm, &image.pixels),
             Format::B8G8R8A8 => (TextureFormat::B8G8R8A8Unorm, &image.pixels),
+            _ => {
+                panic!("Unsupported texture format: {:?}", image.format);
+            }
         };
 
         let texture = util::create_texture_with_data(&app.device, &mut encoder, data, true, format, width, height)?;

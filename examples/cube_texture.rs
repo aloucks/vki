@@ -87,11 +87,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         &uniforms,
     )?;
 
-    let image = image::load_from_memory(include_bytes!("assets/container2.png"))?.to_rgba();
+    // let image = image::load_from_memory(include_bytes!("assets/container2.png"))?.to_rgba();
+    let image_data: &[u8] = include_bytes!("assets/container2.png");
+    let mut png_decoder = spng::Decoder::new(std::io::Cursor::new(image_data));
+    png_decoder.set_output_format(spng::Format::Rgba8);
+
+    let (out_info, mut png_reader) = png_decoder.read_info().expect("read_info failed");
+    let mut image = vec![0; out_info.buffer_size * 10];
+    println!("{:?}", out_info);
+    println!("{:?}", png_reader.info());
+    png_reader.next_frame(&mut image).expect("next_frame failed");
 
     let texture_size = Extent3d {
-        width: image.width(),
-        height: image.height(),
+        width: out_info.width,
+        height: out_info.height,
         depth: 1,
     };
 

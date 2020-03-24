@@ -91,7 +91,7 @@ impl InstanceInner {
             }
 
             let app_info = vk::ApplicationInfo::builder()
-                .api_version(ash::vk_make_version!(1, 0, 0));
+                .api_version(ash::vk::make_version(1, 0, 0));
 
             let layer_names = vec![
                 #[cfg(debug_assertions)]

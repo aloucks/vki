@@ -25,7 +25,7 @@ impl From<ash::InstanceError> for Error {
 impl From<ash::LoadingError> for Error {
     fn from(e: ash::LoadingError) -> Error {
         match e {
-            ash::LoadingError::LibraryLoadError(e) => Error::from(e),
+            ash::LoadingError::LibraryLoadError(e) => Error::from(format!("{}", e)),
         }
     }
 }
@@ -154,7 +154,7 @@ impl Display for Error {
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ErrorKind {
-    Code(VkResult),
+    Code(vk::Result),
     Message(String),
 }
 

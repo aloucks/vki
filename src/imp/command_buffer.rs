@@ -404,8 +404,10 @@ impl CommandBufferInner {
             })
         }
 
+        // The attachment ordering must match what's produced by RenderPassCache::create_render_pass
+
         let mut clear_values = SmallVec::<[vk::ClearValue; render_pass::MAX_COLOR_ATTACHMENTS]>::new();
-        let mut attachments = SmallVec::<[vk::ImageView; render_pass::MAX_COLOR_ATTACHMENTS + 1]>::new();
+        let mut attachments = SmallVec::<[vk::ImageView; 1 + render_pass::MAX_COLOR_ATTACHMENTS * 2]>::new();
 
         for color_attachment in color_attachments.iter() {
             clear_values.push(vk::ClearValue {
@@ -481,7 +483,7 @@ impl CommandBufferInner {
             self.device.raw.cmd_set_depth_bounds(command_buffer, 0.0, 1.0);
             self.device
                 .raw
-                .cmd_set_stencil_reference(command_buffer, vk::StencilFaceFlags::STENCIL_FRONT_AND_BACK, 0);
+                .cmd_set_stencil_reference(command_buffer, vk::StencilFaceFlags::FRONT_AND_BACK, 0);
             self.device
                 .raw
                 .cmd_set_blend_constants(command_buffer, &[0.0, 0.0, 0.0, 0.0]);
@@ -678,7 +680,7 @@ impl CommandBufferInner {
                     descriptor_sets.on_pipeline_layout_change(&pipeline.layout);
                 }
                 Command::SetStencilReference { reference } => {
-                    let front_face = vk::StencilFaceFlags::STENCIL_FRONT_AND_BACK;
+                    let front_face = vk::StencilFaceFlags::FRONT_AND_BACK;
                     unsafe {
                         self.device
                             .raw
