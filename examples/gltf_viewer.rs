@@ -911,7 +911,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Loading images: {}", import.images.len());
     for image in import.images.iter().chain(Some(&missing_texture_image)) {
         use gltf::image::Format;
-        use image::{ConvertBuffer, ImageBuffer, Rgb, Rgba};
+        use image::{buffer::ConvertBuffer, ImageBuffer, Rgb, Rgba};
 
         type RgbaImage = ImageBuffer<Rgba<u8>, Vec<u8>>;
         type BgraImage = ImageBuffer<Rgba<u8>, Vec<u8>>;
