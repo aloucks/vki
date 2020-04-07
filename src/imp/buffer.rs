@@ -326,7 +326,11 @@ impl BufferInner {
         }
     }
 
-    fn unmap(&self) -> Result<(), Error> {
+    /// TODO: We should disconnect the buffer state from the actual memory mapping
+    ///       so that the buffer can stay permanently mapped whenever it's created
+    ///       with MAP_READ or MAP_WRITE. The buffer state will then become a user
+    ///       only state to prevent modification while the buffer is in use.
+    fn unmap_memory(&self) -> Result<(), Error> {
         let mut buffer_state = self.buffer_state.lock();
         match *buffer_state {
             BufferState::Mapped(_) => {
@@ -355,7 +359,7 @@ impl Into<Buffer> for BufferInner {
 
 impl Drop for BufferInner {
     fn drop(&mut self) {
-        self.unmap()
+        self.unmap_memory()
             .map_err(|e| log::error!("failed to unmap_memory: {:?}", e))
             .ok();
         let mut state = self.device.state.lock();
@@ -473,7 +477,10 @@ impl MappedBuffer {
 
 impl Drop for MappedBuffer {
     fn drop(&mut self) {
-        *self.inner.buffer_state.lock() = BufferState::Unmapped;
+        self.inner
+            .unmap_memory()
+            .map_err(|e| log::error!("failed to unmap_memory: {:?}", e))
+            .ok();
     }
 }
 
