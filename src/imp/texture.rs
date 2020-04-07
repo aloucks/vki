@@ -371,8 +371,7 @@ impl TextureInner {
             ..Default::default()
         };
 
-        let mut state = device.state.lock();
-        let allocator = state.allocator_mut();
+        let allocator = &device.allocator;
         let allocation_create_info = AllocationCreateInfo {
             pool: None,
             user_data: None,

@@ -188,8 +188,7 @@ impl BufferInner {
             allocation_create_info
         );
 
-        let mut state = device.state.lock();
-        let allocator = state.allocator_mut();
+        let allocator = &device.allocator;
 
         let result = allocator.create_buffer(&create_info, &allocation_create_info);
 
@@ -207,8 +206,6 @@ impl BufferInner {
         let (buffer, allocation, allocation_info) = result.expect("failed to create buffer"); // TODO
 
         log::trace!("created buffer: {:?}, allocation_info: {:?}", buffer, allocation_info);
-
-        drop(state);
 
         Ok(BufferInner {
             descriptor,
@@ -311,8 +308,7 @@ impl BufferInner {
                 Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
             }
             BufferState::Unmapped => {
-                let mut state = self.device.state.lock();
-                let ptr = state.allocator_mut().map_memory(&self.allocation).map_err(|e| {
+                let ptr = self.device.allocator.map_memory(&self.allocation).map_err(|e| {
                     log::error!("failed to map buffer memory: {:?}", e);
                     match e.kind() {
                         vk_mem::ErrorKind::Vulkan(e) => Error::from(*e),
@@ -334,8 +330,7 @@ impl BufferInner {
         let mut buffer_state = self.buffer_state.lock();
         match *buffer_state {
             BufferState::Mapped(_) => {
-                let mut state = self.device.state.lock();
-                state.allocator_mut().unmap_memory(&self.allocation).map_err(|e| {
+                self.device.allocator.unmap_memory(&self.allocation).map_err(|e| {
                     log::error!("failed to unmap buffer: {:?}", e);
                     match e.kind() {
                         vk_mem::ErrorKind::Vulkan(e) => Error::from(*e),
@@ -433,9 +428,7 @@ impl MappedBuffer {
             ptr::copy_nonoverlapping(data.as_ptr() as *const u8, dst_ptr, data_size);
             self.inner
                 .device
-                .state
-                .lock()
-                .allocator_mut()
+                .allocator
                 .flush_allocation(&self.inner.allocation, offset_bytes, data_size)
                 .map_err(|e| {
                     log::error!("failed to flush allocation: {:?}", e);
@@ -456,9 +449,7 @@ impl MappedBuffer {
             let data = slice::from_raw_parts(src_ptr as *const T, element_count);
             self.inner
                 .device
-                .state
-                .lock()
-                .allocator_mut()
+                .allocator
                 .invalidate_allocation(&self.inner.allocation, offset_bytes, data_size)
                 .map_err(|e| {
                     log::error!("failed to invalidate allocation: {:?}", e);
@@ -508,7 +499,8 @@ impl<'a, T> WriteData<'a, T> {
     fn _flush(&mut self) -> Result<(), Error> {
         let length_bytes = std::mem::size_of::<T>() * self.element_count as usize;
         let offset_bytes = self.offset_bytes as _;
-        self.mapped.inner.device.state.lock().allocator_mut().flush_allocation(
+
+        self.mapped.inner.device.allocator.flush_allocation(
             &self.mapped.inner.allocation,
             offset_bytes,
             length_bytes,

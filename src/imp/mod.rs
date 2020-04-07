@@ -2,7 +2,7 @@ use ash::extensions::{ext, khr};
 use ash::version::InstanceV1_0;
 use ash::vk::{self, Handle};
 use parking_lot::Mutex;
-use vk_mem::{Allocation, AllocationInfo};
+use vk_mem::{Allocation, AllocationInfo, Allocator};
 
 use std::sync::Arc;
 
@@ -41,6 +41,7 @@ use crate::{
 
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
+use std::mem::ManuallyDrop;
 use std::sync::atomic::AtomicPtr;
 
 macro_rules! handle_traits {
@@ -153,6 +154,7 @@ pub struct DeviceInner {
     limits: Limits,
     queue: QueueInfo,
     state: Mutex<device::DeviceState>,
+    allocator: ManuallyDrop<Allocator>,
 }
 
 impl PartialEq for DeviceInner {

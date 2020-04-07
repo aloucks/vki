@@ -38,7 +38,7 @@ impl FencedDeleter {
     }
 
     #[allow(clippy::cognitive_complexity)]
-    pub fn tick(&mut self, last_completed_serial: Serial, device: &DeviceInner, allocator: &mut Allocator) {
+    pub fn tick(&mut self, last_completed_serial: Serial, device: &DeviceInner, allocator: &Allocator) {
         if log::log_enabled!(log::Level::Trace) {
             log::trace!("last_completed_serial:   {:?}", last_completed_serial);
             log::trace!(" swapchains:             {}", self.swapchains.len());

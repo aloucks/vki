@@ -47,8 +47,6 @@ pub struct DeviceState {
 
     fenced_deleter: FencedDeleter,
 
-    allocator: ManuallyDrop<Allocator>,
-
     renderpass_cache: RenderPassCache,
 }
 
@@ -223,7 +221,6 @@ impl DeviceInner {
                 unused_commands: Vec::new(),
                 fenced_deleter: FencedDeleter::default(),
                 renderpass_cache: RenderPassCache::default(),
-                allocator: ManuallyDrop::new(allocator),
             };
 
             let state = Mutex::new(state);
@@ -236,6 +233,7 @@ impl DeviceInner {
                 adapter,
                 queue,
                 state,
+                allocator: ManuallyDrop::new(allocator),
             };
 
             Ok(inner)
@@ -306,7 +304,7 @@ impl Drop for DeviceInner {
             // Work-around for a weird borrow issue with the mutex guard auto-deref
             {
                 let state = &mut *state;
-                state.fenced_deleter.tick(serial, &self, &mut state.allocator);
+                state.fenced_deleter.tick(serial, &self, &self.allocator);
                 if !std::thread::panicking() {
                     assert!(state.fenced_deleter.is_empty());
                 }
@@ -335,7 +333,7 @@ impl Drop for DeviceInner {
 
             state.renderpass_cache.drain(&self);
 
-            ManuallyDrop::drop(&mut state.allocator);
+            ManuallyDrop::drop(&mut self.allocator);
 
             drop(state);
 
@@ -360,7 +358,7 @@ impl DeviceState {
         self.recycle_completed_commands(device)?;
         // TODO: maprequest/uploader/allocator ticks
         self.fenced_deleter
-            .tick(self.last_completed_serial, device, &mut self.allocator);
+            .tick(self.last_completed_serial, device, &device.allocator);
         let queue = &device.queue;
         self.submit_pending_commands(device, &queue)?;
 
@@ -572,14 +570,6 @@ impl DeviceState {
 
     pub fn get_next_pending_serial(&self) -> Serial {
         self.last_submitted_serial.next()
-    }
-
-    pub fn allocator_mut(&mut self) -> &mut Allocator {
-        &mut self.allocator
-    }
-
-    pub fn allocator(&mut self) -> &Allocator {
-        &mut self.allocator
     }
 
     pub fn get_render_pass(
