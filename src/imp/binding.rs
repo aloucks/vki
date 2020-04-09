@@ -5,8 +5,8 @@ use crate::error::Error;
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{BindGroupInner, BindGroupLayoutInner, DeviceInner};
 use crate::{
-    BindGroup, BindGroupBinding, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutBinding,
-    BindGroupLayoutDescriptor, BindingResource, BindingType, ShaderStage,
+    BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
+    BindingResource, BindingType, ShaderStage,
 };
 
 use std::collections::HashMap;
@@ -41,7 +41,7 @@ pub fn shader_stage_flags(visibility: ShaderStage) -> vk::ShaderStageFlags {
 impl BindGroupLayoutInner {
     pub fn new(device: Arc<DeviceInner>, descriptor: BindGroupLayoutDescriptor) -> Result<BindGroupLayoutInner, Error> {
         let bindings: Vec<_> = descriptor
-            .bindings
+            .entries
             .iter()
             .map(|binding| vk::DescriptorSetLayoutBinding {
                 binding: binding.binding,
@@ -60,7 +60,7 @@ impl BindGroupLayoutInner {
         Ok(BindGroupLayoutInner {
             handle,
             device,
-            layout_bindings: descriptor.bindings.to_vec(),
+            layout_bindings: descriptor.entries.to_vec(),
         })
     }
 }
@@ -85,8 +85,8 @@ impl Into<BindGroupLayout> for BindGroupLayoutInner {
 pub fn find_layout_binding(
     bind_group_binding_descriptor_index: usize,
     bind_group_binding: u32,
-    layout_bindings: &[BindGroupLayoutBinding],
-) -> Option<&BindGroupLayoutBinding> {
+    layout_bindings: &[BindGroupLayoutEntry],
+) -> Option<&BindGroupLayoutEntry> {
     // fast path
     let layout_binding = layout_bindings
         .get(bind_group_binding_descriptor_index)
@@ -127,7 +127,7 @@ impl BindGroupInner {
 
         let mut bind_group = BindGroupInner {
             layout: descriptor.layout.inner.clone(),
-            bindings: descriptor.bindings.to_vec(),
+            bindings: descriptor.entries.to_vec(),
             descriptor_pool: vk::DescriptorPool::default(),
             handle: vk::DescriptorSet::default(),
         };
@@ -172,7 +172,7 @@ impl BindGroupInner {
 
         let mut num_writes = 0;
 
-        for (index, binding) in descriptor.bindings.iter().enumerate() {
+        for (index, binding) in descriptor.entries.iter().enumerate() {
             let layout_binding = find_layout_binding(index, binding.binding, &layout_bindings).ok_or_else(|| {
                 let msg = format!(
                     "BindGroupLayout mismatch: BindGroupLayoutBinding not found (binding: {}, index: {})",
@@ -264,7 +264,7 @@ impl Into<BindGroup> for BindGroupInner {
 }
 
 impl BindGroup {
-    pub fn bindings(&self) -> &[BindGroupBinding] {
+    pub fn bindings(&self) -> &[BindGroupEntry] {
         &self.inner.bindings
     }
 }

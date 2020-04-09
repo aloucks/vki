@@ -5,14 +5,14 @@ extern crate memoffset;
 
 use std::borrow::Cow;
 use vki::{
-    AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
-    BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsage,
-    BufferViewDescriptor, BufferViewFormat, Color, ColorStateDescriptor, ColorWrite, CompareFunction,
-    ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat,
-    InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
-    RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
-    SamplerDescriptor, ShaderModuleDescriptor, ShaderStage, StencilOperation, StencilStateFaceDescriptor, StoreOp,
-    Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, TextureView, VertexAttributeDescriptor,
+    AddressMode, BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource,
+    BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsage, BufferViewDescriptor,
+    BufferViewFormat, Color, ColorStateDescriptor, ColorWrite, CompareFunction, ComputePipelineDescriptor, CullMode,
+    DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode,
+    LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
+    RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, SamplerDescriptor,
+    ShaderModuleDescriptor, ShaderStage, StencilOperation, StencilStateFaceDescriptor, StoreOp, Texture,
+    TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, TextureView, VertexAttributeDescriptor,
     VertexBufferDescriptor, VertexFormat,
 };
 
@@ -31,18 +31,18 @@ fn create_pipeline_layout() {
         let (instance, _adapter, device) = support::init()?;
 
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
-            bindings: vec![
-                BindGroupLayoutBinding {
+            entries: vec![
+                BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::VERTEX,
                     binding_type: BindingType::UniformBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 1,
                     visibility: ShaderStage::FRAGMENT,
                     binding_type: BindingType::Sampler,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 2,
                     visibility: ShaderStage::FRAGMENT,
                     binding_type: BindingType::SampledTexture,
@@ -73,13 +73,13 @@ fn create_compute_pipeline() {
         let shader_module = device.create_shader_module(shader_module_descriptor)?;
 
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
-            bindings: vec![
-                BindGroupLayoutBinding {
+            entries: vec![
+                BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::UniformBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 1,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
@@ -126,8 +126,8 @@ fn create_render_pipeline() {
 
         #[rustfmt::skip]
         let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
-            bindings: vec![
-                BindGroupLayoutBinding {
+            entries: vec![
+                BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::VERTEX,
                     binding_type: BindingType::UniformBuffer,
@@ -241,8 +241,8 @@ fn create_multi_sample_render_pipeline() {
 
         #[rustfmt::skip]
         let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
-            bindings: vec![
-                BindGroupLayoutBinding {
+            entries: vec![
+                BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::VERTEX,
                     binding_type: BindingType::UniformBuffer,
@@ -259,7 +259,7 @@ fn create_multi_sample_render_pipeline() {
 
         let bind_group = device.create_bind_group(BindGroupDescriptor {
             layout: bind_group_layout.clone(),
-            bindings: vec![BindGroupBinding {
+            entries: vec![BindGroupEntry {
                 binding: 0,
                 resource: BindingResource::Buffer(uniform_buffer, 0..uniform_buffer_size),
             }],
@@ -426,28 +426,28 @@ fn set_bind_group() {
         let shader_module = device.create_shader_module(shader_module_descriptor)?;
 
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
-            bindings: vec![
-                BindGroupLayoutBinding {
+            entries: vec![
+                BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::UniformBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 1,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 2,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageTexelBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 3,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::Sampler,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 4,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::SampledTexture,
@@ -520,24 +520,24 @@ fn set_bind_group() {
 
         let bind_group = device.create_bind_group(BindGroupDescriptor {
             layout: bind_group_layout,
-            bindings: vec![
-                BindGroupBinding {
+            entries: vec![
+                BindGroupEntry {
                     binding: 0,
                     resource: BindingResource::Buffer(uniform_buffer, 0..1024),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 1,
                     resource: BindingResource::Buffer(storage_buffer, 0..1024),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 2,
                     resource: BindingResource::BufferView(image_buffer_view),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 3,
                     resource: BindingResource::Sampler(sampler),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 4,
                     resource: BindingResource::TextureView(texture_view),
                 },
@@ -570,28 +570,28 @@ fn set_bind_group_out_of_order() {
         let shader_module = device.create_shader_module(shader_module_descriptor)?;
 
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
-            bindings: vec![
-                BindGroupLayoutBinding {
+            entries: vec![
+                BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::UniformBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 1,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 2,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageTexelBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 3,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::Sampler,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 4,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::SampledTexture,
@@ -666,24 +666,24 @@ fn set_bind_group_out_of_order() {
             layout: bind_group_layout,
             // Note that the order of the array elements does not match the layout,
             // but the `binding` values correspond to the correct layout bindings.
-            bindings: vec![
-                BindGroupBinding {
+            entries: vec![
+                BindGroupEntry {
                     binding: 4,
                     resource: BindingResource::TextureView(texture_view),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 1,
                     resource: BindingResource::Buffer(storage_buffer, 0..1024),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 0,
                     resource: BindingResource::Buffer(uniform_buffer, 0..1024),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 3,
                     resource: BindingResource::Sampler(sampler),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 2,
                     resource: BindingResource::BufferView(image_buffer_view),
                 },
@@ -716,28 +716,28 @@ fn set_bind_group_dynamic_offsets() {
         let shader_module = device.create_shader_module(shader_module_descriptor)?;
 
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
-            bindings: vec![
-                BindGroupLayoutBinding {
+            entries: vec![
+                BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::DynamicUniformBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 1,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::DynamicStorageBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 2,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageTexelBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 3,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::Sampler,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 4,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::SampledTexture,
@@ -810,24 +810,24 @@ fn set_bind_group_dynamic_offsets() {
 
         let bind_group = device.create_bind_group(BindGroupDescriptor {
             layout: bind_group_layout,
-            bindings: vec![
-                BindGroupBinding {
+            entries: vec![
+                BindGroupEntry {
                     binding: 0,
                     resource: BindingResource::Buffer(uniform_buffer, 0..1024),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 1,
                     resource: BindingResource::Buffer(storage_buffer, 0..1024),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 2,
                     resource: BindingResource::BufferView(image_buffer_view),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 3,
                     resource: BindingResource::Sampler(sampler),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 4,
                     resource: BindingResource::TextureView(texture_view),
                 },

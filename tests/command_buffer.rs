@@ -1,10 +1,9 @@
 use std::borrow::Cow;
 use std::time::Duration;
 use vki::{
-    BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BufferDescriptor, BufferUsage, ComputePipelineDescriptor, DispatchIndirectCommand,
-    PipelineLayoutDescriptor, PipelineStageDescriptor, PushConstantRange, RenderPassDescriptor, ShaderModuleDescriptor,
-    ShaderStage,
+    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
+    BufferDescriptor, BufferUsage, ComputePipelineDescriptor, DispatchIndirectCommand, PipelineLayoutDescriptor,
+    PipelineStageDescriptor, PushConstantRange, RenderPassDescriptor, ShaderModuleDescriptor, ShaderStage,
 };
 
 pub mod support;
@@ -19,13 +18,13 @@ fn copy_buffer_with_compute_shader() {
         })?;
 
         let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
-            bindings: vec![
-                BindGroupLayoutBinding {
+            entries: vec![
+                BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 1,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
@@ -71,12 +70,12 @@ fn copy_buffer_with_compute_shader() {
 
         let bind_group = device.create_bind_group(BindGroupDescriptor {
             layout: bind_group_layout,
-            bindings: vec![
-                BindGroupBinding {
+            entries: vec![
+                BindGroupEntry {
                     binding: 0,
                     resource: BindingResource::Buffer(write_buffer_mapped.unmap(), 0..data_byte_size),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 1,
                     resource: BindingResource::Buffer(read_buffer.clone(), 0..data_byte_size),
                 },
@@ -120,7 +119,7 @@ fn push_constants() {
         })?;
 
         let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
-            bindings: vec![BindGroupLayoutBinding {
+            entries: vec![BindGroupLayoutEntry {
                 binding: 0,
                 visibility: ShaderStage::COMPUTE,
                 binding_type: BindingType::StorageBuffer,
@@ -153,7 +152,7 @@ fn push_constants() {
 
         let bind_group = device.create_bind_group(BindGroupDescriptor {
             layout: bind_group_layout,
-            bindings: vec![BindGroupBinding {
+            entries: vec![BindGroupEntry {
                 binding: 0,
                 resource: BindingResource::Buffer(read_buffer.clone(), 0..data_byte_size),
             }],
@@ -226,13 +225,13 @@ fn dispatch_indirect() {
         })?;
 
         let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
-            bindings: vec![
-                BindGroupLayoutBinding {
+            entries: vec![
+                BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 1,
                     visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
@@ -278,12 +277,12 @@ fn dispatch_indirect() {
 
         let bind_group = device.create_bind_group(BindGroupDescriptor {
             layout: bind_group_layout,
-            bindings: vec![
-                BindGroupBinding {
+            entries: vec![
+                BindGroupEntry {
                     binding: 0,
                     resource: BindingResource::Buffer(write_buffer_mapped.unmap(), 0..data_byte_size),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 1,
                     resource: BindingResource::Buffer(read_buffer.clone(), 0..data_byte_size),
                 },

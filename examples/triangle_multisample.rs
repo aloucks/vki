@@ -2,7 +2,7 @@
 extern crate memoffset;
 
 use vki::{
-    AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
+    AdapterOptions, BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsage, Color,
     ColorStateDescriptor, ColorWrite, CullMode, DeviceDescriptor, Extent3d, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
@@ -70,7 +70,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     })?;
 
     let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
-        bindings: vec![BindGroupLayoutBinding {
+        entries: vec![BindGroupLayoutEntry {
             binding: 0,
             visibility: ShaderStage::VERTEX,
             binding_type: BindingType::UniformBuffer,
@@ -113,7 +113,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let bind_group = device.create_bind_group(BindGroupDescriptor {
         layout: bind_group_layout.clone(),
-        bindings: vec![BindGroupBinding {
+        entries: vec![BindGroupEntry {
             binding: 0,
             resource: BindingResource::Buffer(uniform_buffer.clone(), 0..uniforms_size_bytes),
         }],

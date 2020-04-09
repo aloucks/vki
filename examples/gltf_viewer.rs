@@ -18,10 +18,10 @@ use std::borrow::Cow;
 
 use std::time::{Duration, Instant};
 use vki::{
-    AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
-    BindingResource, BindingType, BlendDescriptor, Buffer, BufferUsage, Color, ColorStateDescriptor, ColorWrite,
-    CompareFunction, CullMode, DepthStencilStateDescriptor, FilterMode, FrontFace, IndexFormat, InputStateDescriptor,
-    InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, PushConstantRange,
+    AddressMode, BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource,
+    BindingType, BlendDescriptor, Buffer, BufferUsage, Color, ColorStateDescriptor, ColorWrite, CompareFunction,
+    CullMode, DepthStencilStateDescriptor, FilterMode, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode,
+    LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, PushConstantRange,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor,
     RenderPassDescriptor, RenderPipelineDescriptor, Sampler, SamplerDescriptor, ShaderModuleDescriptor, ShaderStage,
     StencilStateFaceDescriptor, StoreOp, SwapchainError, TextureFormat, TextureView, VertexAttributeDescriptor,
@@ -1473,9 +1473,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let bind_group_0_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
-        bindings: vec![
+        entries: vec![
             // CameraAndLightSettings
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 0,
                 binding_type: BindingType::UniformBuffer,
                 visibility: ShaderStage::VERTEX | ShaderStage::FRAGMENT,
@@ -1485,69 +1485,69 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let bind_group_1_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
-        bindings: vec![
+        entries: vec![
             // MaterialSettings
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 0,
                 binding_type: BindingType::DynamicUniformBuffer,
                 visibility: ShaderStage::FRAGMENT,
             },
             // u_BaseColorSampler
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 1,
                 binding_type: BindingType::Sampler,
                 visibility: ShaderStage::FRAGMENT,
             },
             // u_BaseColorTexture
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 2,
                 binding_type: BindingType::SampledTexture,
                 visibility: ShaderStage::FRAGMENT,
             },
             // u_MetallicRoughnessSampler
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 3,
                 binding_type: BindingType::Sampler,
                 visibility: ShaderStage::FRAGMENT,
             },
             // u_MetallicRoughnessTexture
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 4,
                 binding_type: BindingType::SampledTexture,
                 visibility: ShaderStage::FRAGMENT,
             },
             // u_NormalSampler
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 5,
                 binding_type: BindingType::Sampler,
                 visibility: ShaderStage::FRAGMENT,
             },
             // u_NormalTexture
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 6,
                 binding_type: BindingType::SampledTexture,
                 visibility: ShaderStage::FRAGMENT,
             },
             // u_OcclusionSampler
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 7,
                 binding_type: BindingType::Sampler,
                 visibility: ShaderStage::FRAGMENT,
             },
             // u_OcclusionTexture
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 8,
                 binding_type: BindingType::SampledTexture,
                 visibility: ShaderStage::FRAGMENT,
             },
             // u_EmissiveSampler
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 9,
                 binding_type: BindingType::Sampler,
                 visibility: ShaderStage::FRAGMENT,
             },
             // u_EmissiveTexture
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 10,
                 binding_type: BindingType::SampledTexture,
                 visibility: ShaderStage::FRAGMENT,
@@ -1557,15 +1557,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let bind_group_2_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
-        bindings: vec![
+        entries: vec![
             // MeshSettings
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 0,
                 binding_type: BindingType::DynamicUniformBuffer,
                 visibility: ShaderStage::VERTEX,
             },
             // SkinSettings
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 1,
                 binding_type: BindingType::DynamicUniformBuffer,
                 visibility: ShaderStage::VERTEX,
@@ -1577,8 +1577,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[rustfmt::skip]
     let bind_group_0 = app.device.create_bind_group(BindGroupDescriptor {
         layout: bind_group_0_layout.clone(),
-        bindings: vec![
-            BindGroupBinding {
+        entries: vec![
+            BindGroupEntry {
                 binding: 0,
                 resource: BindingResource::Buffer(
                     camera_and_light_settings_buffer.clone(),
@@ -1593,7 +1593,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("Creating material bind groups (1): {}", materials.len());
     for material in materials.iter() {
         let mut bindings = Vec::with_capacity(9);
-        bindings.push(BindGroupBinding {
+        bindings.push(BindGroupEntry {
             binding: 0,
             resource: BindingResource::Buffer(
                 material_settings_buffer.clone(),
@@ -1602,11 +1602,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         });
 
         let mut add_texture_sampler = |sampler_binding: u32, texture_binding: u32, texture_sampler: &TextureSampler| {
-            bindings.push(BindGroupBinding {
+            bindings.push(BindGroupEntry {
                 binding: sampler_binding,
                 resource: BindingResource::Sampler(texture_sampler.sampler.clone()),
             });
-            bindings.push(BindGroupBinding {
+            bindings.push(BindGroupEntry {
                 binding: texture_binding,
                 resource: BindingResource::TextureView(texture_sampler.view.clone()),
             });
@@ -1661,7 +1661,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         bind_group_1.push(app.device.create_bind_group(BindGroupDescriptor {
             layout: bind_group_1_layout.clone(),
-            bindings,
+            entries: bindings,
         })?);
     }
 
@@ -1669,15 +1669,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[rustfmt::skip]
     let bind_group_2 = app.device.create_bind_group(BindGroupDescriptor {
         layout: bind_group_2_layout.clone(),
-        bindings: vec![
-            BindGroupBinding {
+        entries: vec![
+            BindGroupEntry {
                 binding: 0,
                 resource: BindingResource::Buffer(
                     mesh_settings_buffer.clone(),
                     0..std::mem::size_of::<MeshSettings>()
                 ),
             },
-            BindGroupBinding {
+            BindGroupEntry {
                 binding: 1,
                 resource: BindingResource::Buffer(
                     skin_settings_buffer.clone(),

@@ -410,7 +410,7 @@ pub enum BindingType {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
-pub struct BindGroupLayoutBinding {
+pub struct BindGroupLayoutEntry {
     pub binding: u32,
     pub visibility: ShaderStage,
     pub binding_type: BindingType,
@@ -418,7 +418,7 @@ pub struct BindGroupLayoutBinding {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct BindGroupLayoutDescriptor {
-    pub bindings: Vec<BindGroupLayoutBinding>,
+    pub entries: Vec<BindGroupLayoutEntry>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -476,7 +476,7 @@ impl BindingResource {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-pub struct BindGroupBinding {
+pub struct BindGroupEntry {
     pub binding: u32,
     pub resource: BindingResource,
 }
@@ -484,7 +484,7 @@ pub struct BindGroupBinding {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub struct BindGroupDescriptor {
     pub layout: BindGroupLayout,
-    pub bindings: Vec<BindGroupBinding>,
+    pub entries: Vec<BindGroupEntry>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]

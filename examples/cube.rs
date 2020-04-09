@@ -11,8 +11,8 @@ use std::borrow::Cow;
 use crate::util::{App, EventHandlers};
 
 use vki::{
-    BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BlendDescriptor, BufferUsage, Color, ColorStateDescriptor, ColorWrite, CompareFunction, CullMode,
+    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
+    BlendDescriptor, BufferUsage, Color, ColorStateDescriptor, ColorWrite, CompareFunction, CullMode,
     DepthStencilStateDescriptor, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, LoadOp,
     PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
     RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor,
@@ -110,8 +110,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let bind_group_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
-        bindings: vec![
-            BindGroupLayoutBinding {
+        entries: vec![
+            BindGroupLayoutEntry {
                 binding: 0,
                 binding_type: BindingType::UniformBuffer,
                 visibility: ShaderStage::FRAGMENT | ShaderStage::VERTEX,
@@ -122,8 +122,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[rustfmt::skip]
     let bind_group = app.device.create_bind_group(BindGroupDescriptor {
         layout: bind_group_layout.clone(),
-        bindings: vec![
-            BindGroupBinding {
+        entries: vec![
+            BindGroupEntry {
                 binding: 0,
                 resource: BindingResource::Buffer(uniform_buffer.clone(), 0..util::byte_length(&uniforms)),
             }

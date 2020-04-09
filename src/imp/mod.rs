@@ -35,8 +35,8 @@ mod vec;
 pub use crate::imp::debug::validate;
 
 use crate::{
-    AdapterOptions, BindGroupBinding, BindGroupLayout, BindGroupLayoutBinding, BufferDescriptor, BufferUsage,
-    Extensions, IndexFormat, Limits, SamplerDescriptor, TextureDescriptor, TextureViewDescriptor,
+    AdapterOptions, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, BufferDescriptor, BufferUsage, Extensions,
+    IndexFormat, Limits, SamplerDescriptor, TextureDescriptor, TextureViewDescriptor,
 };
 
 use std::collections::HashMap;
@@ -272,7 +272,7 @@ handle_traits!(SamplerInner);
 pub struct BindGroupLayoutInner {
     handle: vk::DescriptorSetLayout,
     device: Arc<DeviceInner>,
-    layout_bindings: Vec<BindGroupLayoutBinding>,
+    layout_bindings: Vec<BindGroupLayoutEntry>,
 }
 
 handle_traits!(BindGroupLayoutInner);
@@ -283,7 +283,7 @@ pub struct BindGroupInner {
     descriptor_pool: vk::DescriptorPool,
     layout: Arc<BindGroupLayoutInner>,
     // Keep the resources alive as long as the bind group exists
-    bindings: Vec<BindGroupBinding>,
+    bindings: Vec<BindGroupEntry>,
 }
 
 handle_traits!(BindGroupInner);

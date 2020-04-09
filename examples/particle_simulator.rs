@@ -10,9 +10,9 @@ use std::borrow::Cow;
 use crate::util::{App, EventHandler, EventHandlers};
 
 use vki::{
-    BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferUsage, BufferViewDescriptor, BufferViewFormat,
-    Color, ColorStateDescriptor, ColorWrite, ComputePipelineDescriptor, CullMode, Fence, FrontFace, IndexFormat,
+    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
+    BlendDescriptor, BlendFactor, BlendOperation, BufferUsage, BufferViewDescriptor, BufferViewFormat, Color,
+    ColorStateDescriptor, ColorWrite, ComputePipelineDescriptor, CullMode, Fence, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
     ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainError, TextureFormat, VertexAttributeDescriptor,
@@ -187,18 +187,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let compute_bind_group_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
-        bindings: vec![
-            BindGroupLayoutBinding {
+        entries: vec![
+            BindGroupLayoutEntry {
                 binding: 0,
                 binding_type: BindingType::StorageTexelBuffer,
                 visibility: ShaderStage::COMPUTE,
             },
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 1,
                 binding_type: BindingType::StorageTexelBuffer,
                 visibility: ShaderStage::COMPUTE,
             },
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 2,
                 binding_type: BindingType::UniformBuffer,
                 visibility: ShaderStage::COMPUTE,
@@ -209,16 +209,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[rustfmt::skip]
     let compute_bind_group = app.device.create_bind_group(BindGroupDescriptor {
         layout: compute_bind_group_layout.clone(),
-        bindings: vec![
-            BindGroupBinding {
+        entries: vec![
+            BindGroupEntry {
                 binding: 0,
                 resource: BindingResource::BufferView(velocity_buffer_view),
             },
-            BindGroupBinding {
+            BindGroupEntry {
                 binding: 1,
                 resource: BindingResource::BufferView(position_buffer_view),
             },
-            BindGroupBinding {
+            BindGroupEntry {
                 binding: 2,
                 resource: BindingResource::Buffer(attractor_buffer.clone(), 0..util::byte_length(&attractor_block_data)),
             }
@@ -227,8 +227,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let render_bind_group_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
-        bindings: vec![
-            BindGroupLayoutBinding {
+        entries: vec![
+            BindGroupLayoutEntry {
                 binding: 0,
                 binding_type: BindingType::UniformBuffer,
                 visibility: ShaderStage::VERTEX,
@@ -239,8 +239,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[rustfmt::skip]
     let render_bind_group = app.device.create_bind_group(BindGroupDescriptor {
         layout: render_bind_group_layout.clone(),
-        bindings: vec![
-            BindGroupBinding {
+        entries: vec![
+            BindGroupEntry {
                 binding: 0,
                 resource: BindingResource::Buffer(mvp_buffer.clone(), 0..util::byte_length(&mvp_block_data)),
             }

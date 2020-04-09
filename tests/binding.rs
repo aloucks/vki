@@ -1,7 +1,7 @@
 use vki::{
-    BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BufferDescriptor, BufferUsage, BufferViewDescriptor, BufferViewFormat, Extent3d, SamplerDescriptor,
-    ShaderStage, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage,
+    BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
+    BufferDescriptor, BufferUsage, BufferViewDescriptor, BufferViewFormat, Extent3d, SamplerDescriptor, ShaderStage,
+    TextureDescriptor, TextureDimension, TextureFormat, TextureUsage,
 };
 
 pub mod support;
@@ -12,7 +12,7 @@ fn create_bind_group_layout() {
         let (instance, _adapter, device) = support::init()?;
 
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
-            bindings: vec![BindGroupLayoutBinding {
+            entries: vec![BindGroupLayoutEntry {
                 binding: 0,
                 visibility: ShaderStage::VERTEX,
                 binding_type: BindingType::UniformBuffer,
@@ -67,23 +67,23 @@ fn create_bind_group() {
         let texture_view = texture.create_default_view()?;
 
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
-            bindings: vec![
-                BindGroupLayoutBinding {
+            entries: vec![
+                BindGroupLayoutEntry {
                     binding: 0,
                     visibility: ShaderStage::VERTEX,
                     binding_type: BindingType::UniformBuffer,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 1,
                     visibility: ShaderStage::FRAGMENT,
                     binding_type: BindingType::Sampler,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 2,
                     visibility: ShaderStage::FRAGMENT,
                     binding_type: BindingType::SampledTexture,
                 },
-                BindGroupLayoutBinding {
+                BindGroupLayoutEntry {
                     binding: 3,
                     visibility: ShaderStage::FRAGMENT,
                     binding_type: BindingType::StorageTexelBuffer,
@@ -94,20 +94,20 @@ fn create_bind_group() {
 
         let bind_group_descriptor = BindGroupDescriptor {
             layout: bind_group_layout,
-            bindings: vec![
-                BindGroupBinding {
+            entries: vec![
+                BindGroupEntry {
                     binding: 0,
                     resource: BindingResource::Buffer(buffer, 0..buffer_descriptor.size),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 1,
                     resource: BindingResource::Sampler(sampler),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 2,
                     resource: BindingResource::TextureView(texture_view),
                 },
-                BindGroupBinding {
+                BindGroupEntry {
                     binding: 3,
                     resource: BindingResource::BufferView(texel_buffer_view),
                 },

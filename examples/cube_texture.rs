@@ -14,9 +14,9 @@ use crate::util::{App, EventHandlers};
 
 use std::time::Instant;
 use vki::{
-    AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
-    BindingResource, BindingType, BlendDescriptor, BufferCopyView, BufferUsage, Color, ColorStateDescriptor,
-    ColorWrite, CompareFunction, CullMode, DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat,
+    AddressMode, BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource,
+    BindingType, BlendDescriptor, BufferCopyView, BufferUsage, Color, ColorStateDescriptor, ColorWrite,
+    CompareFunction, CullMode, DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, LoadOp, Origin3d, PipelineLayoutDescriptor, PipelineStageDescriptor,
     PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, SamplerDescriptor,
@@ -201,18 +201,18 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     #[rustfmt::skip]
     let bind_group_layout = app.device.create_bind_group_layout(BindGroupLayoutDescriptor {
-        bindings: vec![
-            BindGroupLayoutBinding {
+        entries: vec![
+            BindGroupLayoutEntry {
                 binding: 0,
                 binding_type: BindingType::UniformBuffer,
                 visibility: ShaderStage::FRAGMENT | ShaderStage::VERTEX,
             },
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 1,
                 binding_type: BindingType::Sampler,
                 visibility: ShaderStage::FRAGMENT,
             },
-            BindGroupLayoutBinding {
+            BindGroupLayoutEntry {
                 binding: 2,
                 binding_type: BindingType::SampledTexture,
                 visibility: ShaderStage::FRAGMENT,
@@ -223,16 +223,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     #[rustfmt::skip]
     let bind_group = app.device.create_bind_group(BindGroupDescriptor {
         layout: bind_group_layout.clone(),
-        bindings: vec![
-            BindGroupBinding {
+        entries: vec![
+            BindGroupEntry {
                 binding: 0,
                 resource: BindingResource::Buffer(uniform_buffer.clone(), 0..util::byte_length(&uniforms)),
             },
-            BindGroupBinding {
+            BindGroupEntry {
                 binding: 1,
                 resource: BindingResource::Sampler(sampler),
             },
-            BindGroupBinding {
+            BindGroupEntry {
                 binding: 2,
                 resource: BindingResource::TextureView(container_texture_view),
             }
