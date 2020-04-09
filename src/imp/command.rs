@@ -5,7 +5,7 @@ use smallvec::SmallVec;
 use crate::imp::command_buffer::MAX_BIND_GROUPS;
 use crate::imp::command_encoder::{RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo};
 use crate::imp::{BindGroupInner, BufferInner, ComputePipelineInner, RenderPipelineInner, TextureInner};
-use crate::{Buffer, Color, Extent3d, FilterMode, Origin3d, ShaderStageFlags};
+use crate::{Buffer, Color, Extent3d, FilterMode, Origin3d, ShaderStage};
 
 #[derive(Debug, Clone)]
 pub struct BufferCopy {
@@ -113,7 +113,7 @@ pub enum Command {
         pipeline: Arc<RenderPipelineInner>,
     },
     SetPushConstants {
-        stages: ShaderStageFlags,
+        stages: ShaderStage,
         offset_bytes: u32,
         size_bytes: u32,
         values: Vec<u8>,

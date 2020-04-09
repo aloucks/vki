@@ -15,7 +15,7 @@ use vki::{
     BufferViewFormat, Color, ColorStateDescriptor, ColorWriteFlags, ComputePipelineDescriptor, CullMode, Fence,
     FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor,
     PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
-    RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp, SwapchainError,
+    RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainError,
     TextureFormat, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
 };
 
@@ -191,17 +191,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             BindGroupLayoutBinding {
                 binding: 0,
                 binding_type: BindingType::StorageTexelBuffer,
-                visibility: ShaderStageFlags::COMPUTE,
+                visibility: ShaderStage::COMPUTE,
             },
             BindGroupLayoutBinding {
                 binding: 1,
                 binding_type: BindingType::StorageTexelBuffer,
-                visibility: ShaderStageFlags::COMPUTE,
+                visibility: ShaderStage::COMPUTE,
             },
             BindGroupLayoutBinding {
                 binding: 2,
                 binding_type: BindingType::UniformBuffer,
-                visibility: ShaderStageFlags::COMPUTE,
+                visibility: ShaderStage::COMPUTE,
             }
         ],
     })?;
@@ -231,7 +231,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             BindGroupLayoutBinding {
                 binding: 0,
                 binding_type: BindingType::UniformBuffer,
-                visibility: ShaderStageFlags::VERTEX,
+                visibility: ShaderStage::VERTEX,
             },
         ],
     })?;

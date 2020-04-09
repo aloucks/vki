@@ -6,8 +6,8 @@ use std::convert::TryFrom;
 use crate::{
     BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder,
     ComputePassEncoder, ComputePipeline, Extent3d, FilterMode, LoadOp, RenderPassColorAttachmentDescriptor,
-    RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPassEncoder, RenderPipeline,
-    ShaderStageFlags, StoreOp, TextureBlitView, TextureCopyView, TextureUsage,
+    RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPassEncoder, RenderPipeline, ShaderStage,
+    StoreOp, TextureBlitView, TextureCopyView, TextureUsage,
 };
 
 use std::sync::Arc;
@@ -110,12 +110,7 @@ impl CommandEncoderInner {
         self.state.push(command)
     }
 
-    fn set_push_constants<T: Copy>(
-        &mut self,
-        stages: ShaderStageFlags,
-        offset_bytes: usize,
-        value: T,
-    ) -> Result<(), Error> {
+    fn set_push_constants<T: Copy>(&mut self, stages: ShaderStage, offset_bytes: usize, value: T) -> Result<(), Error> {
         let size_bytes = std::mem::size_of::<T>();
         if size_bytes + offset_bytes > pipeline::MAX_PUSH_CONSTANTS_SIZE {
             log::error!(
@@ -428,7 +423,7 @@ impl<'a> ComputePassEncoder<'a> {
 
     pub fn set_push_constants<T: Copy>(
         &mut self,
-        stages: ShaderStageFlags,
+        stages: ShaderStage,
         offset_bytes: usize,
         value: T,
     ) -> Result<(), Error> {
@@ -695,7 +690,7 @@ impl<'a> RenderPassEncoder<'a> {
 
     pub fn set_push_constants<T: Copy>(
         &mut self,
-        stages: ShaderStageFlags,
+        stages: ShaderStage,
         offset_bytes: usize,
         value: T,
     ) -> Result<(), Error> {

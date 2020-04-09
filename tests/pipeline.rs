@@ -11,7 +11,7 @@ use vki::{
     ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
-    SamplerDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilOperation, StencilStateFaceDescriptor, StoreOp,
+    SamplerDescriptor, ShaderModuleDescriptor, ShaderStage, StencilOperation, StencilStateFaceDescriptor, StoreOp,
     Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, TextureView, VertexAttributeDescriptor,
     VertexBufferDescriptor, VertexFormat,
 };
@@ -34,17 +34,17 @@ fn create_pipeline_layout() {
             bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
-                    visibility: ShaderStageFlags::VERTEX,
+                    visibility: ShaderStage::VERTEX,
                     binding_type: BindingType::UniformBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 1,
-                    visibility: ShaderStageFlags::FRAGMENT,
+                    visibility: ShaderStage::FRAGMENT,
                     binding_type: BindingType::Sampler,
                 },
                 BindGroupLayoutBinding {
                     binding: 2,
-                    visibility: ShaderStageFlags::FRAGMENT,
+                    visibility: ShaderStage::FRAGMENT,
                     binding_type: BindingType::SampledTexture,
                 },
             ],
@@ -76,12 +76,12 @@ fn create_compute_pipeline() {
             bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::UniformBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 1,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
                 },
             ],
@@ -129,7 +129,7 @@ fn create_render_pipeline() {
             bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
-                    visibility: ShaderStageFlags::VERTEX,
+                    visibility: ShaderStage::VERTEX,
                     binding_type: BindingType::UniformBuffer,
                 }
             ],
@@ -244,7 +244,7 @@ fn create_multi_sample_render_pipeline() {
             bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
-                    visibility: ShaderStageFlags::VERTEX,
+                    visibility: ShaderStage::VERTEX,
                     binding_type: BindingType::UniformBuffer,
                 }
             ],
@@ -429,27 +429,27 @@ fn set_bind_group() {
             bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::UniformBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 1,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 2,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageTexelBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 3,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::Sampler,
                 },
                 BindGroupLayoutBinding {
                     binding: 4,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::SampledTexture,
                 },
             ],
@@ -573,27 +573,27 @@ fn set_bind_group_out_of_order() {
             bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::UniformBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 1,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 2,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageTexelBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 3,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::Sampler,
                 },
                 BindGroupLayoutBinding {
                     binding: 4,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::SampledTexture,
                 },
             ],
@@ -719,27 +719,27 @@ fn set_bind_group_dynamic_offsets() {
             bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::DynamicUniformBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 1,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::DynamicStorageBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 2,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageTexelBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 3,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::Sampler,
                 },
                 BindGroupLayoutBinding {
                     binding: 4,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::SampledTexture,
                 },
             ],

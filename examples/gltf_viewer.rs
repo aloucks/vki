@@ -24,7 +24,7 @@ use vki::{
     InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     PushConstantRange, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, Sampler,
-    SamplerDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp, SwapchainError,
+    SamplerDescriptor, ShaderModuleDescriptor, ShaderStage, StencilStateFaceDescriptor, StoreOp, SwapchainError,
     TextureFormat, TextureView, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
 };
 
@@ -1480,7 +1480,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             BindGroupLayoutBinding {
                 binding: 0,
                 binding_type: BindingType::UniformBuffer,
-                visibility: ShaderStageFlags::VERTEX | ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::VERTEX | ShaderStage::FRAGMENT,
             }
         ]
     })?;
@@ -1492,67 +1492,67 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             BindGroupLayoutBinding {
                 binding: 0,
                 binding_type: BindingType::DynamicUniformBuffer,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
             // u_BaseColorSampler
             BindGroupLayoutBinding {
                 binding: 1,
                 binding_type: BindingType::Sampler,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
             // u_BaseColorTexture
             BindGroupLayoutBinding {
                 binding: 2,
                 binding_type: BindingType::SampledTexture,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
             // u_MetallicRoughnessSampler
             BindGroupLayoutBinding {
                 binding: 3,
                 binding_type: BindingType::Sampler,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
             // u_MetallicRoughnessTexture
             BindGroupLayoutBinding {
                 binding: 4,
                 binding_type: BindingType::SampledTexture,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
             // u_NormalSampler
             BindGroupLayoutBinding {
                 binding: 5,
                 binding_type: BindingType::Sampler,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
             // u_NormalTexture
             BindGroupLayoutBinding {
                 binding: 6,
                 binding_type: BindingType::SampledTexture,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
             // u_OcclusionSampler
             BindGroupLayoutBinding {
                 binding: 7,
                 binding_type: BindingType::Sampler,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
             // u_OcclusionTexture
             BindGroupLayoutBinding {
                 binding: 8,
                 binding_type: BindingType::SampledTexture,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
             // u_EmissiveSampler
             BindGroupLayoutBinding {
                 binding: 9,
                 binding_type: BindingType::Sampler,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
             // u_EmissiveTexture
             BindGroupLayoutBinding {
                 binding: 10,
                 binding_type: BindingType::SampledTexture,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
         ]
     })?;
@@ -1564,13 +1564,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             BindGroupLayoutBinding {
                 binding: 0,
                 binding_type: BindingType::DynamicUniformBuffer,
-                visibility: ShaderStageFlags::VERTEX,
+                visibility: ShaderStage::VERTEX,
             },
             // SkinSettings
             BindGroupLayoutBinding {
                 binding: 1,
                 binding_type: BindingType::DynamicUniformBuffer,
-                visibility: ShaderStageFlags::VERTEX,
+                visibility: ShaderStage::VERTEX,
             }
         ]
     })?;
@@ -1692,7 +1692,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let push_constant_range = PushConstantRange {
         offset: 0,
         size: std::mem::size_of::<PrimitiveSettings>(),
-        stages: ShaderStageFlags::VERTEX | ShaderStageFlags::FRAGMENT,
+        stages: ShaderStage::VERTEX | ShaderStage::FRAGMENT,
     };
 
     let render_pipeline_layout = app.device.create_pipeline_layout(PipelineLayoutDescriptor {
@@ -2000,7 +2000,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     };
                 }
 
-                let stages = ShaderStageFlags::VERTEX | ShaderStageFlags::FRAGMENT;
+                let stages = ShaderStage::VERTEX | ShaderStage::FRAGMENT;
                 render_pass.set_push_constants(stages, 0, primitive.settings)?;
                 render_pass.set_vertex_buffers(0, &[vertex_buffer.clone()], &[primitive.vertex_buffer_offset]);
                 match primitive.index_buffer_offset {

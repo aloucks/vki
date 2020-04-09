@@ -389,7 +389,7 @@ pub struct Sampler {
 
 bitflags! {
     #[repr(transparent)]
-    pub struct ShaderStageFlags: u32 {
+    pub struct ShaderStage: u32 {
         const NONE = 0;
         const VERTEX = 1;
         const FRAGMENT = 2;
@@ -412,7 +412,7 @@ pub enum BindingType {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BindGroupLayoutBinding {
     pub binding: u32,
-    pub visibility: ShaderStageFlags,
+    pub visibility: ShaderStage,
     pub binding_type: BindingType,
 }
 
@@ -428,7 +428,7 @@ pub struct BindGroupLayout {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct PushConstantRange {
-    pub stages: ShaderStageFlags,
+    pub stages: ShaderStage,
     pub offset: usize,
     pub size: usize,
 }

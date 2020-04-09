@@ -10,7 +10,7 @@ use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery}
 use crate::imp::{binding, pipeline};
 use crate::imp::{render_pass, sampler, texture, util, DeviceInner, PipelineLayoutInner};
 use crate::imp::{CommandBufferInner, RenderPipelineInner};
-use crate::{BufferUsageFlags, DrawIndirectCommand, Error, Extent3d, IndexFormat, ShaderStageFlags, TextureUsage};
+use crate::{BufferUsageFlags, DrawIndirectCommand, Error, Extent3d, IndexFormat, ShaderStage, TextureUsage};
 
 use crate::imp::command_encoder::{
     CommandEncoderState, RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo,
@@ -907,7 +907,7 @@ impl<'a> DescriptorSetTracker<'a> {
         &mut self,
         device: &DeviceInner,
         command_buffer: vk::CommandBuffer,
-        stages: ShaderStageFlags,
+        stages: ShaderStage,
         offset_bytes: u32,
         size_bytes: u32,
         values: &[u8],

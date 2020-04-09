@@ -1,7 +1,7 @@
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
     BindingType, BufferDescriptor, BufferUsageFlags, BufferViewDescriptor, BufferViewFormat, Extent3d,
-    SamplerDescriptor, ShaderStageFlags, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage,
+    SamplerDescriptor, ShaderStage, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage,
 };
 
 pub mod support;
@@ -14,7 +14,7 @@ fn create_bind_group_layout() {
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
             bindings: vec![BindGroupLayoutBinding {
                 binding: 0,
-                visibility: ShaderStageFlags::VERTEX,
+                visibility: ShaderStage::VERTEX,
                 binding_type: BindingType::UniformBuffer,
             }],
         };
@@ -70,22 +70,22 @@ fn create_bind_group() {
             bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
-                    visibility: ShaderStageFlags::VERTEX,
+                    visibility: ShaderStage::VERTEX,
                     binding_type: BindingType::UniformBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 1,
-                    visibility: ShaderStageFlags::FRAGMENT,
+                    visibility: ShaderStage::FRAGMENT,
                     binding_type: BindingType::Sampler,
                 },
                 BindGroupLayoutBinding {
                     binding: 2,
-                    visibility: ShaderStageFlags::FRAGMENT,
+                    visibility: ShaderStage::FRAGMENT,
                     binding_type: BindingType::SampledTexture,
                 },
                 BindGroupLayoutBinding {
                     binding: 3,
-                    visibility: ShaderStageFlags::FRAGMENT,
+                    visibility: ShaderStage::FRAGMENT,
                     binding_type: BindingType::StorageTexelBuffer,
                 },
             ],

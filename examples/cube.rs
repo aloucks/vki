@@ -16,8 +16,8 @@ use vki::{
     CullMode, DepthStencilStateDescriptor, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, LoadOp,
     PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
     RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor,
-    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp,
-    SwapchainError, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
+    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StencilStateFaceDescriptor, StoreOp, SwapchainError,
+    VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
 };
 
 #[repr(C)]
@@ -114,7 +114,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             BindGroupLayoutBinding {
                 binding: 0,
                 binding_type: BindingType::UniformBuffer,
-                visibility: ShaderStageFlags::FRAGMENT | ShaderStageFlags::VERTEX,
+                visibility: ShaderStage::FRAGMENT | ShaderStage::VERTEX,
             }
         ],
     })?;

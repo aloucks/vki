@@ -4,7 +4,7 @@ use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
     BindingType, BufferDescriptor, BufferUsageFlags, ComputePipelineDescriptor, DispatchIndirectCommand,
     PipelineLayoutDescriptor, PipelineStageDescriptor, PushConstantRange, RenderPassDescriptor, ShaderModuleDescriptor,
-    ShaderStageFlags,
+    ShaderStage,
 };
 
 pub mod support;
@@ -22,12 +22,12 @@ fn copy_buffer_with_compute_shader() {
             bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 1,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
                 },
             ],
@@ -122,7 +122,7 @@ fn push_constants() {
         let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
             bindings: vec![BindGroupLayoutBinding {
                 binding: 0,
-                visibility: ShaderStageFlags::COMPUTE,
+                visibility: ShaderStage::COMPUTE,
                 binding_type: BindingType::StorageBuffer,
             }],
         })?;
@@ -131,7 +131,7 @@ fn push_constants() {
             bind_group_layouts: vec![bind_group_layout.clone()],
             push_constant_ranges: vec![PushConstantRange {
                 offset: 0,
-                stages: ShaderStageFlags::COMPUTE,
+                stages: ShaderStage::COMPUTE,
                 size: data_byte_size,
             }],
         })?;
@@ -162,8 +162,8 @@ fn push_constants() {
         let mut compute_pass = encoder.begin_compute_pass();
         compute_pass.set_pipeline(&pipeline);
         compute_pass.set_bind_group(0, &bind_group, None);
-        compute_pass.set_push_constants(ShaderStageFlags::COMPUTE, 0, data[0])?;
-        compute_pass.set_push_constants(ShaderStageFlags::COMPUTE, std::mem::size_of::<u32>(), data[1])?;
+        compute_pass.set_push_constants(ShaderStage::COMPUTE, 0, data[0])?;
+        compute_pass.set_push_constants(ShaderStage::COMPUTE, std::mem::size_of::<u32>(), data[1])?;
         compute_pass.dispatch(1, 1, 1);
         compute_pass.end_pass();
 
@@ -229,12 +229,12 @@ fn dispatch_indirect() {
             bindings: vec![
                 BindGroupLayoutBinding {
                     binding: 0,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
                 },
                 BindGroupLayoutBinding {
                     binding: 1,
-                    visibility: ShaderStageFlags::COMPUTE,
+                    visibility: ShaderStage::COMPUTE,
                     binding_type: BindingType::StorageBuffer,
                 },
             ],

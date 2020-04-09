@@ -20,7 +20,7 @@ use vki::{
     IndexFormat, InputStateDescriptor, InputStepMode, LoadOp, Origin3d, PipelineLayoutDescriptor,
     PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, SamplerDescriptor,
-    ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp, SwapchainError, TextureBlitView,
+    ShaderModuleDescriptor, ShaderStage, StencilStateFaceDescriptor, StoreOp, SwapchainError, TextureBlitView,
     TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, VertexAttributeDescriptor,
     VertexBufferDescriptor, VertexFormat,
 };
@@ -205,17 +205,17 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             BindGroupLayoutBinding {
                 binding: 0,
                 binding_type: BindingType::UniformBuffer,
-                visibility: ShaderStageFlags::FRAGMENT | ShaderStageFlags::VERTEX,
+                visibility: ShaderStage::FRAGMENT | ShaderStage::VERTEX,
             },
             BindGroupLayoutBinding {
                 binding: 1,
                 binding_type: BindingType::Sampler,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             },
             BindGroupLayoutBinding {
                 binding: 2,
                 binding_type: BindingType::SampledTexture,
-                visibility: ShaderStageFlags::FRAGMENT,
+                visibility: ShaderStage::FRAGMENT,
             }
         ],
     })?;

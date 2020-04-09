@@ -6,7 +6,7 @@ use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{BindGroupInner, BindGroupLayoutInner, DeviceInner};
 use crate::{
     BindGroup, BindGroupBinding, BindGroupDescriptor, BindGroupLayout, BindGroupLayoutBinding,
-    BindGroupLayoutDescriptor, BindingResource, BindingType, ShaderStageFlags,
+    BindGroupLayoutDescriptor, BindingResource, BindingType, ShaderStage,
 };
 
 use std::collections::HashMap;
@@ -24,15 +24,15 @@ pub fn descriptor_type(binding_type: BindingType) -> vk::DescriptorType {
     }
 }
 
-pub fn shader_stage_flags(visibility: ShaderStageFlags) -> vk::ShaderStageFlags {
+pub fn shader_stage_flags(visibility: ShaderStage) -> vk::ShaderStageFlags {
     let mut flags = vk::ShaderStageFlags::empty();
-    if visibility.intersects(ShaderStageFlags::VERTEX) {
+    if visibility.intersects(ShaderStage::VERTEX) {
         flags |= vk::ShaderStageFlags::VERTEX;
     }
-    if visibility.intersects(ShaderStageFlags::FRAGMENT) {
+    if visibility.intersects(ShaderStage::FRAGMENT) {
         flags |= vk::ShaderStageFlags::FRAGMENT;
     }
-    if visibility.intersects(ShaderStageFlags::COMPUTE) {
+    if visibility.intersects(ShaderStage::COMPUTE) {
         flags |= vk::ShaderStageFlags::COMPUTE;
     }
     flags

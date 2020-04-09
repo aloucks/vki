@@ -7,9 +7,8 @@ use vki::{
     Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
     PowerPreference, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
-    RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp,
-    SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsage, VertexAttributeDescriptor,
-    VertexBufferDescriptor, VertexFormat,
+    RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainDescriptor,
+    SwapchainError, TextureFormat, TextureUsage, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
 };
 
 use winit::dpi::LogicalSize;
@@ -74,7 +73,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let bind_group_layout = device.create_bind_group_layout(BindGroupLayoutDescriptor {
         bindings: vec![BindGroupLayoutBinding {
             binding: 0,
-            visibility: ShaderStageFlags::VERTEX,
+            visibility: ShaderStage::VERTEX,
             binding_type: BindingType::UniformBuffer,
         }],
     })?;
