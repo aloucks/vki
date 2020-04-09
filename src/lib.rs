@@ -764,13 +764,13 @@ pub enum VertexFormat {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub struct VertexAttributeDescriptor {
-    pub shader_location: u32,
-    pub offset: usize,
     pub format: VertexFormat,
+    pub offset: usize,
+    pub shader_location: u32,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct VertexBufferDescriptor {
+pub struct VertexBufferLayoutDescriptor {
     /// The index of the vertex buffer containing these attributes. See `RenderPassEncoder::set_vertex_buffers`.
     pub input_slot: u32,
     pub stride: usize,
@@ -779,9 +779,9 @@ pub struct VertexBufferDescriptor {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
-pub struct InputStateDescriptor {
+pub struct VertexStateDescriptor {
     pub index_format: IndexFormat,
-    pub vertex_buffers: Vec<VertexBufferDescriptor>,
+    pub vertex_buffers: Vec<VertexBufferLayoutDescriptor>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -793,7 +793,7 @@ pub struct RenderPipelineDescriptor {
     pub rasterization_state: RasterizationStateDescriptor,
     pub color_states: Vec<ColorStateDescriptor>,
     pub depth_stencil_state: Option<DepthStencilStateDescriptor>,
-    pub input_state: InputStateDescriptor,
+    pub vertex_state: VertexStateDescriptor,
     pub sample_count: u32,
 }
 

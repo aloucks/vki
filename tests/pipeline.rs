@@ -8,12 +8,12 @@ use vki::{
     AddressMode, BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource,
     BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsage, BufferViewDescriptor,
     BufferViewFormat, Color, ColorStateDescriptor, ColorWrite, CompareFunction, ComputePipelineDescriptor, CullMode,
-    DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode,
-    LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
+    DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat, InputStepMode, LoadOp,
+    PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
     RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, SamplerDescriptor,
     ShaderModuleDescriptor, ShaderStage, StencilOperation, StencilStateFaceDescriptor, StoreOp, Texture,
     TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, TextureView, VertexAttributeDescriptor,
-    VertexBufferDescriptor, VertexFormat,
+    VertexBufferLayoutDescriptor, VertexFormat, VertexStateDescriptor,
 };
 
 pub mod support;
@@ -171,10 +171,10 @@ fn create_render_pipeline() {
                 entry_point: Cow::Borrowed("main"),
                 module: fragment_shader_module,
             },
-            input_state: InputStateDescriptor {
+            vertex_state: VertexStateDescriptor {
                 index_format: IndexFormat::U16,
                 vertex_buffers: vec![
-                    VertexBufferDescriptor {
+                    VertexBufferLayoutDescriptor {
                         input_slot: 0,
                         step_mode: InputStepMode::Vertex,
                         stride: std::mem::size_of::<Vertex>(),
@@ -301,10 +301,10 @@ fn create_multi_sample_render_pipeline() {
                 entry_point: Cow::Borrowed("main"),
                 module: fragment_shader_module,
             },
-            input_state: InputStateDescriptor {
+            vertex_state: VertexStateDescriptor {
                 index_format: IndexFormat::U16,
                 vertex_buffers: vec![
-                    VertexBufferDescriptor {
+                    VertexBufferLayoutDescriptor {
                         input_slot: 0,
                         step_mode: InputStepMode::Vertex,
                         stride: std::mem::size_of::<Vertex>(),

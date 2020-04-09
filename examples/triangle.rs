@@ -4,11 +4,11 @@ extern crate memoffset;
 use vki::{
     AdapterOptions, BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsage, Color,
-    ColorStateDescriptor, ColorWrite, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStateDescriptor,
-    InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PowerPreference,
-    PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
-    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainDescriptor, SwapchainError,
-    TextureFormat, TextureUsage, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
+    ColorStateDescriptor, ColorWrite, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStepMode, Instance,
+    LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PowerPreference, PrimitiveTopology,
+    RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
+    ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsage,
+    VertexAttributeDescriptor, VertexBufferLayoutDescriptor, VertexFormat, VertexStateDescriptor,
 };
 
 use winit::dpi::LogicalSize;
@@ -177,9 +177,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             entry_point: Cow::Borrowed("main"),
             module: fragment_shader,
         },
-        input_state: InputStateDescriptor {
+        vertex_state: VertexStateDescriptor {
             index_format: IndexFormat::U16,
-            vertex_buffers: vec![VertexBufferDescriptor {
+            vertex_buffers: vec![VertexBufferLayoutDescriptor {
                 input_slot: 0,
                 step_mode: InputStepMode::Vertex,
                 stride: std::mem::size_of::<Vertex>(),

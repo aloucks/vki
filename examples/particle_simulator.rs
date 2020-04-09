@@ -13,10 +13,10 @@ use vki::{
     BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
     BlendDescriptor, BlendFactor, BlendOperation, BufferUsage, BufferViewDescriptor, BufferViewFormat, Color,
     ColorStateDescriptor, ColorWrite, ComputePipelineDescriptor, CullMode, Fence, FrontFace, IndexFormat,
-    InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
+    InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
     ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainError, TextureFormat, VertexAttributeDescriptor,
-    VertexBufferDescriptor, VertexFormat,
+    VertexBufferLayoutDescriptor, VertexFormat, VertexStateDescriptor,
 };
 
 use rand::Rng;
@@ -303,10 +303,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         ],
         depth_stencil_state: None,
-        input_state: InputStateDescriptor {
+        vertex_state: VertexStateDescriptor {
             index_format: IndexFormat::U16,
             vertex_buffers: vec![
-                VertexBufferDescriptor {
+                VertexBufferLayoutDescriptor {
                     input_slot: 0,
                     stride: util::byte_stride(&position_data),
                     step_mode: InputStepMode::Vertex,

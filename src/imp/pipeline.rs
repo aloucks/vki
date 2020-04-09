@@ -14,7 +14,7 @@ use crate::{
     ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, Error, FrontFace, InputStepMode, LoadOp,
     PipelineLayout, PipelineLayoutDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPipeline,
     RenderPipelineDescriptor, StencilOperation, StencilStateFaceDescriptor, TextureFormat, VertexAttributeDescriptor,
-    VertexBufferDescriptor, VertexFormat,
+    VertexBufferLayoutDescriptor, VertexFormat,
 };
 
 pub const MAX_PUSH_CONSTANTS_SIZE: usize = 128;
@@ -384,7 +384,9 @@ pub fn vertex_input_attribute_description(
     }
 }
 
-pub fn vertex_input_binding_description(descriptor: &VertexBufferDescriptor) -> vk::VertexInputBindingDescription {
+pub fn vertex_input_binding_description(
+    descriptor: &VertexBufferLayoutDescriptor,
+) -> vk::VertexInputBindingDescription {
     vk::VertexInputBindingDescription {
         binding: descriptor.input_slot,
         stride: u32::try_from(descriptor.stride).expect("stride > u32::MAX"),
@@ -481,7 +483,7 @@ impl RenderPipelineInner {
         };
 
         let vertex_attribute_descriptions: Vec<vk::VertexInputAttributeDescription> = descriptor
-            .input_state
+            .vertex_state
             .vertex_buffers
             .iter()
             .flat_map(|vb| vb.attributes.iter().map(move |a| (vb.input_slot, a)))
@@ -489,7 +491,7 @@ impl RenderPipelineInner {
             .collect();
 
         let vertex_binding_descriptions: Vec<vk::VertexInputBindingDescription> = descriptor
-            .input_state
+            .vertex_state
             .vertex_buffers
             .iter()
             .map(vertex_input_binding_description)
@@ -577,7 +579,7 @@ impl RenderPipelineInner {
         Ok(RenderPipelineInner {
             handle,
             layout,
-            index_format: descriptor.input_state.index_format,
+            index_format: descriptor.vertex_state.index_format,
         })
     }
 }

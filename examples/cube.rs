@@ -13,11 +13,11 @@ use crate::util::{App, EventHandlers};
 use vki::{
     BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource, BindingType,
     BlendDescriptor, BufferUsage, Color, ColorStateDescriptor, ColorWrite, CompareFunction, CullMode,
-    DepthStencilStateDescriptor, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, LoadOp,
-    PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
-    RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor,
-    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StencilStateFaceDescriptor, StoreOp, SwapchainError,
-    VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
+    DepthStencilStateDescriptor, FrontFace, IndexFormat, InputStepMode, LoadOp, PipelineLayoutDescriptor,
+    PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
+    RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor,
+    ShaderStage, StencilStateFaceDescriptor, StoreOp, SwapchainError, VertexAttributeDescriptor,
+    VertexBufferLayoutDescriptor, VertexFormat, VertexStateDescriptor,
 };
 
 #[repr(C)]
@@ -173,10 +173,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             stencil_read_mask: 0,
             stencil_write_mask: 0,
         }),
-        input_state: InputStateDescriptor {
+        vertex_state: VertexStateDescriptor {
             index_format: IndexFormat::U16,
             vertex_buffers: vec![
-                VertexBufferDescriptor {
+                VertexBufferLayoutDescriptor {
                     input_slot: 0,
                     stride: util::byte_stride(&vertices),
                     step_mode: InputStepMode::Vertex,

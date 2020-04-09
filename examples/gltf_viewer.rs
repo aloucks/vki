@@ -20,12 +20,12 @@ use std::time::{Duration, Instant};
 use vki::{
     AddressMode, BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource,
     BindingType, BlendDescriptor, Buffer, BufferUsage, Color, ColorStateDescriptor, ColorWrite, CompareFunction,
-    CullMode, DepthStencilStateDescriptor, FilterMode, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode,
-    LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, PushConstantRange,
+    CullMode, DepthStencilStateDescriptor, FilterMode, FrontFace, IndexFormat, InputStepMode, LoadOp,
+    PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, PushConstantRange,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor,
     RenderPassDescriptor, RenderPipelineDescriptor, Sampler, SamplerDescriptor, ShaderModuleDescriptor, ShaderStage,
     StencilStateFaceDescriptor, StoreOp, SwapchainError, TextureFormat, TextureView, VertexAttributeDescriptor,
-    VertexBufferDescriptor, VertexFormat,
+    VertexBufferLayoutDescriptor, VertexFormat, VertexStateDescriptor,
 };
 
 const MAX_MORPH_TARGETS: usize = 2;
@@ -1752,10 +1752,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     stencil_write_mask: 0,
                 }
             ),
-            input_state: InputStateDescriptor {
+            vertex_state: VertexStateDescriptor {
                 index_format: mesh_pipeline_key.index_format.unwrap_or(IndexFormat::U16),
                 vertex_buffers: vec![
-                    VertexBufferDescriptor {
+                    VertexBufferLayoutDescriptor {
                         input_slot: 0,
                         step_mode: InputStepMode::Vertex,
                         stride: std::mem::size_of::<Vertex>(),
