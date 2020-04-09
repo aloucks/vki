@@ -12,8 +12,8 @@ use vki::{
     InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
     SamplerDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StencilOperation, StencilStateFaceDescriptor, StoreOp,
-    Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView,
-    VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
+    Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, TextureView, VertexAttributeDescriptor,
+    VertexBufferDescriptor, VertexFormat,
 };
 
 pub mod support;
@@ -353,7 +353,7 @@ fn create_multi_sample_render_pipeline() {
         let array_layer_count = 1;
         let dimension = TextureDimension::D2;
         let format = TextureFormat::B8G8R8A8Unorm;
-        let usage = TextureUsageFlags::OUTPUT_ATTACHMENT;
+        let usage = TextureUsage::OUTPUT_ATTACHMENT;
 
         let frame_texture = device.create_texture(TextureDescriptor {
             sample_count: 1,
@@ -511,7 +511,7 @@ fn set_bind_group() {
             },
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
-            usage: TextureUsageFlags::SAMPLED,
+            usage: TextureUsage::SAMPLED,
             sample_count: 1,
             mip_level_count: 1,
             array_layer_count: 1,
@@ -655,7 +655,7 @@ fn set_bind_group_out_of_order() {
             },
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
-            usage: TextureUsageFlags::SAMPLED,
+            usage: TextureUsage::SAMPLED,
             sample_count: 1,
             mip_level_count: 1,
             array_layer_count: 1,
@@ -801,7 +801,7 @@ fn set_bind_group_dynamic_offsets() {
             },
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
-            usage: TextureUsageFlags::SAMPLED,
+            usage: TextureUsage::SAMPLED,
             sample_count: 1,
             mip_level_count: 1,
             array_layer_count: 1,

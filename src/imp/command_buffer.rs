@@ -10,7 +10,7 @@ use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery}
 use crate::imp::{binding, pipeline};
 use crate::imp::{render_pass, sampler, texture, util, DeviceInner, PipelineLayoutInner};
 use crate::imp::{CommandBufferInner, RenderPipelineInner};
-use crate::{BufferUsageFlags, DrawIndirectCommand, Error, Extent3d, IndexFormat, ShaderStageFlags, TextureUsageFlags};
+use crate::{BufferUsageFlags, DrawIndirectCommand, Error, Extent3d, IndexFormat, ShaderStageFlags, TextureUsage};
 
 use crate::imp::command_encoder::{
     CommandEncoderState, RenderPassColorAttachmentInfo, RenderPassDepthStencilAttachmentInfo,
@@ -247,7 +247,7 @@ impl CommandBufferInner {
                     src.buffer
                         .transition_usage_now(command_buffer, BufferUsageFlags::TRANSFER_SRC)?;
                     dst.texture
-                        .transition_usage_now(command_buffer, TextureUsageFlags::TRANSFER_DST, None)?;
+                        .transition_usage_now(command_buffer, TextureUsage::TRANSFER_DST, None)?;
                     let region = buffer_image_copy(src, dst, *size_texels);
                     unsafe {
                         self.device.raw.cmd_copy_buffer_to_image(
@@ -261,7 +261,7 @@ impl CommandBufferInner {
                 }
                 Command::CopyTextureToBuffer { src, dst, size_texels } => {
                     src.texture
-                        .transition_usage_now(command_buffer, TextureUsageFlags::TRANSFER_SRC, None)?;
+                        .transition_usage_now(command_buffer, TextureUsage::TRANSFER_SRC, None)?;
                     dst.buffer
                         .transition_usage_now(command_buffer, BufferUsageFlags::TRANSFER_DST)?;
                     let region = buffer_image_copy(dst, src, *size_texels);
@@ -276,7 +276,7 @@ impl CommandBufferInner {
                     }
                 }
                 Command::CopyTextureToTexture { dst, src, size_texels } => {
-                    let src_usage = TextureUsageFlags::TRANSFER_SRC;
+                    let src_usage = TextureUsage::TRANSFER_SRC;
                     let src_subresource = Some(texture::Subresource {
                         array_layer: src.array_layer,
                         mip_level: src.mip_level,
@@ -284,7 +284,7 @@ impl CommandBufferInner {
                     src.texture
                         .transition_usage_now(command_buffer, src_usage, src_subresource)?;
 
-                    let dst_usage = TextureUsageFlags::TRANSFER_DST;
+                    let dst_usage = TextureUsage::TRANSFER_DST;
                     let dst_subresource = Some(texture::Subresource {
                         array_layer: dst.array_layer,
                         mip_level: dst.mip_level,
@@ -306,7 +306,7 @@ impl CommandBufferInner {
                     }
                 }
                 Command::BlitTextureToTexture { src, dst, filter } => {
-                    let src_usage = TextureUsageFlags::TRANSFER_SRC;
+                    let src_usage = TextureUsage::TRANSFER_SRC;
                     let src_subresource = Some(texture::Subresource {
                         array_layer: src.array_layer,
                         mip_level: src.mip_level,
@@ -314,7 +314,7 @@ impl CommandBufferInner {
                     src.texture
                         .transition_usage_now(command_buffer, src_usage, src_subresource)?;
 
-                    let dst_usage = TextureUsageFlags::TRANSFER_DST;
+                    let dst_usage = TextureUsage::TRANSFER_DST;
                     let dst_subresource = Some(texture::Subresource {
                         array_layer: dst.array_layer,
                         mip_level: dst.mip_level,

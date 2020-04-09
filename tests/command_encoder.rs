@@ -1,6 +1,6 @@
 use vki::{
     Color, Extent3d, LoadOp, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, StoreOp, TextureDescriptor,
-    TextureDimension, TextureFormat, TextureUsageFlags,
+    TextureDimension, TextureFormat, TextureUsage,
 };
 
 pub mod support;
@@ -18,7 +18,7 @@ fn create_command_encoder() {
         let texture = device.create_texture(TextureDescriptor {
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
-            usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+            usage: TextureUsage::OUTPUT_ATTACHMENT,
             mip_level_count: 1,
             dimension: TextureDimension::D2,
             array_layer_count: 1,
@@ -67,7 +67,7 @@ fn submit_command_buffer() {
         let texture = device.create_texture(TextureDescriptor {
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
-            usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+            usage: TextureUsage::OUTPUT_ATTACHMENT,
             mip_level_count: 1,
             dimension: TextureDimension::D2,
             array_layer_count: 1,

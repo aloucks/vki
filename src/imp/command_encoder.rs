@@ -7,7 +7,7 @@ use crate::{
     BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder,
     ComputePassEncoder, ComputePipeline, Extent3d, FilterMode, LoadOp, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPassEncoder, RenderPipeline,
-    ShaderStageFlags, StoreOp, TextureBlitView, TextureCopyView, TextureUsageFlags,
+    ShaderStageFlags, StoreOp, TextureBlitView, TextureCopyView, TextureUsage,
 };
 
 use std::sync::Arc;
@@ -179,7 +179,7 @@ impl CommandEncoderInner {
                         .resource
                         .as_texture_view()
                         .expect("BindingType::SampledTexture => BindingResource::TextureView");
-                    usage_tracker.texture_used_as(texture_view.inner.texture.clone(), TextureUsageFlags::SAMPLED);
+                    usage_tracker.texture_used_as(texture_view.inner.texture.clone(), TextureUsage::SAMPLED);
                 }
                 BindingType::StorageTexelBuffer => {
                     let buffer_view = binding
@@ -487,17 +487,17 @@ impl<'a> RenderPassEncoder<'a> {
 
         for info in descriptor.color_attachments.iter() {
             let texture = Arc::clone(&info.attachment.inner.texture);
-            usage_tracker.texture_used_as(texture, TextureUsageFlags::OUTPUT_ATTACHMENT);
+            usage_tracker.texture_used_as(texture, TextureUsage::OUTPUT_ATTACHMENT);
 
             if let Some(ref resolve_target) = info.resolve_target {
                 let texture = Arc::clone(&resolve_target.inner.texture);
-                usage_tracker.texture_used_as(texture, TextureUsageFlags::OUTPUT_ATTACHMENT);
+                usage_tracker.texture_used_as(texture, TextureUsage::OUTPUT_ATTACHMENT);
             }
         }
 
         if let Some(ref info) = descriptor.depth_stencil_attachment {
             let texture = Arc::clone(&info.attachment.inner.texture);
-            usage_tracker.texture_used_as(texture, TextureUsageFlags::OUTPUT_ATTACHMENT);
+            usage_tracker.texture_used_as(texture, TextureUsage::OUTPUT_ATTACHMENT);
         }
 
         // The framebuffer needs to be created with the smallest image size. In general, these should

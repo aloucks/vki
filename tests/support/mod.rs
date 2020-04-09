@@ -5,7 +5,7 @@
 
 use vki::{
     Adapter, AdapterOptions, Device, DeviceDescriptor, Instance, PowerPreference, Surface, Swapchain,
-    SwapchainDescriptor, TextureFormat, TextureUsageFlags,
+    SwapchainDescriptor, TextureFormat, TextureUsage,
 };
 
 use winit::dpi::LogicalSize;
@@ -63,7 +63,7 @@ pub fn swapchain_descriptor<'a>(surface: &'a Surface) -> SwapchainDescriptor<'a>
     SwapchainDescriptor {
         surface,
         format: TextureFormat::B8G8R8A8Unorm,
-        usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+        usage: TextureUsage::OUTPUT_ATTACHMENT,
     }
 }
 

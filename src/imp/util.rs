@@ -27,11 +27,11 @@ mod tests {
 
     #[test]
     fn test_has_zero_or_one_bits() {
-        use crate::TextureUsageFlags;
-        assert!(super::has_zero_or_one_bits(TextureUsageFlags::NONE.bits()));
-        assert!(super::has_zero_or_one_bits(TextureUsageFlags::TRANSFER_SRC.bits()));
+        use crate::TextureUsage;
+        assert!(super::has_zero_or_one_bits(TextureUsage::NONE.bits()));
+        assert!(super::has_zero_or_one_bits(TextureUsage::TRANSFER_SRC.bits()));
         assert!(!super::has_zero_or_one_bits(
-            (TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST).bits()
+            (TextureUsage::TRANSFER_SRC | TextureUsage::TRANSFER_DST).bits()
         ));
     }
 }

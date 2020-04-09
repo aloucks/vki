@@ -5,7 +5,7 @@ use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{render_pass, util};
 use crate::imp::{DeviceInner, TextureInner, TextureViewInner};
 use crate::{
-    Error, Extent3d, Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, TextureView,
+    Error, Extent3d, Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, TextureView,
     TextureViewDescriptor, TextureViewDimension,
 };
 
@@ -16,15 +16,15 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use vk_mem::{AllocationCreateFlags, AllocationCreateInfo, MemoryUsage};
 
-fn read_only_texture_usage() -> TextureUsageFlags {
-    TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::SAMPLED | TextureUsageFlags::PRESENT
+fn read_only_texture_usage() -> TextureUsage {
+    TextureUsage::TRANSFER_SRC | TextureUsage::SAMPLED | TextureUsage::PRESENT
 }
 
-fn writable_texture_usages() -> TextureUsageFlags {
-    TextureUsageFlags::TRANSFER_DST | TextureUsageFlags::STORAGE | TextureUsageFlags::OUTPUT_ATTACHMENT
+fn writable_texture_usages() -> TextureUsage {
+    TextureUsage::TRANSFER_DST | TextureUsage::STORAGE | TextureUsage::OUTPUT_ATTACHMENT
 }
 
-pub fn memory_usage(_usage: TextureUsageFlags) -> MemoryUsage {
+pub fn memory_usage(_usage: TextureUsage) -> MemoryUsage {
     MemoryUsage::GpuOnly
 }
 
@@ -66,26 +66,26 @@ pub fn image_view_type(descriptor: &TextureViewDescriptor) -> vk::ImageViewType 
     }
 }
 
-pub fn image_usage(usage: TextureUsageFlags, format: TextureFormat) -> vk::ImageUsageFlags {
+pub fn image_usage(usage: TextureUsage, format: TextureFormat) -> vk::ImageUsageFlags {
     let mut flags = vk::ImageUsageFlags::empty();
 
-    if usage.intersects(TextureUsageFlags::TRANSFER_SRC) {
+    if usage.intersects(TextureUsage::TRANSFER_SRC) {
         flags |= vk::ImageUsageFlags::TRANSFER_SRC;
     }
 
-    if usage.intersects(TextureUsageFlags::TRANSFER_DST) {
+    if usage.intersects(TextureUsage::TRANSFER_DST) {
         flags |= vk::ImageUsageFlags::TRANSFER_DST;
     }
 
-    if usage.intersects(TextureUsageFlags::SAMPLED) {
+    if usage.intersects(TextureUsage::SAMPLED) {
         flags |= vk::ImageUsageFlags::SAMPLED;
     }
 
-    if usage.intersects(TextureUsageFlags::STORAGE) {
+    if usage.intersects(TextureUsage::STORAGE) {
         flags |= vk::ImageUsageFlags::STORAGE;
     }
 
-    if usage.intersects(TextureUsageFlags::OUTPUT_ATTACHMENT) {
+    if usage.intersects(TextureUsage::OUTPUT_ATTACHMENT) {
         if is_depth_or_stencil(format) {
             flags |= vk::ImageUsageFlags::DEPTH_STENCIL_ATTACHMENT;
         } else {
@@ -180,26 +180,26 @@ pub fn aspect_mask(format: TextureFormat) -> vk::ImageAspectFlags {
     }
 }
 
-pub fn pipeline_stage(usage: TextureUsageFlags, format: TextureFormat) -> vk::PipelineStageFlags {
-    const NONE: TextureUsageFlags = TextureUsageFlags::NONE;
+pub fn pipeline_stage(usage: TextureUsage, format: TextureFormat) -> vk::PipelineStageFlags {
+    const NONE: TextureUsage = TextureUsage::NONE;
 
     let mut flags = vk::PipelineStageFlags::empty();
 
-    if usage == TextureUsageFlags::NONE {
+    if usage == TextureUsage::NONE {
         return vk::PipelineStageFlags::TOP_OF_PIPE;
     }
 
-    if usage.intersects(TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST) {
+    if usage.intersects(TextureUsage::TRANSFER_SRC | TextureUsage::TRANSFER_DST) {
         flags |= vk::PipelineStageFlags::TRANSFER;
     }
 
-    if usage.intersects(TextureUsageFlags::SAMPLED | TextureUsageFlags::STORAGE) {
+    if usage.intersects(TextureUsage::SAMPLED | TextureUsage::STORAGE) {
         flags |= vk::PipelineStageFlags::VERTEX_SHADER
             | vk::PipelineStageFlags::FRAGMENT_SHADER
             | vk::PipelineStageFlags::COMPUTE_SHADER;
     }
 
-    if usage.intersects(TextureUsageFlags::OUTPUT_ATTACHMENT) {
+    if usage.intersects(TextureUsage::OUTPUT_ATTACHMENT) {
         if is_depth_or_stencil(format) {
             flags |= vk::PipelineStageFlags::EARLY_FRAGMENT_TESTS | vk::PipelineStageFlags::LATE_FRAGMENT_TESTS;
         // TODO: Depth write? FRAGMENT_SHADER stage ?
@@ -208,7 +208,7 @@ pub fn pipeline_stage(usage: TextureUsageFlags, format: TextureFormat) -> vk::Pi
         }
     }
 
-    if usage.intersects(TextureUsageFlags::PRESENT) {
+    if usage.intersects(TextureUsage::PRESENT) {
         // Dawn uses BOTTOM_OF_PIPE but notes that TOP_OF_PIPE has potential to block less
         flags |= vk::PipelineStageFlags::BOTTOM_OF_PIPE
     }
@@ -217,26 +217,26 @@ pub fn pipeline_stage(usage: TextureUsageFlags, format: TextureFormat) -> vk::Pi
 }
 
 /// https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#synchronization-access-types-supported
-pub fn access_flags(usage: TextureUsageFlags, format: TextureFormat) -> vk::AccessFlags {
+pub fn access_flags(usage: TextureUsage, format: TextureFormat) -> vk::AccessFlags {
     let mut flags = vk::AccessFlags::empty();
 
-    if usage.intersects(TextureUsageFlags::TRANSFER_SRC) {
+    if usage.intersects(TextureUsage::TRANSFER_SRC) {
         flags |= vk::AccessFlags::TRANSFER_READ;
     }
 
-    if usage.intersects(TextureUsageFlags::TRANSFER_DST) {
+    if usage.intersects(TextureUsage::TRANSFER_DST) {
         flags |= vk::AccessFlags::TRANSFER_WRITE;
     }
 
-    if usage.intersects(TextureUsageFlags::SAMPLED) {
+    if usage.intersects(TextureUsage::SAMPLED) {
         flags |= vk::AccessFlags::SHADER_READ;
     }
 
-    if usage.intersects(TextureUsageFlags::STORAGE) {
+    if usage.intersects(TextureUsage::STORAGE) {
         flags |= vk::AccessFlags::SHADER_READ | vk::AccessFlags::SHADER_WRITE;
     }
 
-    if usage.intersects(TextureUsageFlags::OUTPUT_ATTACHMENT) {
+    if usage.intersects(TextureUsage::OUTPUT_ATTACHMENT) {
         if is_depth_or_stencil(format) {
             flags |= vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_READ | vk::AccessFlags::DEPTH_STENCIL_ATTACHMENT_WRITE;
         } else {
@@ -244,15 +244,15 @@ pub fn access_flags(usage: TextureUsageFlags, format: TextureFormat) -> vk::Acce
         }
     }
 
-    if usage.intersects(TextureUsageFlags::PRESENT) {
+    if usage.intersects(TextureUsage::PRESENT) {
         flags |= vk::AccessFlags::empty();
     }
 
     flags
 }
 
-pub fn image_layout(usage: TextureUsageFlags, format: TextureFormat) -> vk::ImageLayout {
-    if usage == TextureUsageFlags::NONE {
+pub fn image_layout(usage: TextureUsage, format: TextureFormat) -> vk::ImageLayout {
+    if usage == TextureUsage::NONE {
         return vk::ImageLayout::UNDEFINED;
     }
 
@@ -263,8 +263,8 @@ pub fn image_layout(usage: TextureUsageFlags, format: TextureFormat) -> vk::Imag
     // Only a single usage flag is set
 
     match usage {
-        TextureUsageFlags::TRANSFER_DST => vk::ImageLayout::TRANSFER_DST_OPTIMAL,
-        TextureUsageFlags::SAMPLED => vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
+        TextureUsage::TRANSFER_DST => vk::ImageLayout::TRANSFER_DST_OPTIMAL,
+        TextureUsage::SAMPLED => vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
         // Dawn notes that:
         //  "Depending on whether parts of the texture have been transitioned to only
         //   TransferSrc or a combination with something else, the texture could be in a
@@ -272,16 +272,16 @@ pub fn image_layout(usage: TextureUsageFlags, format: TextureFormat) -> vk::Imag
         //   make TransferSrc use GENERAL."
         // However, this is causing performance validation warnings, so we'll use
         // TRANSFER_SRC_OPTIMAL for now.
-        TextureUsageFlags::TRANSFER_SRC => vk::ImageLayout::TRANSFER_SRC_OPTIMAL,
-        TextureUsageFlags::STORAGE => vk::ImageLayout::GENERAL,
-        TextureUsageFlags::OUTPUT_ATTACHMENT => {
+        TextureUsage::TRANSFER_SRC => vk::ImageLayout::TRANSFER_SRC_OPTIMAL,
+        TextureUsage::STORAGE => vk::ImageLayout::GENERAL,
+        TextureUsage::OUTPUT_ATTACHMENT => {
             if is_depth_or_stencil(format) {
                 vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL
             } else {
                 vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL
             }
         }
-        TextureUsageFlags::PRESENT => vk::ImageLayout::PRESENT_SRC_KHR,
+        TextureUsage::PRESENT => vk::ImageLayout::PRESENT_SRC_KHR,
         _ => unreachable!(),
     }
 }
@@ -430,7 +430,7 @@ impl TextureInner {
     pub fn transition_usage_now(
         &self,
         command_buffer: vk::CommandBuffer,
-        usage: TextureUsageFlags,
+        usage: TextureUsage,
         subresource: Option<Subresource>,
     ) -> Result<(), Error> {
         let format = self.descriptor.format;
@@ -441,62 +441,61 @@ impl TextureInner {
         let mut src_stage_mask = vk::PipelineStageFlags::empty();
         let dst_stage_mask = pipeline_stage(usage, format);
 
-        let mut add_image_memory_barrier =
-            |range: vk::ImageSubresourceRange, range_last_usage: &mut TextureUsageFlags| {
-                // TODO: Add a version of this optimization back at the "whole texture" level.
-                //       Example: If we're only repeatedly requesting that the image is SAMPLED,
-                //       there's no need to iterate all of the subresources every time.
+        let mut add_image_memory_barrier = |range: vk::ImageSubresourceRange, range_last_usage: &mut TextureUsage| {
+            // TODO: Add a version of this optimization back at the "whole texture" level.
+            //       Example: If we're only repeatedly requesting that the image is SAMPLED,
+            //       there's no need to iterate all of the subresources every time.
 
-                let last_read_only = (*range_last_usage & read_only_texture_usage()) == *range_last_usage;
-                if last_read_only && *range_last_usage == usage {
-                    return;
-                }
+            let last_read_only = (*range_last_usage & read_only_texture_usage()) == *range_last_usage;
+            if last_read_only && *range_last_usage == usage {
+                return;
+            }
 
-                src_stage_mask |= pipeline_stage(*range_last_usage, format);
+            src_stage_mask |= pipeline_stage(*range_last_usage, format);
 
-                let src_access_mask = access_flags(*range_last_usage, format);
-                let dst_access_mask = access_flags(usage, format);
+            let src_access_mask = access_flags(*range_last_usage, format);
+            let dst_access_mask = access_flags(usage, format);
 
-                let old_layout = image_layout(*range_last_usage, format);
-                let new_layout = image_layout(usage, format);
+            let old_layout = image_layout(*range_last_usage, format);
+            let new_layout = image_layout(usage, format);
 
-                // TODO: We should probably set old_layout to UNDEFINED as an optimization when
-                //       new_layout is TRANSFER_DST_OPTIMAL
+            // TODO: We should probably set old_layout to UNDEFINED as an optimization when
+            //       new_layout is TRANSFER_DST_OPTIMAL
 
-                let image_memory_barrier = vk::ImageMemoryBarrier {
-                    src_access_mask,
-                    dst_access_mask,
-                    old_layout,
-                    new_layout,
-                    image: self.handle,
-                    subresource_range: range,
-                    src_queue_family_index: vk::QUEUE_FAMILY_IGNORED,
-                    dst_queue_family_index: vk::QUEUE_FAMILY_IGNORED,
-                    ..Default::default()
-                };
-
-                log::trace!(
-                    concat!(
-                        "mip_level: {}, array_layer: {}, ",
-                        "old_usage: {:?}, old_layout: {:?}, src_stage_mask: {:?}, src_access_mask: {:?}, ",
-                        "new_usage: {:?}, new_layout: {:?}, dst_stage_mask: {:?}, dst_access_mask: {:?}"
-                    ),
-                    image_memory_barrier.subresource_range.base_mip_level,
-                    image_memory_barrier.subresource_range.base_array_layer,
-                    *range_last_usage,
-                    image_memory_barrier.old_layout,
-                    src_stage_mask,
-                    image_memory_barrier.src_access_mask,
-                    usage,
-                    image_memory_barrier.new_layout,
-                    dst_stage_mask,
-                    image_memory_barrier.dst_access_mask,
-                );
-
-                *range_last_usage = usage;
-
-                image_memory_barriers.push(image_memory_barrier);
+            let image_memory_barrier = vk::ImageMemoryBarrier {
+                src_access_mask,
+                dst_access_mask,
+                old_layout,
+                new_layout,
+                image: self.handle,
+                subresource_range: range,
+                src_queue_family_index: vk::QUEUE_FAMILY_IGNORED,
+                dst_queue_family_index: vk::QUEUE_FAMILY_IGNORED,
+                ..Default::default()
             };
+
+            log::trace!(
+                concat!(
+                    "mip_level: {}, array_layer: {}, ",
+                    "old_usage: {:?}, old_layout: {:?}, src_stage_mask: {:?}, src_access_mask: {:?}, ",
+                    "new_usage: {:?}, new_layout: {:?}, dst_stage_mask: {:?}, dst_access_mask: {:?}"
+                ),
+                image_memory_barrier.subresource_range.base_mip_level,
+                image_memory_barrier.subresource_range.base_array_layer,
+                *range_last_usage,
+                image_memory_barrier.old_layout,
+                src_stage_mask,
+                image_memory_barrier.src_access_mask,
+                usage,
+                image_memory_barrier.new_layout,
+                dst_stage_mask,
+                image_memory_barrier.dst_access_mask,
+            );
+
+            *range_last_usage = usage;
+
+            image_memory_barriers.push(image_memory_barrier);
+        };
 
         match subresource {
             Some(subresource) => {
@@ -632,7 +631,7 @@ impl TextureView {
 
 #[derive(Debug)]
 pub struct SubresourceUsageTracker {
-    ranges: HashMap<Subresource, TextureUsageFlags>,
+    ranges: HashMap<Subresource, TextureUsage>,
     aspect_mask: vk::ImageAspectFlags,
     mip_levels: u32,
     array_layers: u32,
@@ -646,7 +645,7 @@ pub struct Subresource {
 
 impl SubresourceUsageTracker {
     pub fn new(mip_levels: u32, array_layers: u32, format: TextureFormat) -> SubresourceUsageTracker {
-        let none = TextureUsageFlags::NONE;
+        let none = TextureUsage::NONE;
         let mut ranges = HashMap::with_capacity((mip_levels * array_layers) as usize);
         (0..array_layers).for_each(|array_layer| {
             (0..mip_levels).for_each(|mip_level| {
@@ -662,7 +661,7 @@ impl SubresourceUsageTracker {
         }
     }
 
-    fn usage_mut(&mut self, subresource: Subresource) -> (vk::ImageSubresourceRange, &mut TextureUsageFlags) {
+    fn usage_mut(&mut self, subresource: Subresource) -> (vk::ImageSubresourceRange, &mut TextureUsage) {
         let aspect_mask = self.aspect_mask;
         let usage = self
             .ranges
@@ -678,7 +677,7 @@ impl SubresourceUsageTracker {
         (range, usage)
     }
 
-    fn iter_mut(&mut self) -> impl Iterator<Item = (vk::ImageSubresourceRange, &mut TextureUsageFlags)> {
+    fn iter_mut(&mut self) -> impl Iterator<Item = (vk::ImageSubresourceRange, &mut TextureUsage)> {
         let aspect_mask = self.aspect_mask;
         self.ranges.iter_mut().map(move |(k, usage)| {
             let range = vk::ImageSubresourceRange {

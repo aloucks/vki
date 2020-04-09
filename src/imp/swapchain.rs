@@ -4,7 +4,7 @@ use crate::imp::{texture, AdapterInner, SurfaceInner, TextureViewInner};
 use crate::imp::{DeviceInner, InstanceInner, SwapchainInner, TextureInner};
 use crate::{
     Error, Extent3d, PowerPreference, Swapchain, SwapchainDescriptor, SwapchainError, SwapchainImage, Texture,
-    TextureDescriptor, TextureDimension, TextureUsageFlags, TextureView,
+    TextureDescriptor, TextureDimension, TextureUsage, TextureView,
 };
 
 use ash::prelude::VkResult;
@@ -120,7 +120,7 @@ impl SwapchainInner {
                 sample_count: 1,
                 dimension: TextureDimension::D2,
                 format: descriptor.format,
-                usage: TextureUsageFlags::PRESENT,
+                usage: TextureUsage::PRESENT,
             };
 
             let textures = images.iter().cloned().map(|handle| {

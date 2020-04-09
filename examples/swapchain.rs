@@ -1,5 +1,5 @@
 use vki::{
-    AdapterOptions, DeviceDescriptor, Instance, SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsageFlags,
+    AdapterOptions, DeviceDescriptor, Instance, SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsage,
 };
 
 use winit::dpi::LogicalSize;
@@ -43,7 +43,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let swapchain_desc = SwapchainDescriptor {
         surface: &surface,
         format: swapchain_format,
-        usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+        usage: TextureUsage::OUTPUT_ATTACHMENT,
     };
 
     let mut swapchain = device.create_swapchain(swapchain_desc, None)?;

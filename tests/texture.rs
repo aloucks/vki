@@ -1,7 +1,7 @@
 use vki::{
-    BufferCopyView, BufferDescriptor, BufferUsageFlags, Extent3d, FilterMode, Origin3d, TextureAspectFlags,
-    TextureBlitView, TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
-    TextureViewDescriptor, TextureViewDimension,
+    BufferCopyView, BufferDescriptor, BufferUsageFlags, Extent3d, FilterMode, Origin3d, TextureAspect, TextureBlitView,
+    TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, TextureViewDescriptor,
+    TextureViewDimension,
 };
 
 pub mod support;
@@ -12,7 +12,7 @@ fn create_texture() {
         let (instance, _adapter, device) = support::init()?;
 
         let descriptor = TextureDescriptor {
-            usage: TextureUsageFlags::SAMPLED,
+            usage: TextureUsage::SAMPLED,
             size: Extent3d {
                 width: 1024,
                 height: 1024,
@@ -37,7 +37,7 @@ fn create_default_texture_view() {
         let (instance, _adapter, device) = support::init()?;
 
         let descriptor = TextureDescriptor {
-            usage: TextureUsageFlags::SAMPLED,
+            usage: TextureUsage::SAMPLED,
             size: Extent3d {
                 width: 1024,
                 height: 1024,
@@ -65,7 +65,7 @@ fn create_texture_and_cube_view() {
         let array_layer_count = 6;
 
         let descriptor = TextureDescriptor {
-            usage: TextureUsageFlags::SAMPLED,
+            usage: TextureUsage::SAMPLED,
             size: Extent3d {
                 width: 1024,
                 height: 1024,
@@ -82,7 +82,7 @@ fn create_texture_and_cube_view() {
 
         let texture_view_descriptor = TextureViewDescriptor {
             dimension: TextureViewDimension::Cube,
-            aspect: TextureAspectFlags::COLOR,
+            aspect: TextureAspect::COLOR,
             base_array_layer: 0,
             array_layer_count: descriptor.array_layer_count,
             base_mip_level: 0,
@@ -106,7 +106,7 @@ fn copy_texture_to_texture() {
         let size = Extent3d { width, height, depth };
 
         let texture1 = device.create_texture(TextureDescriptor {
-            usage: TextureUsageFlags::TRANSFER_SRC,
+            usage: TextureUsage::TRANSFER_SRC,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
@@ -116,7 +116,7 @@ fn copy_texture_to_texture() {
         })?;
 
         let texture2 = device.create_texture(TextureDescriptor {
-            usage: TextureUsageFlags::SAMPLED | TextureUsageFlags::TRANSFER_DST,
+            usage: TextureUsage::SAMPLED | TextureUsage::TRANSFER_DST,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
@@ -168,7 +168,7 @@ fn blit_texture_to_texture_generate_mipmaps() {
         let mip_level_count = (width.max(height) as f32).log2().floor() as u32 + 1;
 
         let texture = device.create_texture(TextureDescriptor {
-            usage: TextureUsageFlags::SAMPLED | TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST,
+            usage: TextureUsage::SAMPLED | TextureUsage::TRANSFER_SRC | TextureUsage::TRANSFER_DST,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
@@ -243,7 +243,7 @@ fn create_depth_texture_and_view() {
         let (instance, _adapter, device) = support::init()?;
 
         let descriptor = TextureDescriptor {
-            usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+            usage: TextureUsage::OUTPUT_ATTACHMENT,
             size: Extent3d {
                 width: 1024,
                 height: 1024,
@@ -270,7 +270,7 @@ fn create_depth_stencil_texture_and_view() {
         let (instance, _adapter, device) = support::init()?;
 
         let descriptor = TextureDescriptor {
-            usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+            usage: TextureUsage::OUTPUT_ATTACHMENT,
             size: Extent3d {
                 width: 1024,
                 height: 1024,
@@ -305,7 +305,7 @@ fn copy_buffer_to_texture() {
         })?;
 
         let texture1 = device.create_texture(TextureDescriptor {
-            usage: TextureUsageFlags::TRANSFER_DST,
+            usage: TextureUsage::TRANSFER_DST,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
@@ -361,7 +361,7 @@ fn copy_texture_to_buffer() {
         })?;
 
         let texture1 = device.create_texture(TextureDescriptor {
-            usage: TextureUsageFlags::TRANSFER_SRC,
+            usage: TextureUsage::TRANSFER_SRC,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,

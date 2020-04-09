@@ -83,7 +83,7 @@ pub struct Device {
 pub struct SwapchainDescriptor<'a> {
     pub surface: &'a Surface,
     pub format: TextureFormat,
-    pub usage: TextureUsageFlags,
+    pub usage: TextureUsage,
 }
 
 impl<'a> SwapchainDescriptor<'a> {
@@ -91,7 +91,7 @@ impl<'a> SwapchainDescriptor<'a> {
         SwapchainDescriptor {
             surface,
             format: TextureFormat::B8G8R8A8UnormSRGB,
-            usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+            usage: TextureUsage::OUTPUT_ATTACHMENT,
         }
     }
 }
@@ -173,7 +173,7 @@ pub enum TextureFormat {
 
 bitflags! {
     #[repr(transparent)]
-    pub struct TextureUsageFlags: u32 {
+    pub struct TextureUsage: u32 {
         const NONE = 0;
         const TRANSFER_SRC = 1;
         const TRANSFER_DST = 2;
@@ -210,12 +210,12 @@ pub struct TextureDescriptor {
     pub sample_count: u32,
     pub dimension: TextureDimension,
     pub format: TextureFormat,
-    pub usage: TextureUsageFlags,
+    pub usage: TextureUsage,
 }
 
 bitflags! {
     #[repr(transparent)]
-    pub struct TextureAspectFlags: u32 {
+    pub struct TextureAspect: u32 {
         const COLOR = 0b1;      // vk::ImageAspectFlags::COLOR;
         const DEPTH = 0b10;     // vk::ImageAspectFlags::DEPTH;
         const STENCIL = 0b1000; // vk::ImageAspectFlags::STENCIL;
@@ -226,7 +226,7 @@ bitflags! {
 pub struct TextureViewDescriptor {
     pub format: TextureFormat,
     pub dimension: TextureViewDimension,
-    pub aspect: TextureAspectFlags,
+    pub aspect: TextureAspect,
     pub base_mip_level: u32,
     pub mip_level_count: u32,
     pub base_array_layer: u32,

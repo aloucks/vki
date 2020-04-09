@@ -1,7 +1,7 @@
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
     BindingType, BufferDescriptor, BufferUsageFlags, BufferViewDescriptor, BufferViewFormat, Extent3d,
-    SamplerDescriptor, ShaderStageFlags, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags,
+    SamplerDescriptor, ShaderStageFlags, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage,
 };
 
 pub mod support;
@@ -61,7 +61,7 @@ fn create_bind_group() {
             format: TextureFormat::R8G8B8A8Unorm,
             mip_level_count: 1,
             sample_count: 1,
-            usage: TextureUsageFlags::SAMPLED,
+            usage: TextureUsage::SAMPLED,
         };
         let texture = device.create_texture(texture_descriptor)?;
         let texture_view = texture.create_default_view()?;

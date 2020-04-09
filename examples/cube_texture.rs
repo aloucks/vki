@@ -21,7 +21,7 @@ use vki::{
     PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, SamplerDescriptor,
     ShaderModuleDescriptor, ShaderStageFlags, StencilStateFaceDescriptor, StoreOp, SwapchainError, TextureBlitView,
-    TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor,
+    TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, VertexAttributeDescriptor,
     VertexBufferDescriptor, VertexFormat,
 };
 
@@ -127,7 +127,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         sample_count: 1,
         array_layer_count: 1,
         format: TextureFormat::R8G8B8A8Unorm,
-        usage: TextureUsageFlags::SAMPLED | TextureUsageFlags::TRANSFER_DST | TextureUsageFlags::TRANSFER_SRC,
+        usage: TextureUsage::SAMPLED | TextureUsage::TRANSFER_DST | TextureUsage::TRANSFER_SRC,
         size: texture_size,
         dimension: TextureDimension::D2,
     })?;

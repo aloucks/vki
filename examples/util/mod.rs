@@ -11,7 +11,7 @@ use vki::{
     Adapter, AdapterOptions, Buffer, BufferCopyView, BufferDescriptor, BufferUsageFlags, CommandEncoder, Device,
     DeviceDescriptor, Error, Extensions, Extent3d, FilterMode, Instance, Origin3d, PowerPreference, Surface, Swapchain,
     SwapchainDescriptor, Texture, TextureBlitView, TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat,
-    TextureUsageFlags, TextureView,
+    TextureUsage, TextureView,
 };
 
 use std::time::{Duration, Instant};
@@ -37,7 +37,7 @@ fn create_swapchain_and_depth_view_and_color_view(
         .create_swapchain(
             SwapchainDescriptor {
                 surface,
-                usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+                usage: TextureUsage::OUTPUT_ATTACHMENT,
                 format: DEFAULT_COLOR_FORMAT,
             },
             old_swapchain,
@@ -57,7 +57,7 @@ fn create_swapchain_and_depth_view_and_color_view(
         mip_level_count: 1,
         sample_count,
         dimension: TextureDimension::D2,
-        usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+        usage: TextureUsage::OUTPUT_ATTACHMENT,
         format: DEFAULT_DEPTH_FORMAT,
     })?;
 
@@ -73,7 +73,7 @@ fn create_swapchain_and_depth_view_and_color_view(
         mip_level_count: 1,
         sample_count,
         dimension: TextureDimension::D2,
-        usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+        usage: TextureUsage::OUTPUT_ATTACHMENT,
         format: DEFAULT_COLOR_FORMAT,
     })?;
 
@@ -452,7 +452,7 @@ pub fn create_texture_with_data(
         format,
         sample_count: 1,
         array_layer_count: 1,
-        usage: TextureUsageFlags::SAMPLED | TextureUsageFlags::TRANSFER_SRC | TextureUsageFlags::TRANSFER_DST,
+        usage: TextureUsage::SAMPLED | TextureUsage::TRANSFER_SRC | TextureUsage::TRANSFER_DST,
         dimension: TextureDimension::D2,
     };
 

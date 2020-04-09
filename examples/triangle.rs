@@ -8,7 +8,7 @@ use vki::{
     InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
     PowerPreference, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
     RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStageFlags, StoreOp,
-    SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsageFlags, VertexAttributeDescriptor,
+    SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsage, VertexAttributeDescriptor,
     VertexBufferDescriptor, VertexFormat,
 };
 
@@ -57,7 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let swapchain_desc = SwapchainDescriptor {
         surface: &surface,
         format: swapchain_format,
-        usage: TextureUsageFlags::OUTPUT_ATTACHMENT,
+        usage: TextureUsage::OUTPUT_ATTACHMENT,
     };
 
     let mut swapchain = device.create_swapchain(swapchain_desc, None)?;
