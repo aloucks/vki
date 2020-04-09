@@ -200,6 +200,8 @@ impl SurfaceInner {
     ) -> Result<Vec<vk::SurfaceFormatKHR>, Error> {
         // Querying the supported formats is slow and causes swapchain re-creation to stutter,
         // so we cache these after initial lookup
+        // NOTE: This seems to be fixed in the latest nvidia drivers and the cache here may no
+        //       longer be necessary.
         let mut supported_formats_guard = self.supported_formats.lock();
         if !supported_formats_guard.contains_key(&physical_device) {
             supported_formats_guard.insert(physical_device, unsafe {
