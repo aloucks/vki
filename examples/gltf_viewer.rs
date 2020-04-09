@@ -19,13 +19,13 @@ use std::borrow::Cow;
 use std::time::{Duration, Instant};
 use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
-    BindingResource, BindingType, BlendDescriptor, Buffer, BufferUsageFlags, Color, ColorStateDescriptor,
-    ColorWriteFlags, CompareFunction, CullMode, DepthStencilStateDescriptor, FilterMode, FrontFace, IndexFormat,
-    InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
-    PushConstantRange, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
-    RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, Sampler,
-    SamplerDescriptor, ShaderModuleDescriptor, ShaderStage, StencilStateFaceDescriptor, StoreOp, SwapchainError,
-    TextureFormat, TextureView, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
+    BindingResource, BindingType, BlendDescriptor, Buffer, BufferUsageFlags, Color, ColorStateDescriptor, ColorWrite,
+    CompareFunction, CullMode, DepthStencilStateDescriptor, FilterMode, FrontFace, IndexFormat, InputStateDescriptor,
+    InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, PushConstantRange,
+    RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor,
+    RenderPassDescriptor, RenderPipelineDescriptor, Sampler, SamplerDescriptor, ShaderModuleDescriptor, ShaderStage,
+    StencilStateFaceDescriptor, StoreOp, SwapchainError, TextureFormat, TextureView, VertexAttributeDescriptor,
+    VertexBufferDescriptor, VertexFormat,
 };
 
 const MAX_MORPH_TARGETS: usize = 2;
@@ -267,7 +267,7 @@ pub struct MaterialPipelineKey {
     color_blend: BlendDescriptor,
     alpha_blend: BlendDescriptor,
     cull_mode: CullMode,
-    write_mask: ColorWriteFlags,
+    write_mask: ColorWrite,
     depth_write_enabled: bool,
 }
 
@@ -311,7 +311,7 @@ impl Material {
             } else {
                 CullMode::Back
             },
-            write_mask: ColorWriteFlags::ALL,
+            write_mask: ColorWrite::ALL,
             depth_write_enabled: true,
         }
     }

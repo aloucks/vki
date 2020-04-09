@@ -12,11 +12,11 @@ use crate::util::{App, EventHandler, EventHandlers};
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
     BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferUsageFlags, BufferViewDescriptor,
-    BufferViewFormat, Color, ColorStateDescriptor, ColorWriteFlags, ComputePipelineDescriptor, CullMode, Fence,
-    FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor,
-    PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
-    RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainError,
-    TextureFormat, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
+    BufferViewFormat, Color, ColorStateDescriptor, ColorWrite, ComputePipelineDescriptor, CullMode, Fence, FrontFace,
+    IndexFormat, InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
+    PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
+    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainError, TextureFormat,
+    VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
 };
 
 use rand::Rng;
@@ -299,7 +299,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     operation: BlendOperation::Add,
                 },
                 alpha_blend: BlendDescriptor::OPAQUE,
-                write_mask: ColorWriteFlags::ALL,
+                write_mask: ColorWrite::ALL,
             }
         ],
         depth_stencil_state: None,

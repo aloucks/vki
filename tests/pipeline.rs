@@ -7,7 +7,7 @@ use std::borrow::Cow;
 use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
-    BufferViewDescriptor, BufferViewFormat, Color, ColorStateDescriptor, ColorWriteFlags, CompareFunction,
+    BufferViewDescriptor, BufferViewFormat, Color, ColorStateDescriptor, ColorWrite, CompareFunction,
     ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
@@ -196,7 +196,7 @@ fn create_render_pipeline() {
             color_states: vec![
                 ColorStateDescriptor {
                     format: TextureFormat::B8G8R8A8Unorm,
-                    write_mask: ColorWriteFlags::ALL,
+                    write_mask: ColorWrite::ALL,
                     color_blend: color_replace,
                     alpha_blend: color_replace,
                 }
@@ -326,7 +326,7 @@ fn create_multi_sample_render_pipeline() {
             color_states: vec![
                 ColorStateDescriptor {
                     format: TextureFormat::B8G8R8A8Unorm,
-                    write_mask: ColorWriteFlags::ALL,
+                    write_mask: ColorWrite::ALL,
                     color_blend: color_replace,
                     alpha_blend: color_replace,
                 }

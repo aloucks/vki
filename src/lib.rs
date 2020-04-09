@@ -548,7 +548,7 @@ pub enum BlendOperation {
 
 bitflags! {
     #[repr(transparent)]
-    pub struct ColorWriteFlags: u32 {
+    pub struct ColorWrite: u32 {
         const NONE = 0;
         const RED = 1;
         const GREEN = 2;
@@ -591,7 +591,7 @@ pub struct ColorStateDescriptor {
     pub format: TextureFormat,
     pub color_blend: BlendDescriptor,
     pub alpha_blend: BlendDescriptor,
-    pub write_mask: ColorWriteFlags,
+    pub write_mask: ColorWrite,
 }
 
 #[repr(u32)]

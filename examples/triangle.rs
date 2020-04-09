@@ -4,11 +4,11 @@ extern crate memoffset;
 use vki::{
     AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
-    Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, FrontFace, IndexFormat,
-    InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
-    PowerPreference, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
-    RenderPassDescriptor, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainDescriptor,
-    SwapchainError, TextureFormat, TextureUsage, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
+    Color, ColorStateDescriptor, ColorWrite, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStateDescriptor,
+    InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PowerPreference,
+    PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
+    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainDescriptor, SwapchainError,
+    TextureFormat, TextureUsage, VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
 };
 
 use winit::dpi::LogicalSize;
@@ -199,7 +199,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
         color_states: vec![ColorStateDescriptor {
             format: swapchain_format,
-            write_mask: ColorWriteFlags::ALL,
+            write_mask: ColorWrite::ALL,
             color_blend: color_replace,
             alpha_blend: color_replace,
         }],

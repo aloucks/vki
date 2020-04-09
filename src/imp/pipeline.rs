@@ -10,7 +10,7 @@ use crate::imp::render_pass::{self, ColorInfo, DepthStencilInfo, RenderPassCache
 use crate::imp::{binding, sampler};
 use crate::imp::{ComputePipelineInner, DeviceInner, PipelineLayoutInner, RenderPipelineInner};
 use crate::{
-    BlendFactor, BlendOperation, ColorStateDescriptor, ColorWriteFlags, CompareFunction, ComputePipeline,
+    BlendFactor, BlendOperation, ColorStateDescriptor, ColorWrite, CompareFunction, ComputePipeline,
     ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, Error, FrontFace, InputStepMode, LoadOp,
     PipelineLayout, PipelineLayoutDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPipeline,
     RenderPipelineDescriptor, StencilOperation, StencilStateFaceDescriptor, TextureFormat, VertexAttributeDescriptor,
@@ -159,22 +159,22 @@ pub fn blend_operation(operation: BlendOperation) -> vk::BlendOp {
     }
 }
 
-pub fn color_write_mask(color: ColorWriteFlags) -> vk::ColorComponentFlags {
+pub fn color_write_mask(color: ColorWrite) -> vk::ColorComponentFlags {
     let mut flags = vk::ColorComponentFlags::empty();
 
-    if color.intersects(ColorWriteFlags::RED) {
+    if color.intersects(ColorWrite::RED) {
         flags |= vk::ColorComponentFlags::R;
     }
 
-    if color.intersects(ColorWriteFlags::GREEN) {
+    if color.intersects(ColorWrite::GREEN) {
         flags |= vk::ColorComponentFlags::G;
     }
 
-    if color.intersects(ColorWriteFlags::BLUE) {
+    if color.intersects(ColorWrite::BLUE) {
         flags |= vk::ColorComponentFlags::B;
     }
 
-    if color.intersects(ColorWriteFlags::ALPHA) {
+    if color.intersects(ColorWrite::ALPHA) {
         flags |= vk::ColorComponentFlags::A;
     }
 

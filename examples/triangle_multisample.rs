@@ -4,7 +4,7 @@ extern crate memoffset;
 use vki::{
     AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
-    Color, ColorStateDescriptor, ColorWriteFlags, CullMode, DeviceDescriptor, Extent3d, FrontFace, IndexFormat,
+    Color, ColorStateDescriptor, ColorWrite, CullMode, DeviceDescriptor, Extent3d, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
     PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
     RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainDescriptor, SwapchainError,
@@ -215,7 +215,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
         color_states: vec![ColorStateDescriptor {
             format: swapchain_format,
-            write_mask: ColorWriteFlags::ALL,
+            write_mask: ColorWrite::ALL,
             color_blend: color_replace,
             alpha_blend: color_replace,
         }],

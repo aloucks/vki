@@ -16,9 +16,9 @@ use std::time::Instant;
 use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
     BindingResource, BindingType, BlendDescriptor, BufferCopyView, BufferUsageFlags, Color, ColorStateDescriptor,
-    ColorWriteFlags, CompareFunction, CullMode, DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace,
-    IndexFormat, InputStateDescriptor, InputStepMode, LoadOp, Origin3d, PipelineLayoutDescriptor,
-    PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
+    ColorWrite, CompareFunction, CullMode, DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat,
+    InputStateDescriptor, InputStepMode, LoadOp, Origin3d, PipelineLayoutDescriptor, PipelineStageDescriptor,
+    PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, SamplerDescriptor,
     ShaderModuleDescriptor, ShaderStage, StencilStateFaceDescriptor, StoreOp, SwapchainError, TextureBlitView,
     TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, VertexAttributeDescriptor,
@@ -270,7 +270,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 format: util::DEFAULT_COLOR_FORMAT,
                 color_blend: BlendDescriptor::OPAQUE,
                 alpha_blend: BlendDescriptor::OPAQUE,
-                write_mask: ColorWriteFlags::ALL,
+                write_mask: ColorWrite::ALL,
             }
         ],
         depth_stencil_state: Some(DepthStencilStateDescriptor {

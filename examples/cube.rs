@@ -12,8 +12,8 @@ use crate::util::{App, EventHandlers};
 
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BlendDescriptor, BufferUsageFlags, Color, ColorStateDescriptor, ColorWriteFlags, CompareFunction,
-    CullMode, DepthStencilStateDescriptor, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, LoadOp,
+    BindingType, BlendDescriptor, BufferUsageFlags, Color, ColorStateDescriptor, ColorWrite, CompareFunction, CullMode,
+    DepthStencilStateDescriptor, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, LoadOp,
     PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
     RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor,
     RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StencilStateFaceDescriptor, StoreOp, SwapchainError,
@@ -161,7 +161,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 format: util::DEFAULT_COLOR_FORMAT,
                 color_blend: BlendDescriptor::OPAQUE,
                 alpha_blend: BlendDescriptor::OPAQUE,
-                write_mask: ColorWriteFlags::ALL,
+                write_mask: ColorWrite::ALL,
             }
         ],
         depth_stencil_state: Some(DepthStencilStateDescriptor {
