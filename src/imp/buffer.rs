@@ -7,8 +7,8 @@ use vk_mem::{AllocationCreateFlags, AllocationCreateInfo, MemoryUsage};
 use crate::imp::fenced_deleter::DeleteWhenUnused;
 use crate::imp::{pipeline, texture, BufferInner, BufferState, BufferViewInner, DeviceInner};
 use crate::{
-    Buffer, BufferDescriptor, BufferUsageFlags, BufferView, BufferViewDescriptor, BufferViewFormat, Error,
-    MappedBuffer, WriteData,
+    Buffer, BufferDescriptor, BufferUsage, BufferView, BufferViewDescriptor, BufferViewFormat, Error, MappedBuffer,
+    WriteData,
 };
 
 use parking_lot::Mutex;
@@ -19,100 +19,96 @@ use std::sync::atomic::AtomicPtr;
 use std::sync::Arc;
 use std::{mem, ptr, slice};
 
-pub fn read_only_buffer_usages() -> BufferUsageFlags {
-    BufferUsageFlags::MAP_READ
-        | BufferUsageFlags::TRANSFER_SRC
-        | BufferUsageFlags::INDEX
-        | BufferUsageFlags::VERTEX
-        | BufferUsageFlags::UNIFORM
+pub fn read_only_buffer_usages() -> BufferUsage {
+    BufferUsage::MAP_READ | BufferUsage::TRANSFER_SRC | BufferUsage::INDEX | BufferUsage::VERTEX | BufferUsage::UNIFORM
 }
 
-pub fn writable_buffer_usages() -> BufferUsageFlags {
-    BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE
+pub fn writable_buffer_usages() -> BufferUsage {
+    BufferUsage::MAP_WRITE | BufferUsage::TRANSFER_DST | BufferUsage::STORAGE
 }
 
 /// https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/usage_patterns.html
-pub fn memory_usage(usage: BufferUsageFlags) -> MemoryUsage {
-    assert_ne!(usage, BufferUsageFlags::NONE, "BufferUsageFlags may not be NONE");
+pub fn memory_usage(usage: BufferUsage) -> MemoryUsage {
+    assert_ne!(usage, BufferUsage::NONE, "BufferUsageFlags may not be NONE");
 
     // Note: `contains` here with the OR'd flags results in "must contain *both* flags".
     //       Although it's obvious when you sit and think about, but on first glance
     //       it may read something else entirely!
 
     // Staging resources that are used to transfer to the GPU
-    if usage.contains(BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC) {
+    if usage.contains(BufferUsage::MAP_WRITE | BufferUsage::TRANSFER_SRC) {
         return MemoryUsage::CpuOnly;
     }
 
     // Staging resources that are used to transfer from the GPU
-    if usage.contains(BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST) {
+    if usage.contains(BufferUsage::MAP_READ | BufferUsage::TRANSFER_DST) {
         return MemoryUsage::CpuOnly;
     }
 
     // Dynamic resources that are updated often by the CPU and read directly by the GPU
-    if usage.contains(BufferUsageFlags::MAP_WRITE) {
+    if usage.contains(BufferUsage::MAP_WRITE) {
         return MemoryUsage::CpuToGpu;
     }
 
     // Readback resources that are written often by the GPU and read directly by the CPU
-    if usage.contains(BufferUsageFlags::MAP_READ) {
+    if usage.contains(BufferUsage::MAP_READ) {
         return MemoryUsage::GpuToCpu;
     }
 
     MemoryUsage::GpuOnly
 }
 
-pub fn usage_flags(usage: BufferUsageFlags) -> vk::BufferUsageFlags {
+pub fn usage_flags(usage: BufferUsage) -> vk::BufferUsageFlags {
     let mut flags = vk::BufferUsageFlags::empty();
 
-    if usage.intersects(BufferUsageFlags::TRANSFER_SRC) {
+    if usage.intersects(BufferUsage::TRANSFER_SRC) {
         flags |= vk::BufferUsageFlags::TRANSFER_SRC;
     }
 
-    if usage.intersects(BufferUsageFlags::TRANSFER_DST) {
+    if usage.intersects(BufferUsage::TRANSFER_DST) {
         flags |= vk::BufferUsageFlags::TRANSFER_DST;
     }
 
-    if usage.intersects(BufferUsageFlags::INDEX) {
+    if usage.intersects(BufferUsage::INDEX) {
         flags |= vk::BufferUsageFlags::INDEX_BUFFER;
     }
 
-    if usage.intersects(BufferUsageFlags::VERTEX) {
+    if usage.intersects(BufferUsage::VERTEX) {
         flags |= vk::BufferUsageFlags::VERTEX_BUFFER;
     }
 
-    if usage.intersects(BufferUsageFlags::UNIFORM) {
+    if usage.intersects(BufferUsage::UNIFORM) {
         flags |= vk::BufferUsageFlags::UNIFORM_BUFFER;
     }
 
-    if usage.intersects(BufferUsageFlags::STORAGE) {
+    if usage.intersects(BufferUsage::STORAGE) {
         flags |= vk::BufferUsageFlags::STORAGE_BUFFER;
     }
 
     // TODO: The GpuWeb spec doesn't yet define texel storage
-    if usage.intersects(BufferUsageFlags::STORAGE) {
+    if usage.intersects(BufferUsage::STORAGE) {
         flags |= vk::BufferUsageFlags::STORAGE_TEXEL_BUFFER;
     }
 
     flags
 }
 
-pub fn pipeline_stage(usage: BufferUsageFlags) -> vk::PipelineStageFlags {
+pub fn pipeline_stage(usage: BufferUsage) -> vk::PipelineStageFlags {
     let mut flags = vk::PipelineStageFlags::empty();
 
-    if usage.intersects(BufferUsageFlags::MAP_READ | BufferUsageFlags::MAP_WRITE) {
+    if usage.intersects(BufferUsage::MAP_READ | BufferUsage::MAP_WRITE) {
         flags |= vk::PipelineStageFlags::HOST;
     }
 
-    if usage.intersects(BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::TRANSFER_DST) {
+    if usage.intersects(BufferUsage::TRANSFER_SRC | BufferUsage::TRANSFER_DST) {
         flags |= vk::PipelineStageFlags::TRANSFER;
     }
 
-    if usage.intersects(BufferUsageFlags::INDEX | BufferUsageFlags::VERTEX | BufferUsageFlags::INDIRECT) {
+    if usage.intersects(BufferUsage::INDEX | BufferUsage::VERTEX | BufferUsage::INDIRECT) {
         flags |= vk::PipelineStageFlags::VERTEX_INPUT;
     }
 
-    if usage.intersects(BufferUsageFlags::UNIFORM | BufferUsageFlags::STORAGE) {
+    if usage.intersects(BufferUsage::UNIFORM | BufferUsage::STORAGE) {
         flags |= vk::PipelineStageFlags::VERTEX_SHADER
             | vk::PipelineStageFlags::FRAGMENT_SHADER
             | vk::PipelineStageFlags::COMPUTE_SHADER;
@@ -121,42 +117,42 @@ pub fn pipeline_stage(usage: BufferUsageFlags) -> vk::PipelineStageFlags {
     flags
 }
 
-pub fn access_flags(usage: BufferUsageFlags) -> vk::AccessFlags {
+pub fn access_flags(usage: BufferUsage) -> vk::AccessFlags {
     let mut flags = vk::AccessFlags::empty();
 
-    if usage.intersects(BufferUsageFlags::MAP_READ) {
+    if usage.intersects(BufferUsage::MAP_READ) {
         flags |= vk::AccessFlags::HOST_READ
     }
 
-    if usage.intersects(BufferUsageFlags::MAP_WRITE) {
+    if usage.intersects(BufferUsage::MAP_WRITE) {
         flags |= vk::AccessFlags::HOST_WRITE
     }
 
-    if usage.intersects(BufferUsageFlags::TRANSFER_SRC) {
+    if usage.intersects(BufferUsage::TRANSFER_SRC) {
         flags |= vk::AccessFlags::TRANSFER_READ
     }
 
-    if usage.intersects(BufferUsageFlags::TRANSFER_DST) {
+    if usage.intersects(BufferUsage::TRANSFER_DST) {
         flags |= vk::AccessFlags::TRANSFER_WRITE
     }
 
-    if usage.intersects(BufferUsageFlags::INDEX) {
+    if usage.intersects(BufferUsage::INDEX) {
         flags |= vk::AccessFlags::INDEX_READ
     }
 
-    if usage.intersects(BufferUsageFlags::VERTEX) {
+    if usage.intersects(BufferUsage::VERTEX) {
         flags |= vk::AccessFlags::VERTEX_ATTRIBUTE_READ
     }
 
-    if usage.intersects(BufferUsageFlags::UNIFORM) {
+    if usage.intersects(BufferUsage::UNIFORM) {
         flags |= vk::AccessFlags::UNIFORM_READ
     }
 
-    if usage.intersects(BufferUsageFlags::INDIRECT) {
+    if usage.intersects(BufferUsage::INDIRECT) {
         flags |= vk::AccessFlags::INDIRECT_COMMAND_READ
     }
 
-    if usage.intersects(BufferUsageFlags::STORAGE) {
+    if usage.intersects(BufferUsage::STORAGE) {
         flags |= vk::AccessFlags::SHADER_READ | vk::AccessFlags::SHADER_WRITE
     }
 
@@ -212,17 +208,13 @@ impl BufferInner {
             allocation,
             allocation_info,
             device,
-            last_usage: Mutex::new(BufferUsageFlags::NONE),
+            last_usage: Mutex::new(BufferUsage::NONE),
             buffer_state: Mutex::new(BufferState::Unmapped),
             handle: buffer,
         })
     }
 
-    pub fn transition_usage_now(
-        &self,
-        command_buffer: vk::CommandBuffer,
-        usage: BufferUsageFlags,
-    ) -> Result<(), Error> {
+    pub fn transition_usage_now(&self, command_buffer: vk::CommandBuffer, usage: BufferUsage) -> Result<(), Error> {
         let mut last_usage = self.last_usage.lock();
 
         log::trace!(
@@ -240,7 +232,7 @@ impl BufferInner {
         }
 
         // initial transition
-        if *last_usage == BufferUsageFlags::NONE {
+        if *last_usage == BufferUsage::NONE {
             *last_usage = usage;
             return Ok(());
         }
@@ -370,7 +362,7 @@ impl MappedBuffer {
         &self,
         element_offset: usize,
         element_count: usize,
-        flags: BufferUsageFlags,
+        flags: BufferUsage,
     ) -> Result<(), Error> {
         let element_size = mem::size_of::<T>();
         let data_size = element_size * element_count;
@@ -396,7 +388,7 @@ impl MappedBuffer {
         let element_size = mem::size_of::<T>();
         let offset_bytes = element_size * element_offset;
 
-        self.validate_mapping::<T>(element_offset, element_count, BufferUsageFlags::MAP_WRITE)?;
+        self.validate_mapping::<T>(element_offset, element_count, BufferUsage::MAP_WRITE)?;
 
         Ok(WriteData {
             mapped: self,
@@ -415,7 +407,7 @@ impl MappedBuffer {
         let buffer_size = self.inner.descriptor.size as usize;
         let offset_bytes = element_size * element_offset;
 
-        self.validate_mapping::<T>(element_offset, element_count, BufferUsageFlags::MAP_WRITE)?;
+        self.validate_mapping::<T>(element_offset, element_count, BufferUsage::MAP_WRITE)?;
 
         log::trace!(
             "map write data_size: offset_bytes: {}, {}, buffer_size: {}",
@@ -442,7 +434,7 @@ impl MappedBuffer {
         let data_size = element_size * element_count;
         let offset_bytes = element_size * element_offset;
 
-        self.validate_mapping::<T>(element_offset, element_count, BufferUsageFlags::MAP_READ)?;
+        self.validate_mapping::<T>(element_offset, element_count, BufferUsage::MAP_READ)?;
 
         unsafe {
             let src_ptr = self.data.add(offset_bytes);
@@ -572,9 +564,9 @@ impl Buffer {
         let mut state = self.inner.device.state.lock();
 
         let command_buffer = state.get_pending_command_buffer(&self.inner.device)?;
-        if BufferUsageFlags::TRANSFER_DST != *self.inner.last_usage.lock() {
+        if BufferUsage::TRANSFER_DST != *self.inner.last_usage.lock() {
             self.inner
-                .transition_usage_now(command_buffer, BufferUsageFlags::TRANSFER_DST)?;
+                .transition_usage_now(command_buffer, BufferUsage::TRANSFER_DST)?;
         }
         unsafe {
             let offset_bytes = offset_bytes as u64;
@@ -593,12 +585,12 @@ impl Buffer {
     }
 
     /// Returns the usage flags declared when the buffer was created.
-    pub fn usage(&self) -> BufferUsageFlags {
+    pub fn usage(&self) -> BufferUsage {
         self.inner.descriptor.usage
     }
 
     pub fn map_read(&self) -> Result<MappedBuffer, Error> {
-        if !self.inner.descriptor.usage.contains(BufferUsageFlags::MAP_READ) {
+        if !self.inner.descriptor.usage.contains(BufferUsage::MAP_READ) {
             log::warn!("buffer not created with MAP_READ");
             return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
         }
@@ -610,7 +602,7 @@ impl Buffer {
     }
 
     pub fn map_write(&self) -> Result<MappedBuffer, Error> {
-        if !self.inner.descriptor.usage.contains(BufferUsageFlags::MAP_WRITE) {
+        if !self.inner.descriptor.usage.contains(BufferUsage::MAP_WRITE) {
             log::warn!("buffer not created with MAP_WRITE");
             return Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT));
         }

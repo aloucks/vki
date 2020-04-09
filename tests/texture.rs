@@ -1,5 +1,5 @@
 use vki::{
-    BufferCopyView, BufferDescriptor, BufferUsageFlags, Extent3d, FilterMode, Origin3d, TextureAspect, TextureBlitView,
+    BufferCopyView, BufferDescriptor, BufferUsage, Extent3d, FilterMode, Origin3d, TextureAspect, TextureBlitView,
     TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, TextureViewDescriptor,
     TextureViewDimension,
 };
@@ -301,7 +301,7 @@ fn copy_buffer_to_texture() {
 
         let buffer1 = device.create_buffer(BufferDescriptor {
             size: (width * height) as usize * std::mem::size_of::<f32>(),
-            usage: BufferUsageFlags::TRANSFER_SRC,
+            usage: BufferUsage::TRANSFER_SRC,
         })?;
 
         let texture1 = device.create_texture(TextureDescriptor {
@@ -357,7 +357,7 @@ fn copy_texture_to_buffer() {
 
         let buffer1 = device.create_buffer(BufferDescriptor {
             size: (width * height) as usize * std::mem::size_of::<f32>(),
-            usage: BufferUsageFlags::TRANSFER_DST,
+            usage: BufferUsage::TRANSFER_DST,
         })?;
 
         let texture1 = device.create_texture(TextureDescriptor {

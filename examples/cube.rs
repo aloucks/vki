@@ -12,7 +12,7 @@ use crate::util::{App, EventHandlers};
 
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BlendDescriptor, BufferUsageFlags, Color, ColorStateDescriptor, ColorWrite, CompareFunction, CullMode,
+    BindingType, BlendDescriptor, BufferUsage, Color, ColorStateDescriptor, ColorWrite, CompareFunction, CullMode,
     DepthStencilStateDescriptor, FrontFace, IndexFormat, InputStateDescriptor, InputStepMode, LoadOp,
     PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
     RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor,
@@ -97,12 +97,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let mut encoder = app.device.create_command_encoder()?;
 
-    let vertex_buffer = util::create_buffer_with_data(&app.device, &mut encoder, BufferUsageFlags::VERTEX, &vertices)?;
-    let index_buffer = util::create_buffer_with_data(&app.device, &mut encoder, BufferUsageFlags::INDEX, &indices)?;
+    let vertex_buffer = util::create_buffer_with_data(&app.device, &mut encoder, BufferUsage::VERTEX, &vertices)?;
+    let index_buffer = util::create_buffer_with_data(&app.device, &mut encoder, BufferUsage::INDEX, &indices)?;
     let uniform_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
         &uniforms,
     )?;
 

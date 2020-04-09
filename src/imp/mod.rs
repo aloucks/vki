@@ -35,7 +35,7 @@ mod vec;
 pub use crate::imp::debug::validate;
 
 use crate::{
-    AdapterOptions, BindGroupBinding, BindGroupLayout, BindGroupLayoutBinding, BufferDescriptor, BufferUsageFlags,
+    AdapterOptions, BindGroupBinding, BindGroupLayout, BindGroupLayoutBinding, BufferDescriptor, BufferUsage,
     Extensions, IndexFormat, Limits, SamplerDescriptor, TextureDescriptor, TextureViewDescriptor,
 };
 
@@ -245,7 +245,7 @@ pub struct BufferInner {
     descriptor: BufferDescriptor,
     allocation: Allocation,
     allocation_info: AllocationInfo,
-    last_usage: Mutex<BufferUsageFlags>,
+    last_usage: Mutex<BufferUsage>,
     buffer_state: Mutex<BufferState>,
 }
 

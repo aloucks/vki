@@ -1,5 +1,5 @@
 use crate::imp::{BufferInner, TextureInner};
-use crate::{BufferUsageFlags, Error, TextureUsage};
+use crate::{BufferUsage, Error, TextureUsage};
 
 use ash::vk;
 use std::sync::Arc;
@@ -8,7 +8,7 @@ use std::collections::{HashMap, HashSet};
 
 #[derive(Debug, Default, Clone)]
 pub struct PassResourceUsage {
-    pub buffers: Vec<(Arc<BufferInner>, BufferUsageFlags)>,
+    pub buffers: Vec<(Arc<BufferInner>, BufferUsage)>,
     pub textures: Vec<(Arc<TextureInner>, TextureUsage)>,
 }
 
@@ -39,18 +39,15 @@ pub enum PassType {
 
 #[derive(Debug, Default)]
 pub struct PassResourceUsageTracker {
-    buffer_usages: HashMap<Arc<BufferInner>, BufferUsageFlags>,
+    buffer_usages: HashMap<Arc<BufferInner>, BufferUsage>,
     texture_usages: HashMap<Arc<TextureInner>, TextureUsage>,
     storage_used_multiple_times: bool,
 }
 
 impl PassResourceUsageTracker {
-    pub fn buffer_used_as(&mut self, buffer: Arc<BufferInner>, usage: BufferUsageFlags) {
-        let existing_usage = self
-            .buffer_usages
-            .entry(buffer.clone())
-            .or_insert(BufferUsageFlags::NONE);
-        if usage == BufferUsageFlags::STORAGE && existing_usage.intersects(BufferUsageFlags::STORAGE) {
+    pub fn buffer_used_as(&mut self, buffer: Arc<BufferInner>, usage: BufferUsage) {
+        let existing_usage = self.buffer_usages.entry(buffer.clone()).or_insert(BufferUsage::NONE);
+        if usage == BufferUsage::STORAGE && existing_usage.intersects(BufferUsage::STORAGE) {
             self.storage_used_multiple_times = true;
         }
         existing_usage.insert(usage);

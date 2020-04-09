@@ -19,7 +19,7 @@ use std::borrow::Cow;
 use std::time::{Duration, Instant};
 use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
-    BindingResource, BindingType, BlendDescriptor, Buffer, BufferUsageFlags, Color, ColorStateDescriptor, ColorWrite,
+    BindingResource, BindingType, BlendDescriptor, Buffer, BufferUsage, Color, ColorStateDescriptor, ColorWrite,
     CompareFunction, CullMode, DepthStencilStateDescriptor, FilterMode, FrontFace, IndexFormat, InputStateDescriptor,
     InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, PushConstantRange,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor,
@@ -1360,18 +1360,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     indices_u16.push(0);
     indices_u32.push(0);
 
-    let vertex_buffer = util::create_buffer_with_data(&app.device, &mut encoder, BufferUsageFlags::VERTEX, &vertices)?;
-    let index_buffer_u16 =
-        util::create_buffer_with_data(&app.device, &mut encoder, BufferUsageFlags::INDEX, &indices_u16)?;
-    let index_buffer_u32 =
-        util::create_buffer_with_data(&app.device, &mut encoder, BufferUsageFlags::INDEX, &indices_u32)?;
+    let vertex_buffer = util::create_buffer_with_data(&app.device, &mut encoder, BufferUsage::VERTEX, &vertices)?;
+    let index_buffer_u16 = util::create_buffer_with_data(&app.device, &mut encoder, BufferUsage::INDEX, &indices_u16)?;
+    let index_buffer_u32 = util::create_buffer_with_data(&app.device, &mut encoder, BufferUsage::INDEX, &indices_u32)?;
 
     // set 0, binding 0
     let mut camera_and_light_settings = CameraAndLightSettings::default();
     let camera_and_light_settings_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
         &[camera_and_light_settings],
     )?;
 
@@ -1380,7 +1378,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mesh_settings_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
         &mesh_settings,
     )?;
 
@@ -1401,7 +1399,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let skin_settings_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
         &skin_settings,
     )?;
 
@@ -1410,7 +1408,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let material_settings_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
         &material_settings,
     )?;
 

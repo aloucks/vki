@@ -11,12 +11,12 @@ use crate::util::{App, EventHandler, EventHandlers};
 
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferUsageFlags, BufferViewDescriptor,
-    BufferViewFormat, Color, ColorStateDescriptor, ColorWrite, ComputePipelineDescriptor, CullMode, Fence, FrontFace,
-    IndexFormat, InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
-    PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
-    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainError, TextureFormat,
-    VertexAttributeDescriptor, VertexBufferDescriptor, VertexFormat,
+    BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferUsage, BufferViewDescriptor, BufferViewFormat,
+    Color, ColorStateDescriptor, ColorWrite, ComputePipelineDescriptor, CullMode, Fence, FrontFace, IndexFormat,
+    InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
+    RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
+    ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainError, TextureFormat, VertexAttributeDescriptor,
+    VertexBufferDescriptor, VertexFormat,
 };
 
 use rand::Rng;
@@ -126,7 +126,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let attractor_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsageFlags::MAP_WRITE | BufferUsageFlags::UNIFORM,
+        BufferUsage::MAP_WRITE | BufferUsage::UNIFORM,
         &attractor_block_data,
     )?;
 
@@ -155,7 +155,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .collect();
 
     let velocity_buffer =
-        util::create_buffer_with_data(&app.device, &mut encoder, BufferUsageFlags::STORAGE, &velocity_data)?;
+        util::create_buffer_with_data(&app.device, &mut encoder, BufferUsage::STORAGE, &velocity_data)?;
 
     let velocity_buffer_view = velocity_buffer.create_view(BufferViewDescriptor {
         offset: 0,
@@ -166,7 +166,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let position_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsageFlags::STORAGE | BufferUsageFlags::VERTEX,
+        BufferUsage::STORAGE | BufferUsage::VERTEX,
         &position_data,
     )?;
 
@@ -179,7 +179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mvp_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
         &mvp_block_data,
     )?;
 

@@ -1,5 +1,5 @@
 use std::time::Duration;
-use vki::{BufferDescriptor, BufferUsageFlags};
+use vki::{BufferDescriptor, BufferUsage};
 
 pub mod support;
 
@@ -9,7 +9,7 @@ fn create_buffer_vertex_transfer_dst() {
         let (instance, _adapter, device) = support::init()?;
 
         let descriptor = BufferDescriptor {
-            usage: BufferUsageFlags::VERTEX | BufferUsageFlags::TRANSFER_DST,
+            usage: BufferUsage::VERTEX | BufferUsage::TRANSFER_DST,
             size: 1024,
         };
 
@@ -25,7 +25,7 @@ fn create_buffer_uniform_mapped_write() {
         let (instance, _adapter, device) = support::init()?;
 
         let descriptor = BufferDescriptor {
-            usage: BufferUsageFlags::UNIFORM | BufferUsageFlags::MAP_WRITE,
+            usage: BufferUsage::UNIFORM | BufferUsage::MAP_WRITE,
             size: 1024,
         };
 
@@ -41,7 +41,7 @@ fn create_buffer_write_staging() {
         let (instance, _adapter, device) = support::init()?;
 
         let descriptor = BufferDescriptor {
-            usage: BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::MAP_WRITE,
+            usage: BufferUsage::TRANSFER_SRC | BufferUsage::MAP_WRITE,
             size: 1024,
         };
 
@@ -57,7 +57,7 @@ fn create_buffer_read_staging() {
         let (instance, _adapter, device) = support::init()?;
 
         let descriptor = BufferDescriptor {
-            usage: BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::MAP_READ,
+            usage: BufferUsage::TRANSFER_DST | BufferUsage::MAP_READ,
             size: 1024,
         };
 
@@ -73,7 +73,7 @@ fn create_buffer_read_storage() {
         let (instance, _adapter, device) = support::init()?;
 
         let descriptor = BufferDescriptor {
-            usage: BufferUsageFlags::STORAGE | BufferUsageFlags::MAP_READ,
+            usage: BufferUsage::STORAGE | BufferUsage::MAP_READ,
             size: 1024,
         };
 
@@ -97,14 +97,14 @@ fn create_buffer_mapped() {
         let data_byte_size = data_byte_size;
 
         let write_buffer_mapped = device.create_buffer_mapped(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,
+            usage: BufferUsage::MAP_WRITE | BufferUsage::TRANSFER_SRC,
             size: data_byte_size,
         })?;
 
         write_buffer_mapped.copy_from_slice(data)?;
 
         let read_buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
+            usage: BufferUsage::MAP_READ | BufferUsage::TRANSFER_DST,
             size: data_byte_size,
         })?;
 
@@ -139,7 +139,7 @@ fn create_buffer_mapped_write_data() {
         let data_byte_size = data_byte_size;
 
         let mut write_buffer_mapped = device.create_buffer_mapped(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,
+            usage: BufferUsage::MAP_WRITE | BufferUsage::TRANSFER_SRC,
             size: data_byte_size,
         })?;
 
@@ -151,7 +151,7 @@ fn create_buffer_mapped_write_data() {
         write_data.flush()?;
 
         let read_buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
+            usage: BufferUsage::MAP_READ | BufferUsage::TRANSFER_DST,
             size: data_byte_size,
         })?;
 
@@ -183,7 +183,7 @@ fn set_sub_data() {
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
 
         let read_buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
+            usage: BufferUsage::MAP_READ | BufferUsage::TRANSFER_DST,
             size: data_byte_size,
         })?;
 
@@ -224,7 +224,7 @@ fn set_sub_data_offset() {
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
 
         let read_buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
+            usage: BufferUsage::MAP_READ | BufferUsage::TRANSFER_DST,
             size: (2 * data_byte_size) as _,
         })?;
 
@@ -265,7 +265,7 @@ fn mapping_twice_should_fail() {
         let data_byte_size = std::mem::size_of::<u32>() * data.len();
 
         let buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST,
+            usage: BufferUsage::MAP_READ | BufferUsage::TRANSFER_DST,
             size: data_byte_size,
         })?;
 

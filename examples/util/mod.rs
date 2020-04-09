@@ -8,7 +8,7 @@ use ash::vk;
 use std::slice;
 
 use vki::{
-    Adapter, AdapterOptions, Buffer, BufferCopyView, BufferDescriptor, BufferUsageFlags, CommandEncoder, Device,
+    Adapter, AdapterOptions, Buffer, BufferCopyView, BufferDescriptor, BufferUsage, CommandEncoder, Device,
     DeviceDescriptor, Error, Extensions, Extent3d, FilterMode, Instance, Origin3d, PowerPreference, Surface, Swapchain,
     SwapchainDescriptor, Texture, TextureBlitView, TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat,
     TextureUsage, TextureView,
@@ -376,14 +376,14 @@ pub fn submit(device: &Device, encoder: CommandEncoder) -> Result<CommandEncoder
 pub fn create_buffer_with_data<U: Copy + 'static>(
     device: &Device,
     encoder: &mut CommandEncoder,
-    mut usage: BufferUsageFlags,
+    mut usage: BufferUsage,
     data: &[U],
 ) -> Result<Buffer, Error> {
     let size_bytes = self::byte_length(&data);
-    let is_write_mapped = usage.contains(BufferUsageFlags::MAP_WRITE);
+    let is_write_mapped = usage.contains(BufferUsage::MAP_WRITE);
 
     if !is_write_mapped {
-        usage |= BufferUsageFlags::TRANSFER_DST;
+        usage |= BufferUsage::TRANSFER_DST;
     }
 
     let descriptor = BufferDescriptor {
@@ -404,7 +404,7 @@ pub fn create_buffer_with_data<U: Copy + 'static>(
 
 pub fn create_staging_buffer<U: Copy + 'static>(device: &Device, data: &[U]) -> Result<Buffer, Error> {
     let descriptor = BufferDescriptor {
-        usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC,
+        usage: BufferUsage::MAP_WRITE | BufferUsage::TRANSFER_SRC,
         size: byte_length(data),
     };
     let mapped_buffer = device.create_buffer_mapped(descriptor)?;

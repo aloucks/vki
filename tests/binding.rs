@@ -1,7 +1,7 @@
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BufferDescriptor, BufferUsageFlags, BufferViewDescriptor, BufferViewFormat, Extent3d,
-    SamplerDescriptor, ShaderStage, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage,
+    BindingType, BufferDescriptor, BufferUsage, BufferViewDescriptor, BufferViewFormat, Extent3d, SamplerDescriptor,
+    ShaderStage, TextureDescriptor, TextureDimension, TextureFormat, TextureUsage,
 };
 
 pub mod support;
@@ -31,13 +31,13 @@ fn create_bind_group() {
         let (instance, _adapter, device) = support::init()?;
 
         let buffer_descriptor = BufferDescriptor {
-            usage: BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
+            usage: BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
             size: 1024,
         };
         let buffer = device.create_buffer(buffer_descriptor)?;
 
         let texel_buffer_descriptor = BufferDescriptor {
-            usage: BufferUsageFlags::STORAGE,
+            usage: BufferUsage::STORAGE,
             size: 1024,
         };
         let texel_buffer = device.create_buffer(texel_buffer_descriptor)?;

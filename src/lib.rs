@@ -240,7 +240,7 @@ pub struct TextureView {
 
 bitflags! {
     #[repr(transparent)]
-    pub struct BufferUsageFlags: u32 {
+    pub struct BufferUsage: u32 {
         const NONE = 0;
         const MAP_READ = 1;
         const MAP_WRITE = 2;
@@ -257,7 +257,7 @@ bitflags! {
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct BufferDescriptor {
     pub size: usize,
-    pub usage: BufferUsageFlags,
+    pub usage: BufferUsage,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]

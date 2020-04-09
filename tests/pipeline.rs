@@ -6,7 +6,7 @@ extern crate memoffset;
 use std::borrow::Cow;
 use vki::{
     AddressMode, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
-    BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
+    BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsage,
     BufferViewDescriptor, BufferViewFormat, Color, ColorStateDescriptor, ColorWrite, CompareFunction,
     ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology,
@@ -253,7 +253,7 @@ fn create_multi_sample_render_pipeline() {
         let uniform_buffer_size = (std::mem::size_of::<f32>() * 16) as _;
 
         let uniform_buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
+            usage: BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
             size: uniform_buffer_size,
         })?;
 
@@ -277,7 +277,7 @@ fn create_multi_sample_render_pipeline() {
         }
 
         let vertex_buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsageFlags::VERTEX,
+            usage: BufferUsage::VERTEX,
             size: (3 * std::mem::size_of::<Vertex>()) as _,
         })?;
 
@@ -477,15 +477,15 @@ fn set_bind_group() {
 
         let uniform_buffer = device.create_buffer(BufferDescriptor {
             size: 1024,
-            usage: BufferUsageFlags::UNIFORM,
+            usage: BufferUsage::UNIFORM,
         })?;
         let storage_buffer = device.create_buffer(BufferDescriptor {
             size: 1024,
-            usage: BufferUsageFlags::STORAGE,
+            usage: BufferUsage::STORAGE,
         })?;
         let image_buffer = device.create_buffer(BufferDescriptor {
             size: 1024,
-            usage: BufferUsageFlags::STORAGE, // TODO: texel storage
+            usage: BufferUsage::STORAGE, // TODO: texel storage
         })?;
         let image_buffer_view = image_buffer.create_view(BufferViewDescriptor {
             size: 1024,
@@ -621,15 +621,15 @@ fn set_bind_group_out_of_order() {
 
         let uniform_buffer = device.create_buffer(BufferDescriptor {
             size: 1024,
-            usage: BufferUsageFlags::UNIFORM,
+            usage: BufferUsage::UNIFORM,
         })?;
         let storage_buffer = device.create_buffer(BufferDescriptor {
             size: 1024,
-            usage: BufferUsageFlags::STORAGE,
+            usage: BufferUsage::STORAGE,
         })?;
         let image_buffer = device.create_buffer(BufferDescriptor {
             size: 1024,
-            usage: BufferUsageFlags::STORAGE, // TODO: texel storage
+            usage: BufferUsage::STORAGE, // TODO: texel storage
         })?;
         let image_buffer_view = image_buffer.create_view(BufferViewDescriptor {
             size: 1024,
@@ -767,15 +767,15 @@ fn set_bind_group_dynamic_offsets() {
 
         let uniform_buffer = device.create_buffer(BufferDescriptor {
             size: 1024,
-            usage: BufferUsageFlags::UNIFORM,
+            usage: BufferUsage::UNIFORM,
         })?;
         let storage_buffer = device.create_buffer(BufferDescriptor {
             size: 1024,
-            usage: BufferUsageFlags::STORAGE,
+            usage: BufferUsage::STORAGE,
         })?;
         let image_buffer = device.create_buffer(BufferDescriptor {
             size: 1024,
-            usage: BufferUsageFlags::STORAGE, // TODO: texel storage
+            usage: BufferUsage::STORAGE, // TODO: texel storage
         })?;
         let image_buffer_view = image_buffer.create_view(BufferViewDescriptor {
             size: 1024,

@@ -3,8 +3,8 @@ extern crate memoffset;
 
 use vki::{
     AdapterOptions, BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor,
-    BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsageFlags,
-    Color, ColorStateDescriptor, ColorWrite, CullMode, DeviceDescriptor, Extent3d, FrontFace, IndexFormat,
+    BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsage, Color,
+    ColorStateDescriptor, ColorWrite, CullMode, DeviceDescriptor, Extent3d, FrontFace, IndexFormat,
     InputStateDescriptor, InputStepMode, Instance, LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor,
     PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
     RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainDescriptor, SwapchainError,
@@ -93,7 +93,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let uniform_buffer = device.create_buffer(BufferDescriptor {
         size: uniforms_size_bytes,
-        usage: BufferUsageFlags::UNIFORM | BufferUsageFlags::TRANSFER_DST,
+        usage: BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
     })?;
 
     #[rustfmt::skip]
@@ -137,12 +137,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let vertex_buffer = device.create_buffer(BufferDescriptor {
         size: vertices_size_bytes,
-        usage: BufferUsageFlags::VERTEX | BufferUsageFlags::TRANSFER_DST,
+        usage: BufferUsage::VERTEX | BufferUsage::TRANSFER_DST,
     })?;
 
     let staging_vertex_buffer = device.create_buffer_mapped(BufferDescriptor {
         size: vertices_size_bytes,
-        usage: BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::MAP_WRITE,
+        usage: BufferUsage::TRANSFER_SRC | BufferUsage::MAP_WRITE,
     })?;
 
     staging_vertex_buffer.copy_from_slice(vertices)?;

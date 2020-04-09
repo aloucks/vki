@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use std::time::Duration;
 use vki::{
     BindGroupBinding, BindGroupDescriptor, BindGroupLayoutBinding, BindGroupLayoutDescriptor, BindingResource,
-    BindingType, BufferDescriptor, BufferUsageFlags, ComputePipelineDescriptor, DispatchIndirectCommand,
+    BindingType, BufferDescriptor, BufferUsage, ComputePipelineDescriptor, DispatchIndirectCommand,
     PipelineLayoutDescriptor, PipelineStageDescriptor, PushConstantRange, RenderPassDescriptor, ShaderModuleDescriptor,
     ShaderStage,
 };
@@ -58,14 +58,14 @@ fn copy_buffer_with_compute_shader() {
         let data_byte_size = data_byte_size;
 
         let write_buffer_mapped = device.create_buffer_mapped(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::STORAGE,
+            usage: BufferUsage::MAP_WRITE | BufferUsage::TRANSFER_SRC | BufferUsage::STORAGE,
             size: data_byte_size,
         })?;
 
         write_buffer_mapped.copy_from_slice(data)?;
 
         let read_buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE,
+            usage: BufferUsage::MAP_READ | BufferUsage::TRANSFER_DST | BufferUsage::STORAGE,
             size: data_byte_size,
         })?;
 
@@ -147,7 +147,7 @@ fn push_constants() {
         let mut encoder = device.create_command_encoder()?;
 
         let read_buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE,
+            usage: BufferUsage::MAP_READ | BufferUsage::TRANSFER_DST | BufferUsage::STORAGE,
             size: data_byte_size,
         })?;
 
@@ -265,14 +265,14 @@ fn dispatch_indirect() {
         let data_byte_size = data_byte_size;
 
         let write_buffer_mapped = device.create_buffer_mapped(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_WRITE | BufferUsageFlags::TRANSFER_SRC | BufferUsageFlags::STORAGE,
+            usage: BufferUsage::MAP_WRITE | BufferUsage::TRANSFER_SRC | BufferUsage::STORAGE,
             size: data_byte_size,
         })?;
 
         write_buffer_mapped.copy_from_slice(data)?;
 
         let read_buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsageFlags::MAP_READ | BufferUsageFlags::TRANSFER_DST | BufferUsageFlags::STORAGE,
+            usage: BufferUsage::MAP_READ | BufferUsage::TRANSFER_DST | BufferUsage::STORAGE,
             size: data_byte_size,
         })?;
 
@@ -291,7 +291,7 @@ fn dispatch_indirect() {
         })?;
 
         let indirect_buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsageFlags::INDIRECT | BufferUsageFlags::TRANSFER_DST,
+            usage: BufferUsage::INDIRECT | BufferUsage::TRANSFER_DST,
             size: std::mem::size_of::<DispatchIndirectCommand>(),
         })?;
 

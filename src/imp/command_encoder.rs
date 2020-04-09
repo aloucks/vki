@@ -4,7 +4,7 @@ use typed_arena::Arena;
 use std::convert::TryFrom;
 
 use crate::{
-    BindGroup, BindingType, Buffer, BufferCopyView, BufferUsageFlags, Color, CommandBuffer, CommandEncoder,
+    BindGroup, BindingType, Buffer, BufferCopyView, BufferUsage, Color, CommandBuffer, CommandEncoder,
     ComputePassEncoder, ComputePipeline, Extent3d, FilterMode, LoadOp, RenderPassColorAttachmentDescriptor,
     RenderPassDepthStencilAttachmentDescriptor, RenderPassDescriptor, RenderPassEncoder, RenderPipeline, ShaderStage,
     StoreOp, TextureBlitView, TextureCopyView, TextureUsage,
@@ -160,14 +160,14 @@ impl CommandEncoderInner {
                         .resource
                         .as_buffer()
                         .expect("BindingType::[Dynamic]UniformBuffer => BindingResource::Buffer");
-                    usage_tracker.buffer_used_as(buffer.inner.clone(), BufferUsageFlags::UNIFORM);
+                    usage_tracker.buffer_used_as(buffer.inner.clone(), BufferUsage::UNIFORM);
                 }
                 BindingType::StorageBuffer | BindingType::DynamicStorageBuffer => {
                     let (buffer, _) = binding
                         .resource
                         .as_buffer()
                         .expect("BindingType::[Dynamic]StorageBuffer => BindingResource::Buffer");
-                    usage_tracker.buffer_used_as(buffer.inner.clone(), BufferUsageFlags::STORAGE);
+                    usage_tracker.buffer_used_as(buffer.inner.clone(), BufferUsage::STORAGE);
                 }
                 BindingType::SampledTexture => {
                     let texture_view = binding
@@ -181,7 +181,7 @@ impl CommandEncoderInner {
                         .resource
                         .as_buffer_view()
                         .expect("BindingType::StorageTexelBuffer => BindingResource::BufferView");
-                    usage_tracker.buffer_used_as(buffer_view.inner.buffer.clone(), BufferUsageFlags::STORAGE);
+                    usage_tracker.buffer_used_as(buffer_view.inner.buffer.clone(), BufferUsage::STORAGE);
                 }
                 BindingType::Sampler => {
                     // no usage to track
@@ -575,7 +575,7 @@ impl<'a> RenderPassEncoder<'a> {
         // state.set_index_buffer
         self.inner
             .usage_tracker
-            .buffer_used_as(Arc::clone(&buffer.inner), BufferUsageFlags::INDEX);
+            .buffer_used_as(Arc::clone(&buffer.inner), BufferUsage::INDEX);
 
         self.inner.top_level_encoder.push(Command::SetIndexBuffer {
             buffer: Arc::clone(&buffer.inner),
@@ -599,7 +599,7 @@ impl<'a> RenderPassEncoder<'a> {
             buffers_vec.push(Arc::clone(&buffer.inner));
             self.inner
                 .usage_tracker
-                .buffer_used_as(Arc::clone(&buffer.inner), BufferUsageFlags::VERTEX);
+                .buffer_used_as(Arc::clone(&buffer.inner), BufferUsage::VERTEX);
         }
 
         let offsets = offsets
