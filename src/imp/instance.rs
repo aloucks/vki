@@ -63,7 +63,6 @@ impl Instance {
 }
 
 impl InstanceInner {
-    #[rustfmt::skip]
     fn new() -> Result<InstanceInner, Error> {
         let test_validation_hook = debug::TEST_VALIDATION_HOOK.load(Ordering::Acquire);
 
@@ -71,11 +70,10 @@ impl InstanceInner {
             let entry_guard: RwLockReadGuard<Result<ash::Entry, Error>> = ENTRY.read();
             let entry: &ash::Entry = entry_guard.as_ref()?;
 
-            let instance_version = entry.try_enumerate_instance_version()?.map(|v| {(
-                vk::version_major(v),
-                vk::version_minor(v),
-                vk::version_patch(v),
-            )}).unwrap_or((1, 0, 0));
+            let instance_version = entry
+                .try_enumerate_instance_version()?
+                .map(|v| (vk::version_major(v), vk::version_minor(v), vk::version_patch(v)))
+                .unwrap_or((1, 0, 0));
 
             log::debug!("instance version: {:?}", instance_version);
 
@@ -110,25 +108,31 @@ impl InstanceInner {
                 log::debug!("found instance layer: {}", name.to_string_lossy());
             }
 
-            let app_info = vk::ApplicationInfo::builder()
-                .api_version(ash::vk::make_version(1, 0, 0));
+            let app_info = vk::ApplicationInfo::builder().api_version(ash::vk::make_version(1, 0, 0));
 
             let layer_names = vec![
                 #[cfg(debug_assertions)]
-                c_str!("VK_LAYER_KHRONOS_validation")
+                c_str!("VK_LAYER_KHRONOS_validation"),
             ];
 
-            let layer_names = layer_names.iter().cloned().filter(|layer_name| {
-                let requested_layer_name = CStr::from_ptr(*layer_name);
-                let is_available = instance_layer_properties.iter().any(|p| {
-                    let name = CStr::from_ptr(p.layer_name.as_ptr());
-                    name == requested_layer_name
-                });
-                if !is_available {
-                    log::error!("requested layer unavailable: {:?}", requested_layer_name.to_string_lossy());
-                }
-                is_available
-            }).collect::<Vec<_>>();
+            let layer_names = layer_names
+                .iter()
+                .cloned()
+                .filter(|layer_name| {
+                    let requested_layer_name = CStr::from_ptr(*layer_name);
+                    let is_available = instance_layer_properties.iter().any(|p| {
+                        let name = CStr::from_ptr(p.layer_name.as_ptr());
+                        name == requested_layer_name
+                    });
+                    if !is_available {
+                        log::error!(
+                            "requested layer unavailable: {:?}",
+                            requested_layer_name.to_string_lossy()
+                        );
+                    }
+                    is_available
+                })
+                .collect::<Vec<_>>();
 
             let extension_names_ptrs: Vec<_> = extension_names.iter().map(|name| name.as_ptr()).collect();
 
@@ -154,13 +158,17 @@ impl InstanceInner {
             let surface_wayland = khr::WaylandSurface::new(entry, &raw);
 
             #[cfg(all(unix, target_os = "macos"))]
-            let surface_macos= ash::extensions::mvk::MacOSSurface::new(entry, &raw);
+            let surface_macos = ash::extensions::mvk::MacOSSurface::new(entry, &raw);
 
             let debug_utils = ext::DebugUtils::new(entry, &raw);
             let debug_report = ext::DebugReport::new(entry, &raw);
             let debug_report_callback = if test_validation_hook {
                 let debug_report_create_info = vk::DebugReportCallbackCreateInfoEXT::builder()
-                    .flags(vk::DebugReportFlagsEXT::ERROR | vk::DebugReportFlagsEXT::WARNING | vk::DebugReportFlagsEXT::PERFORMANCE_WARNING)
+                    .flags(
+                        vk::DebugReportFlagsEXT::ERROR
+                            | vk::DebugReportFlagsEXT::WARNING
+                            | vk::DebugReportFlagsEXT::PERFORMANCE_WARNING,
+                    )
                     .user_data(mem::transmute(raw.handle()))
                     .pfn_callback(Some(debug::debug_report_callback_test));
                 Some(debug_report.create_debug_report_callback(&debug_report_create_info, None)?)
@@ -190,7 +198,13 @@ impl InstanceInner {
                 debug_report,
             };
 
-            Ok(InstanceInner { raw, raw_ext, extension_properties, debug_report_callback, instance_version })
+            Ok(InstanceInner {
+                raw,
+                raw_ext,
+                extension_properties,
+                debug_report_callback,
+                instance_version,
+            })
         }
     }
 
