@@ -40,6 +40,7 @@ pub fn init() -> Result<(Instance, Adapter, Device), Box<dyn std::error::Error>>
     log::debug!("power_preference: {:?}", power_preference);
     let instance = Instance::new()?;
     let adapter = instance.request_adapter(AdapterOptions { power_preference })?;
+    log::info!("adapter: {}", adapter.name());
     let device = adapter.create_device(DeviceDescriptor::default())?;
 
     Ok((instance, adapter, device))

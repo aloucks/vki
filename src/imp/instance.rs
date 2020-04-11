@@ -110,12 +110,12 @@ impl InstanceInner {
 
             let app_info = vk::ApplicationInfo::builder().api_version(ash::vk::make_version(1, 0, 0));
 
-            let layer_names = vec![
+            let requested_layer_names = vec![
                 #[cfg(debug_assertions)]
                 c_str!("VK_LAYER_KHRONOS_validation"),
             ];
 
-            let layer_names = layer_names
+            let layer_names = requested_layer_names
                 .iter()
                 .cloned()
                 .filter(|layer_name| {
@@ -133,6 +133,16 @@ impl InstanceInner {
                     is_available
                 })
                 .collect::<Vec<_>>();
+
+            // Make missing layers a hard error when the unit test hook is set.
+            if requested_layer_names != layer_names && test_validation_hook {
+                log::error!(
+                    "not all requested layers are available. requested: {:?}; available: {:?}",
+                    requested_layer_names,
+                    layer_names
+                );
+                return Err(Error::from("Missing required layers"));
+            }
 
             let extension_names_ptrs: Vec<_> = extension_names.iter().map(|name| name.as_ptr()).collect();
 
