@@ -96,7 +96,7 @@ impl InstanceInner {
                     include_extension = true;
                 }
                 if include_extension {
-                    log::debug!("requesting extension support: {}", name_cow);
+                    log::info!("requesting instance extension: {}", name_cow);
                     extension_names.push(name.to_owned());
                 }
             }
@@ -108,7 +108,7 @@ impl InstanceInner {
                 log::debug!("found instance layer: {}", name.to_string_lossy());
             }
 
-            let app_info = vk::ApplicationInfo::builder().api_version(ash::vk::make_version(1, 0, 0));
+            let app_info = vk::ApplicationInfo::builder().api_version(vk::make_version(1, 0, 0));
 
             let requested_layer_names = vec![
                 #[cfg(debug_assertions)]
@@ -126,9 +126,11 @@ impl InstanceInner {
                     });
                     if !is_available {
                         log::error!(
-                            "requested layer unavailable: {:?}",
+                            "requested layer unavailable: {}",
                             requested_layer_name.to_string_lossy()
                         );
+                    } else {
+                        log::info!("requesting instance layer: {}", requested_layer_name.to_string_lossy());
                     }
                     is_available
                 })

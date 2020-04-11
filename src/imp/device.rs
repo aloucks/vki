@@ -166,6 +166,11 @@ impl DeviceInner {
             vec![]
         };
 
+        for name in extension_names.iter() {
+            let name = unsafe { std::ffi::CStr::from_ptr(*name).to_string_lossy() };
+            log::info!("requesting device extension: {}", name);
+        }
+
         let surface = descriptor.surface_support.map(|v| v.inner.as_ref());
         let queue_flags = vk::QueueFlags::COMPUTE | vk::QueueFlags::GRAPHICS | vk::QueueFlags::TRANSFER;
         let queue_family_index = select_queue_family_index(&adapter, queue_flags, surface)?;

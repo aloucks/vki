@@ -13,3 +13,6 @@ https://renderdoc.org/vulkan-in-30-minutes.html
 https://i.redd.it/4bigribcd1o21.png
 
 https://devblogs.nvidia.com/vulkan-dos-donts/
+
+
+SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG=1 VK_ICD_FILENAMES=.\\vk_swiftshader_icd.json
