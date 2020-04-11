@@ -11,3 +11,5 @@ https://developer.nvidia.com/vulkan-shader-resource-binding
 https://renderdoc.org/vulkan-in-30-minutes.html
 
 https://i.redd.it/4bigribcd1o21.png
+
+https://devblogs.nvidia.com/vulkan-dos-donts/

@@ -3,8 +3,8 @@ use crate::imp::texture::SubresourceUsageTracker;
 use crate::imp::{texture, AdapterInner, SurfaceInner, TextureViewInner};
 use crate::imp::{DeviceInner, InstanceInner, SwapchainInner, TextureInner};
 use crate::{
-    Error, Extent3d, PowerPreference, Swapchain, SwapchainDescriptor, SwapchainError, SwapchainImage, Texture,
-    TextureDescriptor, TextureDimension, TextureUsage, TextureView,
+    Error, Extent3d, Swapchain, SwapchainDescriptor, SwapchainError, SwapchainImage, Texture, TextureDescriptor,
+    TextureDimension, TextureUsage, TextureView,
 };
 
 use ash::prelude::VkResult;
@@ -57,6 +57,8 @@ impl SwapchainInner {
 
             let dimensions = surface_caps.current_extent;
 
+            let preferred_mode = vk::PresentModeKHR::from_raw(descriptor.present_mode as i32);
+
             let surface_format = vk::SurfaceFormatKHR {
                 format: texture::image_format(descriptor.format),
                 color_space: COLOR_SPACE,
@@ -65,7 +67,7 @@ impl SwapchainInner {
             let surface_image_usage = texture::image_usage(descriptor.usage, descriptor.format);
             let surface_image_count = surface_image_count(&surface_caps);
             let surface_image_extent = surface_image_extent(&surface_caps, dimensions);
-            let surface_present_mode = surface_present_mode(instance, &device.adapter, surface_handle)?;
+            let surface_present_mode = surface_present_mode(instance, &device.adapter, surface_handle, preferred_mode)?;
 
             surface_format_check(&descriptor.surface.inner, physical_device, surface_format)?;
             surface_image_usage_check(&surface_caps, surface_image_usage)?;
@@ -226,28 +228,22 @@ impl Drop for SwapchainInner {
 }
 
 /// Recipe: _Selecting a desired presentation mode_ (page `86`)
-///
-/// Selects `Mailbox` mode is available, otherwise defaults to `Fifo`.
 fn surface_present_mode(
     instance: &InstanceInner,
     adapter: &AdapterInner,
     surface: vk::SurfaceKHR,
+    preferred_mode: vk::PresentModeKHR,
 ) -> VkResult<vk::PresentModeKHR> {
-    let present_mode = match adapter.options.power_preference {
-        PowerPreference::LowPower => vk::PresentModeKHR::FIFO,
-        PowerPreference::HighPerformance => {
-            let physical_device = adapter.physical_device;
-            unsafe {
-                instance
-                    .raw_ext
-                    .surface
-                    .get_physical_device_surface_present_modes(physical_device, surface)?
-                    .iter()
-                    .cloned()
-                    .find(|mode| *mode == vk::PresentModeKHR::MAILBOX)
-                    .unwrap_or(vk::PresentModeKHR::FIFO)
-            }
-        }
+    let physical_device = adapter.physical_device;
+    let present_mode = unsafe {
+        instance
+            .raw_ext
+            .surface
+            .get_physical_device_surface_present_modes(physical_device, surface)?
+            .iter()
+            .cloned()
+            .find(|mode| *mode == preferred_mode)
+            .unwrap_or(vk::PresentModeKHR::FIFO)
     };
     log::debug!("selected present mode: {:?}", present_mode);
     Ok(present_mode)

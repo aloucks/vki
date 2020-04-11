@@ -4,7 +4,7 @@
 #![allow(dead_code)]
 
 use vki::{
-    Adapter, AdapterOptions, Device, DeviceDescriptor, Instance, PowerPreference, Surface, Swapchain,
+    Adapter, AdapterOptions, Device, DeviceDescriptor, Instance, PowerPreference, PresentMode, Surface, Swapchain,
     SwapchainDescriptor, TextureFormat, TextureUsage,
 };
 
@@ -39,7 +39,7 @@ pub fn init() -> Result<(Instance, Adapter, Device), Box<dyn std::error::Error>>
     let power_preference = select_power_preference();
     log::debug!("power_preference: {:?}", power_preference);
     let instance = Instance::new()?;
-    let adapter = instance.get_adapter(AdapterOptions { power_preference })?;
+    let adapter = instance.request_adapter(AdapterOptions { power_preference })?;
     let device = adapter.create_device(DeviceDescriptor::default())?;
 
     Ok((instance, adapter, device))
@@ -50,7 +50,7 @@ pub fn init_with_window(
 ) -> Result<(Instance, Adapter, Device, Surface, Swapchain), Box<dyn std::error::Error>> {
     init_environment();
     let instance = Instance::new()?;
-    let adapter = instance.get_adapter(AdapterOptions::default())?;
+    let adapter = instance.request_adapter(AdapterOptions::default())?;
     let surface = instance.create_surface(window)?;
     let device = adapter.create_device(DeviceDescriptor::default().with_surface_support(&surface))?;
     let swapchain_descriptor = swapchain_descriptor(&surface);
@@ -64,6 +64,7 @@ pub fn swapchain_descriptor<'a>(surface: &'a Surface) -> SwapchainDescriptor<'a>
         surface,
         format: TextureFormat::B8G8R8A8Unorm,
         usage: TextureUsage::OUTPUT_ATTACHMENT,
+        present_mode: PresentMode::Fifo,
     }
 }
 

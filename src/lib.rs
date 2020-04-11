@@ -84,6 +84,15 @@ pub struct SwapchainDescriptor<'a> {
     pub surface: &'a Surface,
     pub format: TextureFormat,
     pub usage: TextureUsage,
+    pub present_mode: PresentMode,
+}
+
+#[repr(i32)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, Hash)]
+pub enum PresentMode {
+    Immediate = 0, // ash::vk::PresentModeKHR::IMMEDIATE.as_raw(),
+    Mailbox = 1,   // ash::vk::PresentModeKHR::MAILBOX.as_raw(),
+    Fifo = 2,      // ash::vk::PresentModeKHR::FIFO.as_raw(),
 }
 
 impl<'a> SwapchainDescriptor<'a> {
@@ -92,6 +101,7 @@ impl<'a> SwapchainDescriptor<'a> {
             surface,
             format: TextureFormat::B8G8R8A8UnormSRGB,
             usage: TextureUsage::OUTPUT_ATTACHMENT,
+            present_mode: PresentMode::Fifo,
         }
     }
 }

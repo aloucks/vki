@@ -36,80 +36,97 @@ impl Into<Adapter> for AdapterInner {
 }
 
 impl AdapterInner {
-    pub fn new(instance: Arc<InstanceInner>, options: AdapterOptions) -> Result<AdapterInner, Error> {
-        let new_inner = |physical_device: vk::PhysicalDevice,
-                         physical_device_properties: vk::PhysicalDeviceProperties| {
-            let instance = instance.clone();
-            let (extensions, physical_device_features) = unsafe {
-                // TODO: capture these
-                for p in instance
-                    .raw
-                    .enumerate_device_extension_properties(physical_device)?
-                    .iter()
-                {
-                    let name = CStr::from_ptr(p.extension_name.as_ptr());
-                    log::debug!("found physical device extension: {}", name.to_string_lossy());
-                }
+    fn new(instance: &Arc<InstanceInner>, physical_device: vk::PhysicalDevice) -> Result<AdapterInner, Error> {
+        let instance = Arc::clone(instance);
+        let (extensions, physical_device_features, physical_device_properties) = unsafe {
+            let physical_device_properties = instance.raw.get_physical_device_properties(physical_device);
 
-                // TODO: capture these
-                let mut num_layers = 0;
-                instance.raw.fp_v1_0().enumerate_device_layer_properties(
-                    physical_device,
-                    &mut num_layers,
-                    std::ptr::null_mut(),
-                );
-                let mut layers = vec![vk::LayerProperties::default(); num_layers as usize];
-                instance.raw.fp_v1_0().enumerate_device_layer_properties(
-                    physical_device,
-                    &mut num_layers,
-                    layers.as_mut_ptr(),
-                );
-                for p in layers.iter() {
-                    let name = CStr::from_ptr(p.layer_name.as_ptr());
-                    log::debug!("found physical device layer: {}", name.to_string_lossy());
-                }
-
-                let physical_device_features = instance.raw.get_physical_device_features(physical_device);
-                let extensions = Extensions {
-                    anisotropic_filtering: physical_device_features.sampler_anisotropy == vk::TRUE,
-                };
-                (extensions, physical_device_features)
-            };
-
-            let mut physical_device_format_properties = Vec::new();
-            for format in VK_FORMATS.iter().cloned() {
-                let format_properties = unsafe {
-                    instance
-                        .raw
-                        .get_physical_device_format_properties(physical_device, format)
-                };
-                physical_device_format_properties.push((format, format_properties));
+            // TODO: capture these
+            for p in instance
+                .raw
+                .enumerate_device_extension_properties(physical_device)?
+                .iter()
+            {
+                let name = CStr::from_ptr(p.extension_name.as_ptr());
+                log::debug!("found physical device extension: {}", name.to_string_lossy());
             }
-            physical_device_format_properties.sort_by(|(a, _), (b, _)| a.cmp(&b));
 
-            let queue_family_properties = unsafe {
-                instance
-                    .raw
-                    .get_physical_device_queue_family_properties(physical_device)
-            };
-
-            let name = unsafe { CStr::from_ptr(physical_device_properties.device_name.as_ptr()) }
-                .to_string_lossy()
-                .into_owned();
-
-            Ok(AdapterInner {
-                instance,
+            // TODO: capture these
+            let mut num_layers = 0;
+            instance.raw.fp_v1_0().enumerate_device_layer_properties(
                 physical_device,
-                name,
-                physical_device_features,
-                physical_device_properties,
-                physical_device_format_properties,
-                queue_family_properties,
-                extensions,
-                options,
-            })
+                &mut num_layers,
+                std::ptr::null_mut(),
+            );
+            let mut layers = vec![vk::LayerProperties::default(); num_layers as usize];
+            instance.raw.fp_v1_0().enumerate_device_layer_properties(
+                physical_device,
+                &mut num_layers,
+                layers.as_mut_ptr(),
+            );
+            for p in layers.iter() {
+                let name = CStr::from_ptr(p.layer_name.as_ptr());
+                log::debug!("found physical device layer: {}", name.to_string_lossy());
+            }
+
+            let physical_device_features = instance.raw.get_physical_device_features(physical_device);
+            let extensions = Extensions {
+                anisotropic_filtering: physical_device_features.sampler_anisotropy == vk::TRUE,
+            };
+            (extensions, physical_device_features, physical_device_properties)
         };
 
+        let mut physical_device_format_properties = Vec::new();
+        for format in VK_FORMATS.iter().cloned() {
+            let format_properties = unsafe {
+                instance
+                    .raw
+                    .get_physical_device_format_properties(physical_device, format)
+            };
+            physical_device_format_properties.push((format, format_properties));
+        }
+        physical_device_format_properties.sort_by(|(a, _), (b, _)| a.cmp(&b));
+
+        let queue_family_properties = unsafe {
+            instance
+                .raw
+                .get_physical_device_queue_family_properties(physical_device)
+        };
+
+        let name = unsafe { CStr::from_ptr(physical_device_properties.device_name.as_ptr()) }
+            .to_string_lossy()
+            .into_owned();
+
+        Ok(AdapterInner {
+            instance,
+            physical_device,
+            name,
+            physical_device_features,
+            physical_device_properties,
+            physical_device_format_properties,
+            queue_family_properties,
+            extensions,
+        })
+    }
+
+    pub fn enumerate(instance: &Arc<InstanceInner>) -> Result<Vec<AdapterInner>, Error> {
+        unsafe {
+            let physical_devices = match instance.raw.enumerate_physical_devices() {
+                Ok(physical_devices) => physical_devices,
+                Err(e) => {
+                    log::error!("failed to enumerate physical devices: {:?}", e);
+                    return Err(Error::from(e))?;
+                }
+            };
+            let mut adapters = Vec::with_capacity(physical_devices.len());
+            for physical_device in physical_devices.iter() {
+                adapters.push(AdapterInner::new(instance, *physical_device)?);
+            }
+            Ok(adapters)
+        }
+    }
+
+    pub fn request(instance: Arc<InstanceInner>, options: AdapterOptions) -> Result<AdapterInner, Error> {
         unsafe {
             let physical_devices = match instance.raw.enumerate_physical_devices() {
                 Ok(physical_devices) => physical_devices,
@@ -129,7 +146,7 @@ impl AdapterInner {
                 PowerPreference::HighPerformance => {
                     for (index, properties) in physical_device_properties.iter().enumerate() {
                         if properties.device_type == vk::PhysicalDeviceType::DISCRETE_GPU {
-                            let inner = new_inner(physical_devices[index], *properties)?;
+                            let inner = AdapterInner::new(&instance, physical_devices[index])?;
                             return Ok(inner);
                         }
                     }
@@ -137,7 +154,7 @@ impl AdapterInner {
                 PowerPreference::LowPower => {
                     for (index, properties) in physical_device_properties.iter().enumerate() {
                         if properties.device_type == vk::PhysicalDeviceType::INTEGRATED_GPU {
-                            let inner = new_inner(physical_devices[index], *properties)?;
+                            let inner = AdapterInner::new(&instance, physical_devices[index])?;
                             return Ok(inner);
                         }
                     }
@@ -147,7 +164,7 @@ impl AdapterInner {
                 .first()
                 .cloned()
                 .ok_or_else(|| Error::from("No adapters were found"))
-                .and_then(|physical_device| new_inner(physical_device, physical_device_properties[0]))
+                .and_then(|physical_device| AdapterInner::new(&instance, physical_device))
         }
     }
 

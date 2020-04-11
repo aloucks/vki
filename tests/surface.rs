@@ -11,7 +11,7 @@ fn winit_surface() {
     let _ = pretty_env_logger::try_init();
     vki::validate(|| {
         let instance = Instance::new()?;
-        let adapter = instance.get_adapter(AdapterOptions::default())?;
+        let adapter = instance.request_adapter(AdapterOptions::default())?;
 
         let event_loop = support::new_event_loop();
         let window = winit::window::WindowBuilder::new()
@@ -34,7 +34,7 @@ fn glfw_surface() {
     let _ = pretty_env_logger::try_init();
     vki::validate(|| {
         let instance = Instance::new()?;
-        let adapter = instance.get_adapter(AdapterOptions::default())?;
+        let adapter = instance.request_adapter(AdapterOptions::default())?;
 
         let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
         glfw.window_hint(glfw::WindowHint::Visible(false));

@@ -9,9 +9,9 @@ use std::slice;
 
 use vki::{
     Adapter, AdapterOptions, Buffer, BufferCopyView, BufferDescriptor, BufferUsage, CommandEncoder, Device,
-    DeviceDescriptor, Error, Extensions, Extent3d, FilterMode, Instance, Origin3d, PowerPreference, Surface, Swapchain,
-    SwapchainDescriptor, Texture, TextureBlitView, TextureCopyView, TextureDescriptor, TextureDimension, TextureFormat,
-    TextureUsage, TextureView,
+    DeviceDescriptor, Error, Extensions, Extent3d, FilterMode, Instance, Origin3d, PowerPreference, PresentMode,
+    Surface, Swapchain, SwapchainDescriptor, Texture, TextureBlitView, TextureCopyView, TextureDescriptor,
+    TextureDimension, TextureFormat, TextureUsage, TextureView,
 };
 
 use std::time::{Duration, Instant};
@@ -39,6 +39,7 @@ fn create_swapchain_and_depth_view_and_color_view(
                 surface,
                 usage: TextureUsage::OUTPUT_ATTACHMENT,
                 format: DEFAULT_COLOR_FORMAT,
+                present_mode: PresentMode::Mailbox,
             },
             old_swapchain,
         )
@@ -164,7 +165,7 @@ impl<T: 'static> App<T> {
         })?;
 
         let surface = instance.create_surface(&window)?;
-        let adapter = instance.get_adapter(AdapterOptions {
+        let adapter = instance.request_adapter(AdapterOptions {
             power_preference: match std::env::var("LOW_POWER").as_ref().map(|s| s.as_str()) {
                 Ok("1") | Ok("true") => PowerPreference::LowPower,
                 Ok(_) | Err(_) => PowerPreference::HighPerformance,

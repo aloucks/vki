@@ -35,8 +35,8 @@ mod vec;
 pub use crate::imp::debug::validate;
 
 use crate::{
-    AdapterOptions, BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, BufferDescriptor, BufferUsage, Extensions,
-    IndexFormat, Limits, SamplerDescriptor, TextureDescriptor, TextureViewDescriptor,
+    BindGroupEntry, BindGroupLayout, BindGroupLayoutEntry, BufferDescriptor, BufferUsage, Extensions, IndexFormat,
+    Limits, SamplerDescriptor, TextureDescriptor, TextureViewDescriptor,
 };
 
 use std::collections::HashMap;
@@ -128,7 +128,6 @@ pub struct AdapterInner {
     queue_family_properties: Vec<vk::QueueFamilyProperties>,
     name: String,
     extensions: Extensions,
-    options: AdapterOptions,
 }
 
 impl PartialEq for AdapterInner {

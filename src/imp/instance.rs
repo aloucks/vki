@@ -35,9 +35,17 @@ impl Instance {
         Ok(inner.into())
     }
 
-    pub fn get_adapter(&self, options: AdapterOptions) -> Result<Adapter, Error> {
-        let adapter = AdapterInner::new(self.inner.clone(), options)?;
+    pub fn request_adapter(&self, options: AdapterOptions) -> Result<Adapter, Error> {
+        let adapter = AdapterInner::request(self.inner.clone(), options)?;
         Ok(adapter.into())
+    }
+
+    pub fn enumerate_adapters(&self) -> Result<Vec<Adapter>, Error> {
+        let adapters = AdapterInner::enumerate(&self.inner)?
+            .drain(..)
+            .map(Into::into)
+            .collect();
+        Ok(adapters)
     }
 
     pub fn create_surface<W: HasRawWindowHandle>(&self, window: &W) -> Result<Surface, Error> {

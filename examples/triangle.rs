@@ -5,7 +5,7 @@ use vki::{
     AdapterOptions, BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsage, Color,
     ColorStateDescriptor, ColorWrite, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStepMode, Instance,
-    LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PowerPreference, PrimitiveTopology,
+    LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PowerPreference, PresentMode, PrimitiveTopology,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
     ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsage,
     VertexAttributeDescriptor, VertexBufferLayoutDescriptor, VertexFormat, VertexStateDescriptor,
@@ -39,7 +39,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         power_preference: PowerPreference::HighPerformance,
     };
 
-    let adapter = instance.get_adapter(adapter_options)?;
+    let adapter = instance.request_adapter(adapter_options)?;
     println!("Adapter: {}", adapter.name());
 
     let surface = instance.create_surface(&window)?;
@@ -57,6 +57,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         surface: &surface,
         format: swapchain_format,
         usage: TextureUsage::OUTPUT_ATTACHMENT,
+        present_mode: PresentMode::Mailbox,
     };
 
     let mut swapchain = device.create_swapchain(swapchain_desc, None)?;

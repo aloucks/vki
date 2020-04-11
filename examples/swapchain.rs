@@ -1,5 +1,6 @@
 use vki::{
-    AdapterOptions, DeviceDescriptor, Instance, SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsage,
+    AdapterOptions, DeviceDescriptor, Instance, PresentMode, SwapchainDescriptor, SwapchainError, TextureFormat,
+    TextureUsage,
 };
 
 use winit::dpi::LogicalSize;
@@ -26,7 +27,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let instance = Instance::new()?;
     let adapter_options = AdapterOptions::default();
-    let adapter = instance.get_adapter(adapter_options)?;
+    let adapter = instance.request_adapter(adapter_options)?;
     println!("Adapter: {:#?}", adapter.properties());
 
     let surface = instance.create_surface(&window)?;
@@ -44,6 +45,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         surface: &surface,
         format: swapchain_format,
         usage: TextureUsage::OUTPUT_ATTACHMENT,
+        present_mode: PresentMode::Mailbox,
     };
 
     let mut swapchain = device.create_swapchain(swapchain_desc, None)?;
