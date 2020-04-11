@@ -38,8 +38,14 @@ impl Into<Adapter> for AdapterInner {
 impl AdapterInner {
     fn new(instance: &Arc<InstanceInner>, physical_device: vk::PhysicalDevice) -> Result<AdapterInner, Error> {
         let instance = Arc::clone(instance);
-        let (extensions, physical_device_features, physical_device_properties) = unsafe {
+        let (name, extensions, physical_device_features, physical_device_properties) = unsafe {
             let physical_device_properties = instance.raw.get_physical_device_properties(physical_device);
+
+            let name = CStr::from_ptr(physical_device_properties.device_name.as_ptr())
+                .to_string_lossy()
+                .into_owned();
+
+            log::debug!("found physical device: {}", name);
 
             // TODO: capture these
             for p in instance
@@ -73,7 +79,7 @@ impl AdapterInner {
             let extensions = Extensions {
                 anisotropic_filtering: physical_device_features.sampler_anisotropy == vk::TRUE,
             };
-            (extensions, physical_device_features, physical_device_properties)
+            (name, extensions, physical_device_features, physical_device_properties)
         };
 
         let mut physical_device_format_properties = Vec::new();
@@ -92,10 +98,6 @@ impl AdapterInner {
                 .raw
                 .get_physical_device_queue_family_properties(physical_device)
         };
-
-        let name = unsafe { CStr::from_ptr(physical_device_properties.device_name.as_ptr()) }
-            .to_string_lossy()
-            .into_owned();
 
         Ok(AdapterInner {
             instance,
@@ -127,45 +129,29 @@ impl AdapterInner {
     }
 
     pub fn request(instance: Arc<InstanceInner>, options: AdapterOptions) -> Result<AdapterInner, Error> {
-        unsafe {
-            let physical_devices = match instance.raw.enumerate_physical_devices() {
-                Ok(physical_devices) => physical_devices,
-                Err(e) => {
-                    log::error!("failed to enumerate physical devices: {:?}", e);
-                    return Err(Error::from(e))?;
-                }
-            };
-            let physical_device_properties = &mut Vec::with_capacity(physical_devices.len());
-            for physical_device in physical_devices.iter().cloned() {
-                let properties = instance.raw.get_physical_device_properties(physical_device);
-                let name = CStr::from_ptr(properties.device_name.as_ptr());
-                log::debug!("found physical device: {:?} ({:?})", name, properties.device_type);
-                physical_device_properties.push(properties);
-            }
+        let mut adapters = AdapterInner::enumerate(&instance)?;
+        if adapters.is_empty() {
+            return Err(Error::from("No adapters were found"));
+        }
+        let mut index = 0;
+        for (i, adapter) in adapters.iter().enumerate() {
+            let device_type = adapter.physical_device_properties.device_type;
             match options.power_preference {
                 PowerPreference::HighPerformance => {
-                    for (index, properties) in physical_device_properties.iter().enumerate() {
-                        if properties.device_type == vk::PhysicalDeviceType::DISCRETE_GPU {
-                            let inner = AdapterInner::new(&instance, physical_devices[index])?;
-                            return Ok(inner);
-                        }
+                    if device_type == vk::PhysicalDeviceType::DISCRETE_GPU {
+                        index = i;
+                        break;
                     }
                 }
                 PowerPreference::LowPower => {
-                    for (index, properties) in physical_device_properties.iter().enumerate() {
-                        if properties.device_type == vk::PhysicalDeviceType::INTEGRATED_GPU {
-                            let inner = AdapterInner::new(&instance, physical_devices[index])?;
-                            return Ok(inner);
-                        }
+                    if device_type == vk::PhysicalDeviceType::INTEGRATED_GPU {
+                        index = i;
+                        break;
                     }
                 }
             }
-            physical_devices
-                .first()
-                .cloned()
-                .ok_or_else(|| Error::from("No adapters were found"))
-                .and_then(|physical_device| AdapterInner::new(&instance, physical_device))
         }
+        Ok(adapters.remove(index))
     }
 
     pub fn get_surface_support(&self, surface: &SurfaceInner, queue_index: u32) -> Result<bool, Error> {

@@ -79,6 +79,7 @@ pub struct InstanceInner {
     raw_ext: InstanceExt,
     extension_properties: Vec<vk::ExtensionProperties>,
     debug_report_callback: Option<vk::DebugReportCallbackEXT>,
+    instance_version: (u32, u32, u32),
 }
 
 impl PartialEq for InstanceInner {

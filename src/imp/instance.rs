@@ -35,6 +35,10 @@ impl Instance {
         Ok(inner.into())
     }
 
+    pub fn version(&self) -> (u32, u32, u32) {
+        self.inner.instance_version
+    }
+
     pub fn request_adapter(&self, options: AdapterOptions) -> Result<Adapter, Error> {
         let adapter = AdapterInner::request(self.inner.clone(), options)?;
         Ok(adapter.into())
@@ -61,11 +65,19 @@ impl Instance {
 impl InstanceInner {
     #[rustfmt::skip]
     fn new() -> Result<InstanceInner, Error> {
-        let init_debug_report = debug::TEST_VALIDATION_HOOK.load(Ordering::Acquire);
+        let test_validation_hook = debug::TEST_VALIDATION_HOOK.load(Ordering::Acquire);
 
         unsafe {
             let entry_guard: RwLockReadGuard<Result<ash::Entry, Error>> = ENTRY.read();
             let entry: &ash::Entry = entry_guard.as_ref()?;
+
+            let instance_version = entry.try_enumerate_instance_version()?.map(|v| {(
+                vk::version_major(v),
+                vk::version_minor(v),
+                vk::version_patch(v),
+            )}).unwrap_or((1, 0, 0));
+
+            log::debug!("instance version: {:?}", instance_version);
 
             let mut extension_names = vec![];
 
@@ -75,11 +87,11 @@ impl InstanceInner {
                 let mut include_extension = false;
                 let name = CStr::from_ptr(p.extension_name.as_ptr());
                 let name_cow = name.to_string_lossy();
-                log::trace!("found instance extension: {}", name_cow);
+                log::debug!("found instance extension: {}", name_cow);
                 if name_cow.ends_with("surface") {
                     include_extension = true;
                 }
-                if name_cow == "VK_EXT_debug_report" && init_debug_report {
+                if name_cow == "VK_EXT_debug_report" && test_validation_hook {
                     include_extension = true;
                 }
                 if name_cow == "VK_EXT_debug_utils" {
@@ -95,7 +107,7 @@ impl InstanceInner {
 
             for p in instance_layer_properties.iter() {
                 let name = CStr::from_ptr(p.layer_name.as_ptr());
-                log::trace!("found instance layer: {}", name.to_string_lossy());
+                log::debug!("found instance layer: {}", name.to_string_lossy());
             }
 
             let app_info = vk::ApplicationInfo::builder()
@@ -103,10 +115,10 @@ impl InstanceInner {
 
             let layer_names = vec![
                 #[cfg(debug_assertions)]
-                c_str!("VK_LAYER_LUNARG_standard_validation")
+                c_str!("VK_LAYER_KHRONOS_validation")
             ];
 
-            for layer_name in layer_names.iter() {
+            let layer_names = layer_names.iter().cloned().filter(|layer_name| {
                 let requested_layer_name = CStr::from_ptr(*layer_name);
                 let is_available = instance_layer_properties.iter().any(|p| {
                     let name = CStr::from_ptr(p.layer_name.as_ptr());
@@ -115,7 +127,8 @@ impl InstanceInner {
                 if !is_available {
                     log::error!("requested layer unavailable: {:?}", requested_layer_name.to_string_lossy());
                 }
-            }
+                is_available
+            }).collect::<Vec<_>>();
 
             let extension_names_ptrs: Vec<_> = extension_names.iter().map(|name| name.as_ptr()).collect();
 
@@ -145,7 +158,7 @@ impl InstanceInner {
 
             let debug_utils = ext::DebugUtils::new(entry, &raw);
             let debug_report = ext::DebugReport::new(entry, &raw);
-            let debug_report_callback = if init_debug_report {
+            let debug_report_callback = if test_validation_hook {
                 let debug_report_create_info = vk::DebugReportCallbackCreateInfoEXT::builder()
                     .flags(vk::DebugReportFlagsEXT::ERROR | vk::DebugReportFlagsEXT::WARNING | vk::DebugReportFlagsEXT::PERFORMANCE_WARNING)
                     .user_data(mem::transmute(raw.handle()))
@@ -177,7 +190,7 @@ impl InstanceInner {
                 debug_report,
             };
 
-            Ok(InstanceInner { raw, raw_ext, extension_properties, debug_report_callback })
+            Ok(InstanceInner { raw, raw_ext, extension_properties, debug_report_callback, instance_version })
         }
     }
 

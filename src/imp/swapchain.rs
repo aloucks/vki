@@ -235,22 +235,30 @@ fn surface_present_mode(
     preferred_mode: vk::PresentModeKHR,
 ) -> VkResult<vk::PresentModeKHR> {
     let physical_device = adapter.physical_device;
-    let present_mode = unsafe {
+    let present_modes = unsafe {
         instance
             .raw_ext
             .surface
             .get_physical_device_surface_present_modes(physical_device, surface)?
-            .iter()
-            .cloned()
-            .find(|mode| *mode == preferred_mode)
-            .unwrap_or(vk::PresentModeKHR::FIFO)
     };
-    log::debug!("selected present mode: {:?}", present_mode);
+    log::debug!("available present modes: {:?}", present_modes);
+
+    let present_mode = present_modes
+        .iter()
+        .cloned()
+        .find(|mode| *mode == preferred_mode)
+        .unwrap_or(vk::PresentModeKHR::FIFO);
+    log::debug!(
+        "selected present mode: {:?} (preferred: {:?})",
+        present_mode,
+        preferred_mode
+    );
     Ok(present_mode)
 }
 
 /// Recipe: _Selecting the number of swapchain images_ (page `94`)
 pub fn surface_image_count(surface_caps: &vk::SurfaceCapabilitiesKHR) -> u32 {
+    log::debug!("supported max image count: {}", surface_caps.max_image_count);
     let image_count = surface_caps.min_image_count + 1;
     let count = match surface_caps.max_image_count {
         0 => image_count,
@@ -271,6 +279,7 @@ pub fn surface_image_extent(
     surface_caps: &vk::SurfaceCapabilitiesKHR,
     requested_dimensions: vk::Extent2D,
 ) -> vk::Extent2D {
+    log::debug!("surface_caps.current_extent: {:?}", surface_caps.current_extent);
     let extent = match surface_caps.current_extent {
         vk::Extent2D { width: 0, height: 0 } => {
             let mut width = requested_dimensions.width;
@@ -332,6 +341,10 @@ fn surface_format_check(
     physical_device: vk::PhysicalDevice,
     requested_format: vk::SurfaceFormatKHR,
 ) -> Result<(), Error> {
+    if log::log_enabled!(log::Level::Debug) {
+        let formats = surface.get_physical_device_surface_formats(physical_device)?;
+        log::debug!("supported formats: {:?}", formats);
+    }
     if surface.is_supported_format(physical_device, requested_format)? {
         log::debug!(
             "selected format: {:?}, color_space: {:?}",

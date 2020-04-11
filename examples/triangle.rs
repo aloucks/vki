@@ -241,6 +241,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     event: WindowEvent::Resized(_),
                     ..
                 } => {
+                    // Note: Normally, we would need to validate the new window size. A width or height
+                    //       of zero is invalid will produce a non-functional swapchain. We're explicitly
+                    //       not checking here as an easy way to check if the validation layer is working.
+                    //       If minimizing the window or resizing it to have a width or height of zero
+                    //       does not produce validation error output, the validation layer did not load.
+                    //       https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#VUID-VkSwapchainCreateInfoKHR-imageExtent-01689
                     swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
                 }
                 Event::WindowEvent {
