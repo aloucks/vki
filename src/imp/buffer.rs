@@ -90,6 +90,10 @@ pub fn usage_flags(usage: BufferUsage) -> vk::BufferUsageFlags {
         flags |= vk::BufferUsageFlags::STORAGE_TEXEL_BUFFER;
     }
 
+    if usage.intersects(BufferUsage::INDIRECT) {
+        flags |= vk::BufferUsageFlags::INDIRECT_BUFFER;
+    }
+
     flags
 }
 

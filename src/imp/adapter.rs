@@ -45,7 +45,11 @@ impl AdapterInner {
                 .to_string_lossy()
                 .into_owned();
 
-            log::debug!("found physical device: {}", name);
+            log::info!(
+                "found physical adapter: {} ({:?})",
+                name,
+                physical_device_properties.device_type
+            );
 
             // TODO: capture these
             for p in instance
@@ -140,12 +144,14 @@ impl AdapterInner {
                 PowerPreference::HighPerformance => {
                     if device_type == vk::PhysicalDeviceType::DISCRETE_GPU {
                         index = i;
+                        log::info!("power preference match: {:?}", options.power_preference);
                         break;
                     }
                 }
                 PowerPreference::LowPower => {
                     if device_type == vk::PhysicalDeviceType::INTEGRATED_GPU {
                         index = i;
+                        log::info!("power preference match: {:?}", options.power_preference);
                         break;
                     }
                 }
