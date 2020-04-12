@@ -1,0 +1,48 @@
+on:
+  schedule:
+    - cron: "0 12 * * 0"
+  pull_request:
+  push:
+    paths-ignore:
+      - "docs/**"
+
+jobs:
+  build:
+    name: Build and test
+    runs-on: ${{ matrix.os }}
+    env:
+      RUST_BACKTRACE: 1
+      CARGO_INCREMENTAL: 0
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        toolchain: [stable, nightly]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Install GLFW dependencies
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          sudo apt update
+          sudo apt install libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+          components: rustfmt
+          profile: minimal
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+      - name: Build everything
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-run
+      - name: Run unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --lib --examples
