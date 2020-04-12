@@ -1,6 +1,7 @@
-name: Build
+name: tests
 on:
   schedule:
+    # run all tests at least once a week
     - cron: "0 12 * * 0"
   pull_request:
   push:
@@ -26,7 +27,7 @@ jobs:
           args: --all -- --check
 
   build:
-    name: Build
+    name: Test
     runs-on: ${{ matrix.os }}
     env:
       RUST_BACKTRACE: 1
@@ -41,6 +42,13 @@ jobs:
         toolchain: [stable, nightly]
     steps:
       - uses: actions/checkout@v2
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        id: rust
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+          profile: minimal
       - name: Generate Cargo.lock
         uses: actions-rs/cargo@v1
         with:
@@ -50,27 +58,27 @@ jobs:
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-registry-
       - name: Cache cargo index
         uses: actions/cache@v1
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
-      - name: Cache cargo build
+          restore-keys: |
+            ${{ runner.os }}-cargo-index-
+      - name: Cache cargo build target
         uses: actions/cache@v1
         with:
           path: target
-          key: ${{ runner.os }}-cargo-build-target-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-build-target-${{ matrix.toolchain }}-${{ steps.rust.outputs.rustc_hash }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-build-target-${{ matrix.toolchain }}-${{ steps.rust.outputs.rustc_hash }}-
       - name: Install GLFW dependencies
         if: ${{ runner.os == 'Linux' }}
         run: |
           sudo apt update
           sudo apt install libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
-      - name: Install rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: ${{ matrix.toolchain }}
-          override: true
-          profile: minimal
       - name: Build lib
         uses: actions-rs/cargo@v1
         with:
@@ -100,5 +108,3 @@ jobs:
         with:
           command: test
           args: --tests
-
-
