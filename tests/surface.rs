@@ -38,6 +38,7 @@ fn glfw_surface() {
 
         let mut glfw = glfw::init(glfw::FAIL_ON_ERRORS).unwrap();
         glfw.window_hint(glfw::WindowHint::Visible(false));
+        glfw.window_hint(glfw::WindowHint::ClientApi(glfw::ClientApiHint::NoApi));
 
         let (window, _receiver) = glfw
             .create_window(800, 600, "GLFW", glfw::WindowMode::Windowed)

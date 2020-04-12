@@ -16,3 +16,13 @@ https://devblogs.nvidia.com/vulkan-dos-donts/
 
 
 SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG=1 VK_ICD_FILENAMES=.\\vk_swiftshader_icd.json
+
+
+SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG=1 VK_ICD_FILENAMES=".\\VkLayer_khronos_validation.json;.\\vk_swiftshader_icd.json"
+
+SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG=1 VK_ICD_FILENAMES='.\\VkLayer_khronos_validation.json;.\\vk_swiftshader_icd.json' ./adapters.exe
+
+# windows cmd
+set VK_ICD_FILENAMES=.\vk_swiftshader_icd.json;.\VkLayer_khronos_validation.json
+
+VK_LOADER_DEBUG=all SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG=1 VK_ICD_FILENAMES='.\\vk_swiftshader_icd.json' VK_LAYER_PATH=. cargo run --example triangle

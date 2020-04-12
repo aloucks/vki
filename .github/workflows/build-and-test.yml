@@ -1,0 +1,103 @@
+name: Build
+on:
+  schedule:
+    - cron: "0 12 * * 0"
+  pull_request:
+  push:
+    paths-ignore:
+      - "docs/**"
+
+jobs:
+  check:
+    name: Check formatting
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          components: rustfmt
+          profile: minimal
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+  build:
+    name: Build
+    runs-on: ${{ matrix.os }}
+    env:
+      RUST_BACKTRACE: 1
+      CARGO_INCREMENTAL: 0
+      #VK_LOADER_DEBUG: all
+      VK_LAYER_PATH: target
+      VK_ICD_FILENAMES: target\vk_swiftshader_icd.json
+      SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG: 1
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        toolchain: [stable, nightly]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Generate Cargo.lock
+        uses: actions-rs/cargo@v1
+        with:
+          command: update
+      - name: Cache cargo registry
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/registry
+          key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo build
+        uses: actions/cache@v1
+        with:
+          path: target
+          key: ${{ runner.os }}-cargo-build-target-${{ matrix.toolchain }}-${{ hashFiles('**/Cargo.lock') }}
+      - name: Install GLFW dependencies
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          sudo apt update
+          sudo apt install libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+      - name: Install rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.toolchain }}
+          override: true
+          profile: minimal
+      - name: Build lib
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --lib
+      - name: Build tests and examples
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --no-run
+      - name: Run unit tests
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --lib --examples
+      - name: Download vulkan loader, swiftshader, and validation layer
+        if: ${{ runner.os == 'Windows' && matrix.toolchain == 'stable' }}
+        run: |
+          curl -LRJ -o target/vk-test_windows-amd64.zip https://github.com/aloucks/vk-test/releases/download/v0.0.0/vk-test_windows-amd64.zip
+          7z e -y target/vk-test_windows-amd64.zip -otarget
+          dir target
+          echo "::add-path::target"
+      - name: Run integration tests
+        if: ${{ runner.os == 'Windows' && matrix.toolchain == 'stable' }}
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
+          args: --tests
+
+

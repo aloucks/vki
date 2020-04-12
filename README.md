@@ -1,6 +1,7 @@
 # VKI
 
 [![Build Status](https://dev.azure.com/aloucks/aloucks/_apis/build/status/aloucks.vki?branchName=master)](https://dev.azure.com/aloucks/aloucks/_build/latest?definitionId=1&branchName=master)
+[![Build](https://github.com/aloucks/vki/workflows/Build/badge.svg)](https://github.com/aloucks/vki/actions?query=workflow%3ABuild)
 
 VKI is _currently_ a [WebGPU](https://github.com/gpuweb/gpuweb)
 implementation, inspired by [WGPU](https://github.com/gfx-rs/wgpu) and
