@@ -4,6 +4,7 @@
 **/*.idea
 **/*.iml
 **/*.rs.bk
+/vulkan
 /target
 Cargo.lock
 scratch.txt
