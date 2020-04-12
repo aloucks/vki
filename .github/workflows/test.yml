@@ -1,8 +1,7 @@
 name: tests
 on:
   schedule:
-    # run all tests at least once a week
-    - cron: "0 12 * * 0"
+    - cron: "0 0 * * *"
   pull_request:
   push:
     paths-ignore:
