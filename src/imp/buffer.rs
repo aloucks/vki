@@ -108,7 +108,7 @@ pub fn pipeline_stage(usage: BufferUsage) -> vk::PipelineStageFlags {
         flags |= vk::PipelineStageFlags::TRANSFER;
     }
 
-    if usage.intersects(BufferUsage::INDEX | BufferUsage::VERTEX | BufferUsage::INDIRECT) {
+    if usage.intersects(BufferUsage::INDEX | BufferUsage::VERTEX) {
         flags |= vk::PipelineStageFlags::VERTEX_INPUT;
     }
 
@@ -116,6 +116,10 @@ pub fn pipeline_stage(usage: BufferUsage) -> vk::PipelineStageFlags {
         flags |= vk::PipelineStageFlags::VERTEX_SHADER
             | vk::PipelineStageFlags::FRAGMENT_SHADER
             | vk::PipelineStageFlags::COMPUTE_SHADER;
+    }
+
+    if usage.intersects(BufferUsage::INDIRECT) {
+        flags |= vk::PipelineStageFlags::DRAW_INDIRECT;
     }
 
     flags
@@ -156,6 +160,7 @@ pub fn access_flags(usage: BufferUsage) -> vk::AccessFlags {
         flags |= vk::AccessFlags::INDIRECT_COMMAND_READ
     }
 
+    // TODO: The read-only and write-only flags should probably be considered here
     if usage.intersects(BufferUsage::STORAGE) {
         flags |= vk::AccessFlags::SHADER_READ | vk::AccessFlags::SHADER_WRITE
     }
