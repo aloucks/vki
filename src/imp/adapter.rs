@@ -45,10 +45,17 @@ impl AdapterInner {
                 .to_string_lossy()
                 .into_owned();
 
+            let api_version = version(physical_device_properties.api_version);
+            let driver_version = version(physical_device_properties.driver_version);
+
             log::info!(
-                "found physical adapter: {} ({:?})",
+                "found physical device: {:?} {:?} {:?} {:?} {} {}",
                 name,
-                physical_device_properties.device_type
+                physical_device_properties.device_type,
+                api_version,
+                driver_version,
+                physical_device_properties.device_id,
+                physical_device_properties.vendor_id,
             );
 
             // TODO: capture these
@@ -203,20 +210,14 @@ impl AdapterInner {
     }
 
     pub fn properties(&self) -> AdapterProperties {
-        let api_major = ash::vk::version_major(self.physical_device_properties.api_version);
-        let api_minor = ash::vk::version_minor(self.physical_device_properties.api_version);
-        let api_patch = ash::vk::version_patch(self.physical_device_properties.api_version);
-        let driver_major = ash::vk::version_major(self.physical_device_properties.driver_version);
-        let driver_minor = ash::vk::version_minor(self.physical_device_properties.driver_version);
-        let driver_patch = ash::vk::version_patch(self.physical_device_properties.driver_version);
         let device_name = unsafe {
             std::ffi::CStr::from_ptr(self.physical_device_properties.device_name.as_ptr())
                 .to_str()
                 .unwrap_or("<unknown>")
         };
         AdapterProperties {
-            api_version: (api_major, api_minor, api_patch),
-            driver_version: (driver_major, driver_minor, driver_patch),
+            api_version: version(self.physical_device_properties.api_version),
+            driver_version: version(self.physical_device_properties.driver_version),
             vender_id: self.physical_device_properties.vendor_id,
             device_id: self.physical_device_properties.device_id,
             device_type: self.physical_device_properties.device_type,
@@ -226,6 +227,10 @@ impl AdapterInner {
     }
 }
 
+fn version(v: u32) -> (u32, u32, u32) {
+    (vk::version_major(v), vk::version_minor(v), vk::version_patch(v))
+}
+
 #[derive(Debug, Copy, Clone)]
 pub struct AdapterProperties<'a> {
     pub device_name: &'a str,
@@ -233,8 +238,8 @@ pub struct AdapterProperties<'a> {
     pub driver_version: (u32, u32, u32),
     pub vender_id: u32,
     pub device_id: u32,
-    pub device_type: ash::vk::PhysicalDeviceType,
-    pub limits: ash::vk::PhysicalDeviceLimits,
+    pub device_type: vk::PhysicalDeviceType,
+    pub limits: vk::PhysicalDeviceLimits,
 }
 
 impl Debug for Adapter {
