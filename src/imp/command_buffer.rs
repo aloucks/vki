@@ -225,10 +225,8 @@ impl CommandBufferInner {
         while let Some(command) = command_iter.next() {
             match command {
                 Command::CopyBufferToBuffer { src, dst, size_bytes } => {
-                    src.buffer
-                        .transition_usage_now(command_buffer, BufferUsage::COPY_SRC)?;
-                    dst.buffer
-                        .transition_usage_now(command_buffer, BufferUsage::COPY_DST)?;
+                    src.buffer.transition_usage_now(command_buffer, BufferUsage::COPY_SRC)?;
+                    dst.buffer.transition_usage_now(command_buffer, BufferUsage::COPY_DST)?;
                     let region = vk::BufferCopy {
                         size: *size_bytes as vk::DeviceSize,
                         src_offset: src.offset as vk::DeviceSize,
@@ -244,8 +242,7 @@ impl CommandBufferInner {
                     }
                 }
                 Command::CopyBufferToTexture { src, dst, size_texels } => {
-                    src.buffer
-                        .transition_usage_now(command_buffer, BufferUsage::COPY_SRC)?;
+                    src.buffer.transition_usage_now(command_buffer, BufferUsage::COPY_SRC)?;
                     dst.texture
                         .transition_usage_now(command_buffer, TextureUsage::COPY_DST, None)?;
                     let region = buffer_image_copy(src, dst, *size_texels);
@@ -262,8 +259,7 @@ impl CommandBufferInner {
                 Command::CopyTextureToBuffer { src, dst, size_texels } => {
                     src.texture
                         .transition_usage_now(command_buffer, TextureUsage::COPY_SRC, None)?;
-                    dst.buffer
-                        .transition_usage_now(command_buffer, BufferUsage::COPY_DST)?;
+                    dst.buffer.transition_usage_now(command_buffer, BufferUsage::COPY_DST)?;
                     let region = buffer_image_copy(dst, src, *size_texels);
                     unsafe {
                         self.device.raw.cmd_copy_image_to_buffer(

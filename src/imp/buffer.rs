@@ -574,8 +574,7 @@ impl Buffer {
 
         let command_buffer = state.get_pending_command_buffer(&self.inner.device)?;
         if BufferUsage::COPY_DST != *self.inner.last_usage.lock() {
-            self.inner
-                .transition_usage_now(command_buffer, BufferUsage::COPY_DST)?;
+            self.inner.transition_usage_now(command_buffer, BufferUsage::COPY_DST)?;
         }
         unsafe {
             let offset_bytes = offset_bytes as u64;
