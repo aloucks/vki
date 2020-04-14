@@ -20,11 +20,11 @@ use std::sync::Arc;
 use std::{mem, ptr, slice};
 
 pub fn read_only_buffer_usages() -> BufferUsage {
-    BufferUsage::MAP_READ | BufferUsage::TRANSFER_SRC | BufferUsage::INDEX | BufferUsage::VERTEX | BufferUsage::UNIFORM
+    BufferUsage::MAP_READ | BufferUsage::COPY_SRC | BufferUsage::INDEX | BufferUsage::VERTEX | BufferUsage::UNIFORM
 }
 
 pub fn writable_buffer_usages() -> BufferUsage {
-    BufferUsage::MAP_WRITE | BufferUsage::TRANSFER_DST | BufferUsage::STORAGE
+    BufferUsage::MAP_WRITE | BufferUsage::COPY_DST | BufferUsage::STORAGE
 }
 
 /// https://gpuopen-librariesandsdks.github.io/VulkanMemoryAllocator/html/usage_patterns.html
@@ -36,12 +36,12 @@ pub fn memory_usage(usage: BufferUsage) -> MemoryUsage {
     //       it may read something else entirely!
 
     // Staging resources that are used to transfer to the GPU
-    if usage.contains(BufferUsage::MAP_WRITE | BufferUsage::TRANSFER_SRC) {
+    if usage.contains(BufferUsage::MAP_WRITE | BufferUsage::COPY_SRC) {
         return MemoryUsage::CpuOnly;
     }
 
     // Staging resources that are used to transfer from the GPU
-    if usage.contains(BufferUsage::MAP_READ | BufferUsage::TRANSFER_DST) {
+    if usage.contains(BufferUsage::MAP_READ | BufferUsage::COPY_DST) {
         return MemoryUsage::CpuOnly;
     }
 
@@ -61,11 +61,11 @@ pub fn memory_usage(usage: BufferUsage) -> MemoryUsage {
 pub fn usage_flags(usage: BufferUsage) -> vk::BufferUsageFlags {
     let mut flags = vk::BufferUsageFlags::empty();
 
-    if usage.intersects(BufferUsage::TRANSFER_SRC) {
+    if usage.intersects(BufferUsage::COPY_SRC) {
         flags |= vk::BufferUsageFlags::TRANSFER_SRC;
     }
 
-    if usage.intersects(BufferUsage::TRANSFER_DST) {
+    if usage.intersects(BufferUsage::COPY_DST) {
         flags |= vk::BufferUsageFlags::TRANSFER_DST;
     }
 
@@ -104,7 +104,7 @@ pub fn pipeline_stage(usage: BufferUsage) -> vk::PipelineStageFlags {
         flags |= vk::PipelineStageFlags::HOST;
     }
 
-    if usage.intersects(BufferUsage::TRANSFER_SRC | BufferUsage::TRANSFER_DST) {
+    if usage.intersects(BufferUsage::COPY_SRC | BufferUsage::COPY_DST) {
         flags |= vk::PipelineStageFlags::TRANSFER;
     }
 
@@ -136,11 +136,11 @@ pub fn access_flags(usage: BufferUsage) -> vk::AccessFlags {
         flags |= vk::AccessFlags::HOST_WRITE
     }
 
-    if usage.intersects(BufferUsage::TRANSFER_SRC) {
+    if usage.intersects(BufferUsage::COPY_SRC) {
         flags |= vk::AccessFlags::TRANSFER_READ
     }
 
-    if usage.intersects(BufferUsage::TRANSFER_DST) {
+    if usage.intersects(BufferUsage::COPY_DST) {
         flags |= vk::AccessFlags::TRANSFER_WRITE
     }
 
@@ -573,9 +573,9 @@ impl Buffer {
         let mut state = self.inner.device.state.lock();
 
         let command_buffer = state.get_pending_command_buffer(&self.inner.device)?;
-        if BufferUsage::TRANSFER_DST != *self.inner.last_usage.lock() {
+        if BufferUsage::COPY_DST != *self.inner.last_usage.lock() {
             self.inner
-                .transition_usage_now(command_buffer, BufferUsage::TRANSFER_DST)?;
+                .transition_usage_now(command_buffer, BufferUsage::COPY_DST)?;
         }
         unsafe {
             let offset_bytes = offset_bytes as u64;

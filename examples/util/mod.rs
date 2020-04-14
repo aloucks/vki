@@ -384,7 +384,7 @@ pub fn create_buffer_with_data<U: Copy + 'static>(
     let is_write_mapped = usage.contains(BufferUsage::MAP_WRITE);
 
     if !is_write_mapped {
-        usage |= BufferUsage::TRANSFER_DST;
+        usage |= BufferUsage::COPY_DST;
     }
 
     let descriptor = BufferDescriptor {
@@ -405,7 +405,7 @@ pub fn create_buffer_with_data<U: Copy + 'static>(
 
 pub fn create_staging_buffer<U: Copy + 'static>(device: &Device, data: &[U]) -> Result<Buffer, Error> {
     let descriptor = BufferDescriptor {
-        usage: BufferUsage::MAP_WRITE | BufferUsage::TRANSFER_SRC,
+        usage: BufferUsage::MAP_WRITE | BufferUsage::COPY_SRC,
         size: byte_length(data),
     };
     let mapped_buffer = device.create_buffer_mapped(descriptor)?;
@@ -453,7 +453,7 @@ pub fn create_texture_with_data(
         format,
         sample_count: 1,
         array_layer_count: 1,
-        usage: TextureUsage::SAMPLED | TextureUsage::TRANSFER_SRC | TextureUsage::TRANSFER_DST,
+        usage: TextureUsage::SAMPLED | TextureUsage::COPY_SRC | TextureUsage::COPY_DST,
         dimension: TextureDimension::D2,
     };
 

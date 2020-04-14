@@ -226,9 +226,9 @@ impl CommandBufferInner {
             match command {
                 Command::CopyBufferToBuffer { src, dst, size_bytes } => {
                     src.buffer
-                        .transition_usage_now(command_buffer, BufferUsage::TRANSFER_SRC)?;
+                        .transition_usage_now(command_buffer, BufferUsage::COPY_SRC)?;
                     dst.buffer
-                        .transition_usage_now(command_buffer, BufferUsage::TRANSFER_DST)?;
+                        .transition_usage_now(command_buffer, BufferUsage::COPY_DST)?;
                     let region = vk::BufferCopy {
                         size: *size_bytes as vk::DeviceSize,
                         src_offset: src.offset as vk::DeviceSize,
@@ -245,9 +245,9 @@ impl CommandBufferInner {
                 }
                 Command::CopyBufferToTexture { src, dst, size_texels } => {
                     src.buffer
-                        .transition_usage_now(command_buffer, BufferUsage::TRANSFER_SRC)?;
+                        .transition_usage_now(command_buffer, BufferUsage::COPY_SRC)?;
                     dst.texture
-                        .transition_usage_now(command_buffer, TextureUsage::TRANSFER_DST, None)?;
+                        .transition_usage_now(command_buffer, TextureUsage::COPY_DST, None)?;
                     let region = buffer_image_copy(src, dst, *size_texels);
                     unsafe {
                         self.device.raw.cmd_copy_buffer_to_image(
@@ -261,9 +261,9 @@ impl CommandBufferInner {
                 }
                 Command::CopyTextureToBuffer { src, dst, size_texels } => {
                     src.texture
-                        .transition_usage_now(command_buffer, TextureUsage::TRANSFER_SRC, None)?;
+                        .transition_usage_now(command_buffer, TextureUsage::COPY_SRC, None)?;
                     dst.buffer
-                        .transition_usage_now(command_buffer, BufferUsage::TRANSFER_DST)?;
+                        .transition_usage_now(command_buffer, BufferUsage::COPY_DST)?;
                     let region = buffer_image_copy(dst, src, *size_texels);
                     unsafe {
                         self.device.raw.cmd_copy_image_to_buffer(
@@ -276,7 +276,7 @@ impl CommandBufferInner {
                     }
                 }
                 Command::CopyTextureToTexture { dst, src, size_texels } => {
-                    let src_usage = TextureUsage::TRANSFER_SRC;
+                    let src_usage = TextureUsage::COPY_SRC;
                     let src_subresource = Some(texture::Subresource {
                         array_layer: src.array_layer,
                         mip_level: src.mip_level,
@@ -284,7 +284,7 @@ impl CommandBufferInner {
                     src.texture
                         .transition_usage_now(command_buffer, src_usage, src_subresource)?;
 
-                    let dst_usage = TextureUsage::TRANSFER_DST;
+                    let dst_usage = TextureUsage::COPY_DST;
                     let dst_subresource = Some(texture::Subresource {
                         array_layer: dst.array_layer,
                         mip_level: dst.mip_level,
@@ -306,7 +306,7 @@ impl CommandBufferInner {
                     }
                 }
                 Command::BlitTextureToTexture { src, dst, filter } => {
-                    let src_usage = TextureUsage::TRANSFER_SRC;
+                    let src_usage = TextureUsage::COPY_SRC;
                     let src_subresource = Some(texture::Subresource {
                         array_layer: src.array_layer,
                         mip_level: src.mip_level,
@@ -314,7 +314,7 @@ impl CommandBufferInner {
                     src.texture
                         .transition_usage_now(command_buffer, src_usage, src_subresource)?;
 
-                    let dst_usage = TextureUsage::TRANSFER_DST;
+                    let dst_usage = TextureUsage::COPY_DST;
                     let dst_subresource = Some(texture::Subresource {
                         array_layer: dst.array_layer,
                         mip_level: dst.mip_level,

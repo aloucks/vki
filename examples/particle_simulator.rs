@@ -179,7 +179,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mvp_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::COPY_DST,
         &mvp_block_data,
     )?;
 

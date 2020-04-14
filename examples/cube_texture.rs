@@ -83,7 +83,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let uniform_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::COPY_DST,
         &uniforms,
     )?;
 
@@ -127,7 +127,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         sample_count: 1,
         array_layer_count: 1,
         format: TextureFormat::R8G8B8A8Unorm,
-        usage: TextureUsage::SAMPLED | TextureUsage::TRANSFER_DST | TextureUsage::TRANSFER_SRC,
+        usage: TextureUsage::SAMPLED | TextureUsage::COPY_DST | TextureUsage::COPY_SRC,
         size: texture_size,
         dimension: TextureDimension::D2,
     })?;

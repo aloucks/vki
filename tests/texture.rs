@@ -106,7 +106,7 @@ fn copy_texture_to_texture() {
         let size = Extent3d { width, height, depth };
 
         let texture1 = device.create_texture(TextureDescriptor {
-            usage: TextureUsage::TRANSFER_SRC,
+            usage: TextureUsage::COPY_SRC,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
@@ -116,7 +116,7 @@ fn copy_texture_to_texture() {
         })?;
 
         let texture2 = device.create_texture(TextureDescriptor {
-            usage: TextureUsage::SAMPLED | TextureUsage::TRANSFER_DST,
+            usage: TextureUsage::SAMPLED | TextureUsage::COPY_DST,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
@@ -168,7 +168,7 @@ fn blit_texture_to_texture_generate_mipmaps() {
         let mip_level_count = (width.max(height) as f32).log2().floor() as u32 + 1;
 
         let texture = device.create_texture(TextureDescriptor {
-            usage: TextureUsage::SAMPLED | TextureUsage::TRANSFER_SRC | TextureUsage::TRANSFER_DST,
+            usage: TextureUsage::SAMPLED | TextureUsage::COPY_SRC | TextureUsage::COPY_DST,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
@@ -301,11 +301,11 @@ fn copy_buffer_to_texture() {
 
         let buffer1 = device.create_buffer(BufferDescriptor {
             size: (width * height) as usize * std::mem::size_of::<f32>(),
-            usage: BufferUsage::TRANSFER_SRC,
+            usage: BufferUsage::COPY_SRC,
         })?;
 
         let texture1 = device.create_texture(TextureDescriptor {
-            usage: TextureUsage::TRANSFER_DST,
+            usage: TextureUsage::COPY_DST,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,
@@ -357,11 +357,11 @@ fn copy_texture_to_buffer() {
 
         let buffer1 = device.create_buffer(BufferDescriptor {
             size: (width * height) as usize * std::mem::size_of::<f32>(),
-            usage: BufferUsage::TRANSFER_DST,
+            usage: BufferUsage::COPY_DST,
         })?;
 
         let texture1 = device.create_texture(TextureDescriptor {
-            usage: TextureUsage::TRANSFER_SRC,
+            usage: TextureUsage::COPY_SRC,
             sample_count: 1,
             format: TextureFormat::R8G8B8A8Unorm,
             dimension: TextureDimension::D2,

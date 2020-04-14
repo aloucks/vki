@@ -17,11 +17,11 @@ use std::sync::Arc;
 use vk_mem::{AllocationCreateFlags, AllocationCreateInfo, MemoryUsage};
 
 fn read_only_texture_usage() -> TextureUsage {
-    TextureUsage::TRANSFER_SRC | TextureUsage::SAMPLED | TextureUsage::PRESENT
+    TextureUsage::COPY_SRC | TextureUsage::SAMPLED | TextureUsage::PRESENT
 }
 
 fn writable_texture_usages() -> TextureUsage {
-    TextureUsage::TRANSFER_DST | TextureUsage::STORAGE | TextureUsage::OUTPUT_ATTACHMENT
+    TextureUsage::COPY_DST | TextureUsage::STORAGE | TextureUsage::OUTPUT_ATTACHMENT
 }
 
 pub fn memory_usage(_usage: TextureUsage) -> MemoryUsage {
@@ -69,11 +69,11 @@ pub fn image_view_type(descriptor: &TextureViewDescriptor) -> vk::ImageViewType 
 pub fn image_usage(usage: TextureUsage, format: TextureFormat) -> vk::ImageUsageFlags {
     let mut flags = vk::ImageUsageFlags::empty();
 
-    if usage.intersects(TextureUsage::TRANSFER_SRC) {
+    if usage.intersects(TextureUsage::COPY_SRC) {
         flags |= vk::ImageUsageFlags::TRANSFER_SRC;
     }
 
-    if usage.intersects(TextureUsage::TRANSFER_DST) {
+    if usage.intersects(TextureUsage::COPY_DST) {
         flags |= vk::ImageUsageFlags::TRANSFER_DST;
     }
 
@@ -189,7 +189,7 @@ pub fn pipeline_stage(usage: TextureUsage, format: TextureFormat) -> vk::Pipelin
         return vk::PipelineStageFlags::TOP_OF_PIPE;
     }
 
-    if usage.intersects(TextureUsage::TRANSFER_SRC | TextureUsage::TRANSFER_DST) {
+    if usage.intersects(TextureUsage::COPY_SRC | TextureUsage::COPY_DST) {
         flags |= vk::PipelineStageFlags::TRANSFER;
     }
 
@@ -220,11 +220,11 @@ pub fn pipeline_stage(usage: TextureUsage, format: TextureFormat) -> vk::Pipelin
 pub fn access_flags(usage: TextureUsage, format: TextureFormat) -> vk::AccessFlags {
     let mut flags = vk::AccessFlags::empty();
 
-    if usage.intersects(TextureUsage::TRANSFER_SRC) {
+    if usage.intersects(TextureUsage::COPY_SRC) {
         flags |= vk::AccessFlags::TRANSFER_READ;
     }
 
-    if usage.intersects(TextureUsage::TRANSFER_DST) {
+    if usage.intersects(TextureUsage::COPY_DST) {
         flags |= vk::AccessFlags::TRANSFER_WRITE;
     }
 
@@ -263,7 +263,7 @@ pub fn image_layout(usage: TextureUsage, format: TextureFormat) -> vk::ImageLayo
     // Only a single usage flag is set
 
     match usage {
-        TextureUsage::TRANSFER_DST => vk::ImageLayout::TRANSFER_DST_OPTIMAL,
+        TextureUsage::COPY_DST => vk::ImageLayout::TRANSFER_DST_OPTIMAL,
         TextureUsage::SAMPLED => vk::ImageLayout::SHADER_READ_ONLY_OPTIMAL,
         // Dawn notes that:
         //  "Depending on whether parts of the texture have been transitioned to only
@@ -272,7 +272,7 @@ pub fn image_layout(usage: TextureUsage, format: TextureFormat) -> vk::ImageLayo
         //   make TransferSrc use GENERAL."
         // However, this is causing performance validation warnings, so we'll use
         // TRANSFER_SRC_OPTIMAL for now.
-        TextureUsage::TRANSFER_SRC => vk::ImageLayout::TRANSFER_SRC_OPTIMAL,
+        TextureUsage::COPY_SRC => vk::ImageLayout::TRANSFER_SRC_OPTIMAL,
         TextureUsage::STORAGE => vk::ImageLayout::GENERAL,
         TextureUsage::OUTPUT_ATTACHMENT => {
             if is_depth_or_stencil(format) {

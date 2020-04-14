@@ -29,9 +29,9 @@ mod tests {
     fn test_has_zero_or_one_bits() {
         use crate::TextureUsage;
         assert!(super::has_zero_or_one_bits(TextureUsage::NONE.bits()));
-        assert!(super::has_zero_or_one_bits(TextureUsage::TRANSFER_SRC.bits()));
+        assert!(super::has_zero_or_one_bits(TextureUsage::COPY_SRC.bits()));
         assert!(!super::has_zero_or_one_bits(
-            (TextureUsage::TRANSFER_SRC | TextureUsage::TRANSFER_DST).bits()
+            (TextureUsage::COPY_SRC | TextureUsage::COPY_DST).bits()
         ));
     }
 }

@@ -253,7 +253,7 @@ fn create_multi_sample_render_pipeline() {
         let uniform_buffer_size = (std::mem::size_of::<f32>() * 16) as _;
 
         let uniform_buffer = device.create_buffer(BufferDescriptor {
-            usage: BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
+            usage: BufferUsage::UNIFORM | BufferUsage::COPY_DST,
             size: uniform_buffer_size,
         })?;
 

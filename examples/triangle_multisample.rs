@@ -94,7 +94,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let uniform_buffer = device.create_buffer(BufferDescriptor {
         size: uniforms_size_bytes,
-        usage: BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
+        usage: BufferUsage::UNIFORM | BufferUsage::COPY_DST,
     })?;
 
     #[rustfmt::skip]
@@ -138,12 +138,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let vertex_buffer = device.create_buffer(BufferDescriptor {
         size: vertices_size_bytes,
-        usage: BufferUsage::VERTEX | BufferUsage::TRANSFER_DST,
+        usage: BufferUsage::VERTEX | BufferUsage::COPY_DST,
     })?;
 
     let staging_vertex_buffer = device.create_buffer_mapped(BufferDescriptor {
         size: vertices_size_bytes,
-        usage: BufferUsage::TRANSFER_SRC | BufferUsage::MAP_WRITE,
+        usage: BufferUsage::COPY_SRC | BufferUsage::MAP_WRITE,
     })?;
 
     staging_vertex_buffer.copy_from_slice(vertices)?;

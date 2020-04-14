@@ -31,7 +31,7 @@ fn create_bind_group() {
         let (instance, _adapter, device) = support::init()?;
 
         let buffer_descriptor = BufferDescriptor {
-            usage: BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
+            usage: BufferUsage::UNIFORM | BufferUsage::COPY_DST,
             size: 1024,
         };
         let buffer = device.create_buffer(buffer_descriptor)?;

@@ -185,8 +185,8 @@ bitflags! {
     #[repr(transparent)]
     pub struct TextureUsage: u32 {
         const NONE = 0;
-        const TRANSFER_SRC = 1;
-        const TRANSFER_DST = 2;
+        const COPY_SRC = 1;
+        const COPY_DST = 2;
         const SAMPLED = 4;
         const STORAGE = 8;
         const OUTPUT_ATTACHMENT = 16;
@@ -254,8 +254,8 @@ bitflags! {
         const NONE = 0;
         const MAP_READ = 1;
         const MAP_WRITE = 2;
-        const TRANSFER_SRC = 4;
-        const TRANSFER_DST = 8;
+        const COPY_SRC = 4;
+        const COPY_DST = 8;
         const INDEX = 16;
         const VERTEX = 32;
         const UNIFORM = 64;

@@ -102,7 +102,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let uniform_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::COPY_DST,
         &uniforms,
     )?;
 

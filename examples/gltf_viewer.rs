@@ -1369,7 +1369,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let camera_and_light_settings_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::COPY_DST,
         &[camera_and_light_settings],
     )?;
 
@@ -1378,7 +1378,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mesh_settings_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::COPY_DST,
         &mesh_settings,
     )?;
 
@@ -1399,7 +1399,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let skin_settings_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::COPY_DST,
         &skin_settings,
     )?;
 
@@ -1408,7 +1408,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let material_settings_buffer = util::create_buffer_with_data(
         &app.device,
         &mut encoder,
-        BufferUsage::UNIFORM | BufferUsage::TRANSFER_DST,
+        BufferUsage::UNIFORM | BufferUsage::COPY_DST,
         &material_settings,
     )?;
 
