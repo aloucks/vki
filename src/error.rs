@@ -24,9 +24,7 @@ impl From<ash::InstanceError> for Error {
 
 impl From<ash::LoadingError> for Error {
     fn from(e: ash::LoadingError) -> Error {
-        match e {
-            ash::LoadingError::LibraryLoadError(e) => Error::from(format!("{}", e)),
-        }
+        Error::from(format!("{}", e))
     }
 }
 
