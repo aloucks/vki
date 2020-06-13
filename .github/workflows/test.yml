@@ -93,16 +93,17 @@ jobs:
         with:
           command: test
           args: --lib --examples
-      - name: Download vulkan loader, swiftshader, and validation layer
-        if: ${{ runner.os == 'Windows' && matrix.toolchain == 'stable' }}
-        run: |
-          mkdir vulkan
-          curl -LRJ -o vulkan/vk-test_windows-amd64.zip https://github.com/aloucks/vk-test/releases/download/v0.0.0/vk-test_windows-amd64.zip
-          7z e -y vulkan/vk-test_windows-amd64.zip -ovulkan
-          dir vulkan
-          echo "::add-path::vulkan"
+      # - name: Download vulkan loader, swiftshader, and validation layer
+      #   if: ${{ runner.os == 'Windows' && matrix.toolchain == 'stable' }}
+      #   run: |
+      #     mkdir vulkan
+      #     curl -LRJ -o vulkan/vk-test_windows-amd64.zip https://github.com/aloucks/vk-test/releases/download/v0.0.0/vk-test_windows-amd64.zip
+      #     7z e -y vulkan/vk-test_windows-amd64.zip -ovulkan
+      #     dir vulkan
+      #     echo "::add-path::vulkan"
+      - uses: aloucks/vulkan-ci@v1
       - name: Run integration tests
-        if: ${{ runner.os == 'Windows' && matrix.toolchain == 'stable' }}
+      #  if: ${{ runner.os == 'Windows' && matrix.toolchain == 'stable' }}
         uses: actions-rs/cargo@v1
         with:
           command: test
