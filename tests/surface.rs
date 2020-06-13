@@ -2,12 +2,16 @@
 #[macro_use]
 extern crate objc;
 
+use log;
 use vki::{AdapterOptions, DeviceDescriptor, Instance};
 
+#[macro_use]
 pub mod support;
 
 #[test]
 fn winit_surface() {
+    skip_if_no_display!();
+
     let _ = pretty_env_logger::try_init();
     vki::validate(|| {
         let instance = Instance::new()?;
@@ -31,6 +35,8 @@ fn winit_surface() {
 
 #[test]
 fn glfw_surface() {
+    skip_if_no_display!();
+
     let _ = pretty_env_logger::try_init();
     vki::validate(|| {
         let instance = Instance::new()?;

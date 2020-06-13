@@ -12,6 +12,19 @@ use winit::dpi::LogicalSize;
 use winit::event_loop::EventLoop;
 use winit::window::Window;
 
+#[macro_export]
+macro_rules! skip_if_no_display {
+    () => {
+        #[cfg(target_os = "linux")]
+        {
+            if std::env::var("DISPLAY").is_err() {
+                log::warn!("DISPLAY not set, skipping test");
+                return;
+            }
+        }
+    };
+}
+
 /// Setup validation and logging. This is called automatically
 /// by `init` and `init_with_window`.
 pub fn init_environment() {

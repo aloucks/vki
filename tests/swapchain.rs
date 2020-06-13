@@ -5,6 +5,7 @@ use winit::event::{Event, WindowEvent};
 use winit::event_loop::ControlFlow;
 use winit::platform::desktop::EventLoopExtDesktop;
 
+#[macro_use]
 pub mod support;
 
 // TODO: Concurrent EventLoop creation hangs or segfaults in winit on x11
@@ -15,6 +16,8 @@ lazy_static::lazy_static! {
 
 #[test]
 fn create_swapchain() {
+    skip_if_no_display!();
+
     #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 
@@ -35,6 +38,8 @@ fn create_swapchain() {
 
 #[test]
 fn recreate_swapchain_without_old() {
+    skip_if_no_display!();
+
     #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 
@@ -63,6 +68,8 @@ fn recreate_swapchain_without_old() {
 
 #[test]
 fn acquire_next_image() {
+    skip_if_no_display!();
+
     #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 
@@ -78,6 +85,8 @@ fn acquire_next_image() {
 
 #[test]
 fn present() {
+    skip_if_no_display!();
+
     #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 
@@ -97,6 +106,8 @@ fn present() {
 #[test]
 #[cfg_attr(target_os = "linux", ignore)] // TODO: winit eventloop-2.0 is eating events right now
 fn recreate_after_resize() {
+    skip_if_no_display!();
+
     #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 
@@ -146,6 +157,8 @@ fn recreate_after_resize() {
 
 #[test]
 fn keep_surface_alive() {
+    skip_if_no_display!();
+
     #[cfg(target_os = "linux")]
     let _guard = LOCK.lock().unwrap();
 

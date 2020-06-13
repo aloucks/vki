@@ -3,8 +3,16 @@ use vki::{BufferDescriptor, BufferUsage};
 
 pub mod support;
 
+#[cfg(target_os = "linux")]
+lazy_static::lazy_static! {
+    static ref LOCK: std::sync::Mutex::<()> = std::sync::Mutex::new(());
+}
+
 #[test]
 fn create_buffer_vertex_transfer_dst() {
+    #[cfg(target_os = "linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
@@ -21,6 +29,9 @@ fn create_buffer_vertex_transfer_dst() {
 
 #[test]
 fn create_buffer_uniform_mapped_write() {
+    #[cfg(target_os = "linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
@@ -37,6 +48,9 @@ fn create_buffer_uniform_mapped_write() {
 
 #[test]
 fn create_buffer_write_staging() {
+    #[cfg(target_os = "linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
@@ -53,6 +67,9 @@ fn create_buffer_write_staging() {
 
 #[test]
 fn create_buffer_read_staging() {
+    #[cfg(target_os = "linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
@@ -69,6 +86,9 @@ fn create_buffer_read_staging() {
 
 #[test]
 fn create_buffer_read_storage() {
+    #[cfg(target_os = "linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
@@ -87,6 +107,9 @@ fn create_buffer_read_storage() {
 
 #[test]
 fn create_buffer_mapped() {
+    #[cfg(target_os = "linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
@@ -129,6 +152,9 @@ fn create_buffer_mapped() {
 
 #[test]
 fn create_buffer_mapped_write_data() {
+    #[cfg(target_os = "linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
@@ -176,6 +202,9 @@ fn create_buffer_mapped_write_data() {
 
 #[test]
 fn set_sub_data() {
+    #[cfg(target_os = "linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
@@ -217,6 +246,9 @@ fn set_sub_data() {
 
 #[test]
 fn set_sub_data_offset() {
+    #[cfg(target_os = "linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
@@ -258,6 +290,9 @@ fn set_sub_data_offset() {
 
 #[test]
 fn mapping_twice_should_fail() {
+    #[cfg(target_os = "linux")]
+    let _guard = LOCK.lock().unwrap();
+
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
 
