@@ -103,7 +103,7 @@ jobs:
       #     echo "::add-path::vulkan"
       - uses: aloucks/vulkan-ci@v1
       - name: Run integration tests
-      #  if: ${{ runner.os == 'Windows' && matrix.toolchain == 'stable' }}
+        if: ${{ (runner.os == 'Windows' || runner.os == 'Linux') && matrix.toolchain == 'stable' }}
         uses: actions-rs/cargo@v1
         with:
           command: test
