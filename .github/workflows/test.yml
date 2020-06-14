@@ -32,9 +32,9 @@ jobs:
       RUST_BACKTRACE: 1
       CARGO_INCREMENTAL: 0
       #VK_LOADER_DEBUG: all
-      VK_LAYER_PATH: vulkan
-      VK_ICD_FILENAMES: vulkan\vk_swiftshader_icd.json
-      SWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG: 1
+      zVK_LAYER_PATH: vulkan
+      zVK_ICD_FILENAMES: vulkan\vk_swiftshader_icd.json
+      zSWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG: 1
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
@@ -103,7 +103,7 @@ jobs:
       #     echo "::add-path::vulkan"
       - uses: aloucks/vulkan-ci@v1
       - name: Run integration tests
-        if: ${{ (runner.os == 'Windows' || runner.os == 'Linux') && matrix.toolchain == 'stable' }}
+      #  if: ${{ (runner.os == 'Windows' || runner.os == 'Linux') && matrix.toolchain == 'stable' }}
         uses: actions-rs/cargo@v1
         with:
           command: test
