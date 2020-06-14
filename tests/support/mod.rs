@@ -23,9 +23,9 @@ macro_rules! skip_if_no_display {
             }
         }
 
-        #[cfg(target_os = "macos")]
-        {
-            log::warn!("skipping glfw surface test on macos");
+        // TODO
+        if cfg!(target_os = "macos") {
+            log::warn!("skipping surface tests on macos");
             return;
         }
     };

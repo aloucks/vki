@@ -31,10 +31,6 @@ jobs:
     env:
       RUST_BACKTRACE: 1
       CARGO_INCREMENTAL: 0
-      #VK_LOADER_DEBUG: all
-      zVK_LAYER_PATH: vulkan
-      zVK_ICD_FILENAMES: vulkan\vk_swiftshader_icd.json
-      zSWIFTSHADER_DISABLE_DEBUGGER_WAIT_DIALOG: 1
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
@@ -93,17 +89,8 @@ jobs:
         with:
           command: test
           args: --lib --examples
-      # - name: Download vulkan loader, swiftshader, and validation layer
-      #   if: ${{ runner.os == 'Windows' && matrix.toolchain == 'stable' }}
-      #   run: |
-      #     mkdir vulkan
-      #     curl -LRJ -o vulkan/vk-test_windows-amd64.zip https://github.com/aloucks/vk-test/releases/download/v0.0.0/vk-test_windows-amd64.zip
-      #     7z e -y vulkan/vk-test_windows-amd64.zip -ovulkan
-      #     dir vulkan
-      #     echo "::add-path::vulkan"
       - uses: aloucks/vulkan-ci@v1
       - name: Run integration tests
-      #  if: ${{ (runner.os == 'Windows' || runner.os == 'Linux') && matrix.toolchain == 'stable' }}
         uses: actions-rs/cargo@v1
         with:
           command: test
