@@ -37,6 +37,12 @@ fn winit_surface() {
 fn glfw_surface() {
     skip_if_no_display!();
 
+    #[cfg(target_os = "macos")]
+    {
+        log::warn!("skipping glfw surface test on macos");
+        return;
+    }
+
     let _ = pretty_env_logger::try_init();
     vki::validate(|| {
         let instance = Instance::new()?;

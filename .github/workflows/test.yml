@@ -109,4 +109,4 @@ jobs:
           command: test
           args: --tests
         env:
-          VK_LOADER_DEBUG: all
+          zVK_LOADER_DEBUG: all
