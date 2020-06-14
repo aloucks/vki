@@ -108,3 +108,5 @@ jobs:
         with:
           command: test
           args: --tests
+        env:
+          VK_LOADER_DEBUG: all
