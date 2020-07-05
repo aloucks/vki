@@ -19,7 +19,7 @@ fn winit_surface() {
 
         let event_loop = support::new_event_loop();
         let window = winit::window::WindowBuilder::new()
-            .with_inner_size(winit::dpi::LogicalSize {
+            .with_inner_size(winit::dpi::LogicalSize::<f32> {
                 width: 1024 as _,
                 height: 768 as _,
             })

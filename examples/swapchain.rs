@@ -21,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let window = winit::window::WindowBuilder::new()
         .with_title("swapchain.rs")
-        .with_inner_size(LogicalSize::from((800, 600)))
+        .with_inner_size(LogicalSize::new(800, 600))
         .with_visible(false)
         .build(&event_loop)?;
 
@@ -76,10 +76,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     // in a validation error.
                     swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
                 }
-                Event::WindowEvent {
-                    event: WindowEvent::RedrawRequested,
-                    ..
-                } => {
+                Event::RedrawRequested(_) => {
                     // println!("new frame; time: {:?}", Instant::now());
 
                     // End the frame early if the swapchain is out of date and hasn't been re-created yet

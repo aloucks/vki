@@ -15,7 +15,7 @@ use vki::{
 };
 
 use std::time::{Duration, Instant};
-use winit::dpi::{LogicalPosition, LogicalSize};
+use winit::dpi::{LogicalPosition, LogicalSize, PhysicalPosition};
 use winit::event::{
     DeviceEvent, ElementState, Event, KeyboardInput, MouseButton, MouseScrollDelta, VirtualKeyCode, WindowEvent,
 };
@@ -110,8 +110,8 @@ impl<T: 'static> Into<Vec<Box<dyn EventHandler<T>>>> for EventHandlers<T> {
 
 enum WindowMode {
     Fullscreen {
-        last_position: LogicalPosition,
-        last_size: LogicalSize,
+        last_position: LogicalPosition<f32>,
+        last_size: LogicalSize<f32>,
     },
     Windowed,
 }
@@ -150,7 +150,7 @@ impl<T: 'static> App<T> {
     {
         let event_loop = EventLoop::new();
         let window = WindowBuilder::new()
-            .with_inner_size(LogicalSize::from((window_width, window_height)))
+            .with_inner_size(LogicalSize::new(window_width, window_height))
             .with_title(title)
             .with_visible(false)
             .build(&event_loop)
@@ -243,33 +243,34 @@ impl<T: 'static> App<T> {
                 let last_position = self.window.outer_position().unwrap();
                 let last_size = self.window.inner_size();
                 let monitor = self.window.current_monitor();
+                let scale_factor = monitor.scale_factor();
 
                 // Use windowed mode on windows and support fullscreen
                 // across multiple monitors. This assumes the monitors
                 // are all the same size.
                 if cfg!(target_os = "windows") {
-                    let dpi_factor = monitor.hidpi_factor();
                     let x = monitor.position().x as _;
 
                     // If the window is wider than the current monitor, stretch it across all monitors
                     let mut inner_physical_size = monitor.size();
-                    if last_size.to_physical(dpi_factor).width > inner_physical_size.width {
+                    if last_size.width > inner_physical_size.width {
                         let monitor_count = self.window.available_monitors().count();
-                        inner_physical_size.width *= monitor_count as f64;
+                        inner_physical_size.width *= monitor_count as u32;
                     }
 
                     self.window.set_visible(false);
                     self.window.set_decorations(false);
-                    self.window.set_outer_position(LogicalPosition::from((x, 0)));
-                    self.window.set_inner_size(inner_physical_size.to_logical(dpi_factor));
+                    self.window.set_outer_position(LogicalPosition::new(x, 0));
+                    self.window
+                        .set_inner_size(inner_physical_size.to_logical::<f64>(scale_factor));
                     self.window.set_visible(true);
                 } else {
                     self.window.set_fullscreen(Some(Fullscreen::Borderless(monitor)));
                 }
 
                 self.window_mode = WindowMode::Fullscreen {
-                    last_position,
-                    last_size,
+                    last_position: last_position.to_logical(scale_factor),
+                    last_size: last_size.to_logical(scale_factor),
                 };
             }
             WindowMode::Fullscreen {
@@ -337,15 +338,12 @@ impl<T: 'static> App<T> {
             let min_duration = Duration::from_millis(1000 / self.max_fps);
 
             match event {
-                Event::EventsCleared => {
+                Event::MainEventsCleared => {
                     if Instant::now() - min_duration >= self.last_frame_time {
                         self.window.request_redraw();
                     }
                 }
-                Event::WindowEvent {
-                    event: WindowEvent::RedrawRequested,
-                    ..
-                } => {
+                Event::RedrawRequested(_) => {
                     self.last_frame_time = Instant::now();
 
                     *control_flow = ControlFlow::WaitUntil(self.last_frame_time + min_duration);
@@ -688,10 +686,7 @@ impl<T> EventHandler<T> for WindowResizedHandler {
                 self.rebuild_swapchain_and_views = true;
                 std::thread::yield_now();
             }
-            Event::WindowEvent {
-                event: WindowEvent::RedrawRequested,
-                ..
-            } => {
+            Event::RedrawRequested(_) => {
                 if self.new_window_height <= 0 || self.new_window_width <= 0 {
                     consume = true;
                 }
@@ -808,14 +803,16 @@ impl<T> EventHandler<T> for CameraViewportHandler {
 #[derive(Debug, Clone)]
 pub struct ArcBallCameraControlHandler {
     mouse_state: MouseState,
-    show_cursor_position: LogicalPosition,
+    show_cursor_position: PhysicalPosition<f64>,
+    modifiers: winit::event::ModifiersState,
 }
 
 impl Default for ArcBallCameraControlHandler {
     fn default() -> ArcBallCameraControlHandler {
         ArcBallCameraControlHandler {
             mouse_state: Default::default(),
-            show_cursor_position: LogicalPosition { x: 0.0, y: 0.0 },
+            show_cursor_position: PhysicalPosition { x: 0.0, y: 0.0 },
+            modifiers: Default::default(),
         }
     }
 }
@@ -847,13 +844,18 @@ impl<T: 'static> EventHandler<T> for ArcBallCameraControlHandler {
                 _ => {}
             },
             Event::WindowEvent {
+                event: WindowEvent::ModifiersChanged(modifiers),
+                ..
+            } => {
+                self.modifiers = modifiers.clone();
+            }
+            Event::WindowEvent {
                 event:
                     WindowEvent::KeyboardInput {
                         input:
                             KeyboardInput {
                                 state: ElementState::Pressed,
                                 virtual_keycode: Some(virtual_keycode),
-                                modifiers,
                                 ..
                             },
                         ..
@@ -886,13 +888,13 @@ impl<T: 'static> EventHandler<T> for ArcBallCameraControlHandler {
                     }
                     VirtualKeyCode::PageUp => {
                         app.camera.eye += Vector3::unit_y();
-                        if !modifiers.shift {
+                        if !self.modifiers.shift() {
                             app.camera.center += Vector3::unit_y();
                         }
                     }
                     VirtualKeyCode::PageDown => {
                         app.camera.eye -= Vector3::unit_y();
-                        if !modifiers.shift {
+                        if !self.modifiers.shift() {
                             app.camera.center -= Vector3::unit_y();
                         }
                     }

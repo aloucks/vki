@@ -30,7 +30,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let window = winit::window::WindowBuilder::new()
         .with_title("triangle.rs")
-        .with_inner_size(LogicalSize::from((800, 600)))
+        .with_inner_size(LogicalSize::new(800, 600))
         .with_visible(false)
         .build(&event_loop)?;
 
@@ -228,7 +228,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     event_loop.run_return(|event, _target, control_flow| {
         let mut handle_event = || {
             match event {
-                Event::EventsCleared => {
+                Event::MainEventsCleared => {
                     if Instant::now() - MIN_DURATION >= last_frame_time {
                         window.request_redraw();
                     }
@@ -249,10 +249,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     //       https://www.khronos.org/registry/vulkan/specs/1.1-extensions/html/vkspec.html#VUID-VkSwapchainCreateInfoKHR-imageExtent-01689
                     swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
                 }
-                Event::WindowEvent {
-                    event: WindowEvent::RedrawRequested,
-                    ..
-                } => {
+                Event::RedrawRequested(_) => {
                     last_frame_time = Instant::now();
                     *control_flow = ControlFlow::WaitUntil(last_frame_time + MIN_DURATION);
 

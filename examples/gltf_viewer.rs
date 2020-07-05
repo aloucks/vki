@@ -846,13 +846,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let window = &app.window;
 
     let monitor = window.current_monitor();
-    let dpi_factor = window.hidpi_factor();
+    let dpi_factor = window.scale_factor();
     let monitor_physical_size = monitor.size();
-    let monitor_logical_size = monitor_physical_size.to_logical(dpi_factor);
-    let window_size = window.outer_size();
+    let monitor_logical_size = monitor_physical_size.to_logical::<f32>(dpi_factor);
+    let window_size = window.outer_size().to_logical::<f32>(dpi_factor);
     let pos_x = (monitor_logical_size.width / 2.0) - (window_size.width / 2.0);
     let pos_y = (monitor_logical_size.height / 2.0) - (window_size.height / 2.0);
-    window.set_outer_position(winit::dpi::LogicalPosition::from((pos_x, pos_y)));
+    window.set_outer_position(winit::dpi::LogicalPosition::new(pos_x, pos_y));
 
     println!("Importing file: {}", path);
     let import = match Import::load(&path) {
@@ -927,6 +927,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             // 24-bit formats are not widely supported (which is probably why they aren't supported by gpuweb)
             // http://vulkan.gpuinfo.org/listformats.php
             Format::R8G8B8 => {
+                println!("converting image to RGBA8 from: {:?}", image.format);
                 let rgba: RgbaImage = RgbImage::from_raw(width, height, image.pixels.clone())
                     .unwrap()
                     .convert();
@@ -934,6 +935,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 (TextureFormat::R8G8B8A8Unorm, &maybe_pixels)
             }
             Format::B8G8R8 => {
+                println!("converting image to RGBA8 from: {:?}", image.format);
                 let bgra: BgraImage = BgrImage::from_raw(width, height, image.pixels.clone())
                     .unwrap()
                     .convert();

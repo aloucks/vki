@@ -121,12 +121,12 @@ fn recreate_after_resize() {
 
         queue.present(frame)?;
 
-        let new_size = LogicalSize {
+        let new_size = LogicalSize::<f32> {
             width: 800 as _,
             height: 600 as _,
         };
 
-        let old_size = window.inner_size();
+        let old_size = window.inner_size().to_logical(window.scale_factor());
         assert_ne!(new_size, old_size);
 
         let mut resized = false;
@@ -142,7 +142,7 @@ fn recreate_after_resize() {
                     .expect("Failed to re-create swapchain");
                 resized = true;
             }
-            Event::EventsCleared => *control_flow = ControlFlow::Exit,
+            Event::MainEventsCleared => *control_flow = ControlFlow::Exit,
             _ => {}
         });
         assert_eq!(true, resized);

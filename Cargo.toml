@@ -33,7 +33,8 @@ winit-eventloop-2 = [] # configures the winit_surface_descriptor macro
 [dev-dependencies]
 pretty_env_logger = "0.4.0"
 #winit = { git = "https://github.com/rust-windowing/winit.git", rev = "0636483" } # branch = "eventloop-2.0"
-winit = "=0.20.0-alpha4"
+# winit = "=0.20.0-alpha4"
+winit = "0.22"
 # winit = { path = "../winit" }
 glfw = "0.37.0"
 num-traits = "0.2.11"

@@ -12,7 +12,7 @@ use vki::{
     VertexFormat, VertexStateDescriptor,
 };
 
-use winit::dpi::LogicalSize;
+use winit::dpi::{LogicalSize, PhysicalSize};
 use winit::event::{Event, KeyboardInput, VirtualKeyCode, WindowEvent};
 use winit::event_loop::{ControlFlow, EventLoop};
 use winit::platform::desktop::EventLoopExtDesktop;
@@ -33,7 +33,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let window = winit::window::WindowBuilder::new()
         .with_title("triangle_multisample.rs")
-        .with_inner_size(LogicalSize::from((window_width, window_height)))
+        .with_inner_size(LogicalSize::new(window_width, window_height))
         .with_visible(false)
         .build(&event_loop)?;
 
@@ -247,7 +247,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     event_loop.run_return(|event, _target, control_flow| {
         let mut handle_event = || {
             match event {
-                Event::EventsCleared => {
+                Event::MainEventsCleared => {
                     if Instant::now() - MIN_DURATION >= last_frame_time {
                         window.request_redraw();
                     }
@@ -271,7 +271,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     *control_flow = ControlFlow::Exit;
                 }
                 Event::WindowEvent {
-                    event: WindowEvent::Resized(LogicalSize { width, height }),
+                    event: WindowEvent::Resized(PhysicalSize { width, height }),
                     ..
                 } => {
                     let (width, height) = (width as u32, height as u32);
@@ -285,10 +285,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         swapchain = device.create_swapchain(swapchain_desc, Some(&swapchain))?;
                     }
                 }
-                Event::WindowEvent {
-                    event: WindowEvent::RedrawRequested,
-                    ..
-                } => {
+                Event::RedrawRequested(_) => {
                     last_frame_time = Instant::now();
                     *control_flow = ControlFlow::WaitUntil(last_frame_time + MIN_DURATION);
 
