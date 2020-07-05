@@ -9,7 +9,7 @@ use vki::{
     BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsage, BufferViewDescriptor,
     BufferViewFormat, Color, ColorStateDescriptor, ColorWrite, CompareFunction, ComputePipelineDescriptor, CullMode,
     DepthStencilStateDescriptor, Extent3d, FilterMode, FrontFace, IndexFormat, InputStepMode, LoadOp,
-    PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, RasterizationStateDescriptor,
+    PipelineLayoutDescriptor, PipelineStageDescriptor, PolygonMode, PrimitiveTopology, RasterizationStateDescriptor,
     RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor, SamplerDescriptor,
     ShaderModuleDescriptor, ShaderStage, StencilOperation, StencilStateFaceDescriptor, StoreOp, Texture,
     TextureDescriptor, TextureDimension, TextureFormat, TextureUsage, TextureView, VertexAttributeDescriptor,
@@ -213,6 +213,7 @@ fn create_render_pipeline() {
             rasterization_state: RasterizationStateDescriptor {
                 front_face: FrontFace::Ccw,
                 cull_mode: CullMode::Back,
+                polygon_mode: PolygonMode::Fill,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,
                 depth_bias_clamp: 0.0,
@@ -335,6 +336,7 @@ fn create_multi_sample_render_pipeline() {
             rasterization_state: RasterizationStateDescriptor {
                 front_face: FrontFace::Ccw,
                 cull_mode: CullMode::Back,
+                polygon_mode: PolygonMode::Fill,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,
                 depth_bias_clamp: 0.0,

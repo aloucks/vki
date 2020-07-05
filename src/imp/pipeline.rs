@@ -12,9 +12,9 @@ use crate::imp::{ComputePipelineInner, DeviceInner, PipelineLayoutInner, RenderP
 use crate::{
     BlendFactor, BlendOperation, ColorStateDescriptor, ColorWrite, CompareFunction, ComputePipeline,
     ComputePipelineDescriptor, CullMode, DepthStencilStateDescriptor, Error, FrontFace, InputStepMode, LoadOp,
-    PipelineLayout, PipelineLayoutDescriptor, PrimitiveTopology, RasterizationStateDescriptor, RenderPipeline,
-    RenderPipelineDescriptor, StencilOperation, StencilStateFaceDescriptor, TextureFormat, VertexAttributeDescriptor,
-    VertexBufferLayoutDescriptor, VertexFormat,
+    PipelineLayout, PipelineLayoutDescriptor, PolygonMode, PrimitiveTopology, RasterizationStateDescriptor,
+    RenderPipeline, RenderPipelineDescriptor, StencilOperation, StencilStateFaceDescriptor, TextureFormat,
+    VertexAttributeDescriptor, VertexBufferLayoutDescriptor, VertexFormat,
 };
 
 pub const MAX_PUSH_CONSTANTS_SIZE: usize = 128;
@@ -288,7 +288,7 @@ pub fn rasterization_state_create_info(
         flags: vk::PipelineRasterizationStateCreateFlags::empty(),
         depth_clamp_enable: vk::FALSE,
         rasterizer_discard_enable: vk::FALSE,
-        polygon_mode: vk::PolygonMode::FILL,
+        polygon_mode: polygon_mode(descriptor.polygon_mode),
         cull_mode: cull_mode(descriptor.cull_mode),
         front_face: front_face(descriptor.front_face),
         depth_bias_enable: (descriptor.depth_bias != 0) as vk::Bool32,
@@ -296,6 +296,14 @@ pub fn rasterization_state_create_info(
         depth_bias_slope_factor: descriptor.depth_bias_slope_scale,
         depth_bias_constant_factor: descriptor.depth_bias as f32,
         line_width: 1.0,
+    }
+}
+
+pub fn polygon_mode(mode: PolygonMode) -> vk::PolygonMode {
+    match mode {
+        PolygonMode::Fill => vk::PolygonMode::FILL,
+        PolygonMode::Point => vk::PolygonMode::POINT,
+        PolygonMode::Line => vk::PolygonMode::LINE,
     }
 }
 

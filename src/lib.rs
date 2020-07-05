@@ -530,6 +530,14 @@ pub enum CullMode {
 
 #[repr(u32)]
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub enum PolygonMode {
+    Fill = 0,
+    Line = 1,
+    Point = 2,
+}
+
+#[repr(u32)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub enum BlendFactor {
     Zero,
     One,
@@ -692,6 +700,7 @@ pub enum PrimitiveTopology {
 pub struct RasterizationStateDescriptor {
     pub front_face: FrontFace,
     pub cull_mode: CullMode,
+    pub polygon_mode: PolygonMode,
     pub depth_bias: i32,
     pub depth_bias_slope_scale: f32,
     pub depth_bias_clamp: f32,
@@ -702,6 +711,7 @@ impl PartialEq for RasterizationStateDescriptor {
     fn eq(&self, other: &RasterizationStateDescriptor) -> bool {
         self.front_face.eq(&other.front_face) &&
         self.cull_mode.eq(&other.cull_mode) &&
+        self.polygon_mode.eq(&other.polygon_mode) &&
         self.depth_bias.eq(&other.depth_bias) &&
         self.depth_bias_slope_scale.eq(&other.depth_bias_slope_scale) &&
         self.depth_bias_clamp.eq(&other.depth_bias_clamp)

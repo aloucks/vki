@@ -5,10 +5,11 @@ use vki::{
     AdapterOptions, BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry,
     BindingResource, BindingType, BlendDescriptor, BlendFactor, BlendOperation, BufferDescriptor, BufferUsage, Color,
     ColorStateDescriptor, ColorWrite, CullMode, DeviceDescriptor, FrontFace, IndexFormat, InputStepMode, Instance,
-    LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PowerPreference, PresentMode, PrimitiveTopology,
-    RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor, RenderPipelineDescriptor,
-    ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainDescriptor, SwapchainError, TextureFormat, TextureUsage,
-    VertexAttributeDescriptor, VertexBufferLayoutDescriptor, VertexFormat, VertexStateDescriptor,
+    LoadOp, PipelineLayoutDescriptor, PipelineStageDescriptor, PolygonMode, PowerPreference, PresentMode,
+    PrimitiveTopology, RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDescriptor,
+    RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderStage, StoreOp, SwapchainDescriptor, SwapchainError,
+    TextureFormat, TextureUsage, VertexAttributeDescriptor, VertexBufferLayoutDescriptor, VertexFormat,
+    VertexStateDescriptor,
 };
 
 use winit::dpi::LogicalSize;
@@ -207,6 +208,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         depth_stencil_state: None,
         rasterization_state: RasterizationStateDescriptor {
             front_face: FrontFace::Ccw,
+            polygon_mode: PolygonMode::Fill,
             cull_mode: CullMode::None,
             depth_bias: 0,
             depth_bias_slope_scale: 0.0,

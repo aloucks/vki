@@ -178,6 +178,9 @@ impl DeviceInner {
 
         unsafe {
             assert!(adapter.queue_family_properties[queue_family_index as usize].queue_count > 0);
+            let features = vk::PhysicalDeviceFeatures::builder()
+                .fill_mode_non_solid(adapter.physical_device_features.fill_mode_non_solid > 0)
+                .build();
             let queue_priorities = [1.0];
             let queue_create_infos = [vk::DeviceQueueCreateInfo::builder()
                 .queue_family_index(queue_family_index)
@@ -186,6 +189,7 @@ impl DeviceInner {
 
             let create_info = vk::DeviceCreateInfo::builder()
                 .queue_create_infos(&queue_create_infos)
+                .enabled_features(&features)
                 .enabled_extension_names(&extension_names);
 
             let raw = adapter

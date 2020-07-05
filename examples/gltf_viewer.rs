@@ -21,7 +21,7 @@ use vki::{
     AddressMode, BindGroupDescriptor, BindGroupEntry, BindGroupLayoutDescriptor, BindGroupLayoutEntry, BindingResource,
     BindingType, BlendDescriptor, Buffer, BufferUsage, Color, ColorStateDescriptor, ColorWrite, CompareFunction,
     CullMode, DepthStencilStateDescriptor, FilterMode, FrontFace, IndexFormat, InputStepMode, LoadOp,
-    PipelineLayoutDescriptor, PipelineStageDescriptor, PrimitiveTopology, PushConstantRange,
+    PipelineLayoutDescriptor, PipelineStageDescriptor, PolygonMode, PrimitiveTopology, PushConstantRange,
     RasterizationStateDescriptor, RenderPassColorAttachmentDescriptor, RenderPassDepthStencilAttachmentDescriptor,
     RenderPassDescriptor, RenderPipelineDescriptor, Sampler, SamplerDescriptor, ShaderModuleDescriptor, ShaderStage,
     StencilStateFaceDescriptor, StoreOp, SwapchainError, TextureFormat, TextureView, VertexAttributeDescriptor,
@@ -1730,6 +1730,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             rasterization_state: RasterizationStateDescriptor {
                 front_face: FrontFace::Ccw,
                 cull_mode: material_pipeline_key.cull_mode,
+                polygon_mode: PolygonMode::Fill,
                 depth_bias: 0,
                 depth_bias_slope_scale: 0.0,
                 depth_bias_clamp: 0.0,
