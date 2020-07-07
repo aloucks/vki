@@ -326,7 +326,7 @@ void main() {
         ? step(u_AlphaCutoff, baseColor.a)      // MASK
         : mix(1.0, baseColor.a, u_AlphaBlend);  // BLEND or OPAQUE
 
-    if (alpha < 0.1) {
+    if (alpha < 0.001) {
         discard;
     }
 

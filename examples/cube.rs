@@ -197,6 +197,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             ],
         },
         sample_count: app.get_sample_count(),
+        alpha_to_coverage_enabled: false,
     })?;
 
     app.run(move |app| {

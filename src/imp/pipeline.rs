@@ -465,6 +465,7 @@ impl RenderPipelineInner {
 
         let multisample_state_create_info = vk::PipelineMultisampleStateCreateInfo::builder()
             .rasterization_samples(render_pass::sample_count_flags(descriptor.sample_count)?)
+            .alpha_to_coverage_enable(descriptor.alpha_to_coverage_enabled)
             .build();
 
         let depth_stencil_state_create_info = depth_stencil_state_create_info(

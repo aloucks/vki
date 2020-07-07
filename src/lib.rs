@@ -815,6 +815,7 @@ pub struct RenderPipelineDescriptor {
     pub depth_stencil_state: Option<DepthStencilStateDescriptor>,
     pub vertex_state: VertexStateDescriptor,
     pub sample_count: u32,
+    pub alpha_to_coverage_enabled: bool,
 }
 
 #[derive(Clone, Debug)]

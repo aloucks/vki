@@ -230,6 +230,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             depth_bias_clamp: 0.0,
         },
         sample_count: output_texture_descriptor.sample_count,
+        alpha_to_coverage_enabled: false,
     };
 
     let pipeline = device.create_render_pipeline(render_pipeline_descriptor)?;

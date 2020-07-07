@@ -1838,6 +1838,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ],
             },
             sample_count: app.get_sample_count(),
+            alpha_to_coverage_enabled: true,
         };
 
         let pipeline = app.device.create_render_pipeline(render_pipeline_descriptor)?;

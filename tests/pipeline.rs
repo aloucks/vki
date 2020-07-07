@@ -219,6 +219,7 @@ fn create_render_pipeline() {
                 depth_bias_clamp: 0.0,
             },
             sample_count: 1,
+            alpha_to_coverage_enabled: false,
         };
 
         let _render_pipeline = device.create_render_pipeline(render_pipeline_descriptor)?;
@@ -342,6 +343,7 @@ fn create_multi_sample_render_pipeline() {
                 depth_bias_clamp: 0.0,
             },
             sample_count,
+            alpha_to_coverage_enabled: false,
         };
 
         let pipeline = device.create_render_pipeline(render_pipeline_descriptor)?;
