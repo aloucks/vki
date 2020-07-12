@@ -164,6 +164,8 @@ pub enum TextureFormat {
     // TODO: Update 16-bit formats
     R8G8Unorm,
     R8G8Uint,
+    R16Unorm,
+    R16Uint,
     //
     //    Rgb8Unorm,
 

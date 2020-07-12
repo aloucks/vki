@@ -106,6 +106,8 @@ pub fn image_format(format: TextureFormat) -> vk::Format {
 
         TextureFormat::R8G8Unorm => vk::Format::R8G8_UNORM,
         TextureFormat::R8G8Uint => vk::Format::R8G8_UINT,
+        TextureFormat::R16Unorm => vk::Format::R16_UNORM,
+        TextureFormat::R16Uint => vk::Format::R16_UINT,
 
         TextureFormat::R8G8B8A8Unorm => vk::Format::R8G8B8A8_UNORM,
         TextureFormat::R8G8B8A8UnormSRGB => vk::Format::R8G8B8A8_SRGB,
@@ -126,6 +128,8 @@ pub fn texture_format(format: vk::Format) -> TextureFormat {
         vk::Format::B8G8R8A8_UNORM => TextureFormat::B8G8R8A8Unorm,
         vk::Format::R8G8B8A8_SRGB => TextureFormat::R8G8B8A8UnormSRGB,
         vk::Format::R8G8B8A8_UNORM => TextureFormat::R8G8B8A8Unorm,
+        vk::Format::R16_UNORM => TextureFormat::R16Unorm,
+        vk::Format::R16_UINT => TextureFormat::R16Uint,
         _ => unimplemented!("todo: missing format conversion: {:?}", format), // TODO
     }
 }
@@ -140,7 +144,9 @@ pub fn pixel_size(format: TextureFormat) -> u32 {
         TextureFormat::R8Sint
         => 1,
         TextureFormat::R8G8Unorm |
-        TextureFormat::R8G8Uint
+        TextureFormat::R8G8Uint |
+        TextureFormat::R16Unorm |
+        TextureFormat::R16Uint
         => 2,
         TextureFormat::R8G8B8A8Unorm |
         TextureFormat::R8G8B8A8UnormSRGB |
