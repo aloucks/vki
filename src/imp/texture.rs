@@ -114,6 +114,7 @@ pub fn image_format(format: TextureFormat) -> vk::Format {
         TextureFormat::R8G8B8A8Uint => vk::Format::R8G8B8A8_UINT,
         TextureFormat::B8G8R8A8Unorm => vk::Format::B8G8R8A8_UNORM,
         TextureFormat::B8G8R8A8UnormSRGB => vk::Format::B8G8R8A8_SRGB,
+        TextureFormat::R16G16Unorm => vk::Format::R16G16_UNORM,
 
         TextureFormat::RGBA32Float => vk::Format::R32G32B32A32_SFLOAT,
 
@@ -152,7 +153,8 @@ pub fn pixel_size(format: TextureFormat) -> u32 {
         TextureFormat::R8G8B8A8UnormSRGB |
         TextureFormat::R8G8B8A8Uint |
         TextureFormat::B8G8R8A8Unorm |
-        TextureFormat::B8G8R8A8UnormSRGB
+        TextureFormat::B8G8R8A8UnormSRGB |
+        TextureFormat::R16G16Unorm
         => 4,
         TextureFormat::D32Float
         => 8,

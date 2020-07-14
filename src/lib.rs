@@ -175,6 +175,7 @@ pub enum TextureFormat {
     R8G8B8A8Uint,
     B8G8R8A8Unorm,
     B8G8R8A8UnormSRGB,
+    R16G16Unorm,
 
     // TODO: Update 128-bit formats
     RGBA32Float,
