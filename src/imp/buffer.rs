@@ -479,7 +479,9 @@ impl Drop for MappedBuffer {
 impl<'a, T: Copy> Deref for WriteData<'a, T> {
     type Target = [T];
     fn deref(&self) -> &[T] {
-        log::error!("buffer is mapped for write-only operations");
+        // TODO: This message is a overly conservative. The `WriteData` may have been
+        //       deref'd to use `len()` for example.
+        // log::error!("buffer is mapped for write-only operations");
         unsafe {
             let data = self.mapped.data.offset(self.offset_bytes);
             std::slice::from_raw_parts(data as *const T, self.element_count)
