@@ -12,7 +12,7 @@ use std::time::{Duration, Instant};
 
 impl Fence {
     pub fn reset(&self) -> Result<(), Error> {
-        *self.inner.serial.lock() = get_last_submitted_serial(&self.inner.device);
+        *self.inner.serial.lock() = get_next_pending_serial(&self.inner.device);
         Ok(())
     }
 
@@ -42,19 +42,24 @@ impl Fence {
 
 impl FenceInner {
     pub fn new(device: Arc<DeviceInner>) -> Result<FenceInner, Error> {
-        let serial = { Mutex::new(get_last_submitted_serial(&device)) };
+        let serial = { Mutex::new(get_next_pending_serial(&device)) };
         Ok(FenceInner { serial, device })
     }
 }
 
-fn get_last_submitted_serial(device: &DeviceInner) -> Serial {
-    let state = device.state.lock();
-    state.get_last_submitted_serial()
-}
+// fn get_last_submitted_serial(device: &DeviceInner) -> Serial {
+//     let state = device.state.lock();
+//     state.get_last_submitted_serial()
+// }
 
 fn get_last_completed_serial(device: &DeviceInner) -> Serial {
     let state = device.state.lock();
     state.get_last_completed_serial()
+}
+
+fn get_next_pending_serial(device: &DeviceInner) -> Serial {
+    let state = device.state.lock();
+    state.get_next_pending_serial()
 }
 
 impl Into<Fence> for FenceInner {

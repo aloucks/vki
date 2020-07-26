@@ -457,17 +457,19 @@ impl DeviceState {
     pub fn submit_pending_commands(&mut self, device: &DeviceInner, queue: &QueueInfo) -> Result<(), Error> {
         let pending_commands = match self.pending_commands.take() {
             None => {
-                // If there are no pending commands and everything in flight has resolved,
-                // artificially increment the serials. This allows for pending deletes to
-                // resolve even if no new commands have been submitted.
-                if self.last_submitted_serial == self.last_completed_serial {
-                    self.last_submitted_serial.increment();
-                    self.last_completed_serial.increment();
-                    log::trace!(
-                        "all commands complete: incremented serials: {:?}",
-                        self.last_submitted_serial
-                    );
-                }
+                // NOTE: This no longer seems to be necessary (Device::drop had some changes),
+                //       and it breaks the Fence implementation.
+                // // If there are no pending commands and everything in flight has resolved,
+                // // artificially increment the serials. This allows for pending deletes to
+                // // resolve even if no new commands have been submitted.
+                // if self.last_submitted_serial == self.last_completed_serial {
+                //     self.last_submitted_serial.increment();
+                //     self.last_completed_serial.increment();
+                //     log::trace!(
+                //         "all commands complete: incremented serials: {:?}",
+                //         self.last_submitted_serial
+                //     );
+                // }
                 return Ok(());
             }
             Some(pending_commands) => pending_commands,
