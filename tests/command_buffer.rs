@@ -89,9 +89,11 @@ fn copy_buffer_with_compute_shader() {
         compute_pass.end_pass();
 
         let queue = device.get_queue();
-        let fence = queue.create_fence()?;
 
         queue.submit(&[encoder.finish()?])?;
+
+        let fence = queue.create_fence()?;
+
         fence.wait(Duration::from_millis(1_000_000_000))?;
 
         let read_buffer_mapped = read_buffer.map_read()?;
@@ -165,9 +167,11 @@ fn push_constants() {
         compute_pass.end_pass();
 
         let queue = device.get_queue();
-        let fence = queue.create_fence()?;
 
         queue.submit(&[encoder.finish()?])?;
+
+        let fence = queue.create_fence()?;
+
         fence.wait(Duration::from_millis(1_000_000_000))?;
 
         let read_buffer_mapped = read_buffer.map_read()?;
@@ -301,9 +305,11 @@ fn dispatch_indirect() {
         compute_pass.end_pass();
 
         let queue = device.get_queue();
-        let fence = queue.create_fence()?;
 
         queue.submit(&[encoder.finish()?])?;
+
+        let fence = queue.create_fence()?;
+
         fence.wait(Duration::from_millis(1_000_000_000))?;
 
         let read_buffer_mapped = read_buffer.map_read()?;

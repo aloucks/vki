@@ -19,31 +19,6 @@ fn is_not_signaled() {
 }
 
 #[test]
-fn is_not_signaled_after_reset() {
-    vki::validate(|| {
-        let (instance, _adapter, device) = support::init()?;
-
-        let queue = device.get_queue();
-        let fence = queue.create_fence()?;
-        assert_eq!(
-            false,
-            fence.is_signaled(),
-            "fence should not be siganled after creation"
-        );
-
-        let encoder = device.create_command_encoder()?;
-        queue.submit(&[encoder.finish()?])?;
-        fence.wait(Duration::from_millis(1_000_000_000))?;
-        assert_eq!(true, fence.is_signaled(), "fence should be signaled after wait");
-
-        fence.reset()?;
-        assert_eq!(false, fence.is_signaled(), "fence should not be signaled after reset");
-
-        Ok(instance)
-    });
-}
-
-#[test]
 fn is_signaled_after_wait() {
     vki::validate(|| {
         let (instance, _adapter, device) = support::init()?;
@@ -62,9 +37,8 @@ fn is_signaled_after_wait() {
         fence1.wait(Duration::from_millis(1_000_000_000))?;
         assert_eq!(true, fence1.is_signaled());
 
-        let result = fence2.wait(Duration::from_millis(500));
-        assert_eq!(Err(vki::FenceError::Timeout), result);
-        assert_eq!(false, fence2.is_signaled());
+        fence2.wait(Duration::from_millis(1_000_000_000))?;
+        assert_eq!(true, fence2.is_signaled());
 
         Ok(instance)
     });
