@@ -301,11 +301,6 @@ fn dispatch_indirect() {
         compute_pass.end_pass();
 
         let queue = device.get_queue();
-
-        // FIXME: Force the pending buffer update from `set_sub_data` to submit
-        //        and the fence creation records the correct serial.
-        queue.submit(&[])?;
-
         let fence = queue.create_fence()?;
 
         queue.submit(&[encoder.finish()?])?;
