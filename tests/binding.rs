@@ -50,7 +50,7 @@ fn create_bind_group() {
         let sampler_descriptor = SamplerDescriptor::default();
         let sampler = device.create_sampler(sampler_descriptor)?;
 
-        let texture_descriptor = TextureDescriptor {
+        let sampled_texture = device.create_texture(TextureDescriptor {
             size: Extent3d {
                 width: 256,
                 height: 256,
@@ -62,9 +62,38 @@ fn create_bind_group() {
             mip_level_count: 1,
             sample_count: 1,
             usage: TextureUsage::SAMPLED,
-        };
-        let texture = device.create_texture(texture_descriptor)?;
-        let texture_view = texture.create_default_view()?;
+        })?;
+        let sampled_texture_view = sampled_texture.create_default_view()?;
+
+        let readonly_storage_texture = device.create_texture(TextureDescriptor {
+            size: Extent3d {
+                width: 256,
+                height: 256,
+                depth: 1,
+            },
+            array_layer_count: 1,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::R8G8B8A8Unorm,
+            mip_level_count: 1,
+            sample_count: 1,
+            usage: TextureUsage::STORAGE,
+        })?;
+        let readonly_storage_view = readonly_storage_texture.create_default_view()?;
+
+        let writeonly_storage_texture = device.create_texture(TextureDescriptor {
+            size: Extent3d {
+                width: 256,
+                height: 256,
+                depth: 1,
+            },
+            array_layer_count: 1,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::R8G8B8A8Unorm,
+            mip_level_count: 1,
+            sample_count: 1,
+            usage: TextureUsage::STORAGE,
+        })?;
+        let writeonly_storage_view = writeonly_storage_texture.create_default_view()?;
 
         let bind_group_layout_descriptor = BindGroupLayoutDescriptor {
             entries: vec![
@@ -88,6 +117,16 @@ fn create_bind_group() {
                     visibility: ShaderStage::FRAGMENT,
                     binding_type: BindingType::StorageTexelBuffer,
                 },
+                BindGroupLayoutEntry {
+                    binding: 4,
+                    visibility: ShaderStage::FRAGMENT,
+                    binding_type: BindingType::ReadOnlyStorageTexture,
+                },
+                BindGroupLayoutEntry {
+                    binding: 5,
+                    visibility: ShaderStage::FRAGMENT,
+                    binding_type: BindingType::WriteOnlyStorageTexture,
+                },
             ],
         };
         let bind_group_layout = device.create_bind_group_layout(bind_group_layout_descriptor)?;
@@ -105,11 +144,19 @@ fn create_bind_group() {
                 },
                 BindGroupEntry {
                     binding: 2,
-                    resource: BindingResource::TextureView(texture_view),
+                    resource: BindingResource::TextureView(sampled_texture_view),
                 },
                 BindGroupEntry {
                     binding: 3,
                     resource: BindingResource::BufferView(texel_buffer_view),
+                },
+                BindGroupEntry {
+                    binding: 4,
+                    resource: BindingResource::TextureView(readonly_storage_view),
+                },
+                BindGroupEntry {
+                    binding: 5,
+                    resource: BindingResource::TextureView(writeonly_storage_view),
                 },
             ],
         };

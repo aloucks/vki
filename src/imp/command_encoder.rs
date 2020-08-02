@@ -183,6 +183,20 @@ impl CommandEncoderInner {
                         .expect("BindingType::StorageTexelBuffer => BindingResource::BufferView");
                     usage_tracker.buffer_used_as(buffer_view.inner.buffer.clone(), BufferUsage::STORAGE);
                 }
+                BindingType::ReadOnlyStorageTexture => {
+                    let texture_view = binding
+                        .resource
+                        .as_texture_view()
+                        .expect("BindingType::ReadOnlyStorageTexture => BindingResource::TextureView");
+                    usage_tracker.texture_used_as(texture_view.inner.texture.clone(), TextureUsage::STORAGE);
+                }
+                BindingType::WriteOnlyStorageTexture => {
+                    let texture_view = binding
+                        .resource
+                        .as_texture_view()
+                        .expect("BindingType::WriteOnlyStorageTexture => BindingResource::TextureView");
+                    usage_tracker.texture_used_as(texture_view.inner.texture.clone(), TextureUsage::STORAGE);
+                }
                 BindingType::Sampler => {
                     // no usage to track
                 }

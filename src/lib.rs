@@ -419,7 +419,14 @@ pub enum BindingType {
     SampledTexture,
     StorageBuffer,
     DynamicStorageBuffer,
-    StorageTexelBuffer, // TOOD: Not GpuWeb
+    /// GLSL: `imageBuffer`
+    ///
+    /// Note: storage texel buffers are not part of the WebGPU spec.
+    StorageTexelBuffer,
+    /// GLSL: `image2D`
+    ReadOnlyStorageTexture,
+    /// GLSL: `image2D`
+    WriteOnlyStorageTexture,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]

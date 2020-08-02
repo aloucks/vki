@@ -21,6 +21,7 @@ pub fn descriptor_type(binding_type: BindingType) -> vk::DescriptorType {
         BindingType::UniformBuffer => vk::DescriptorType::UNIFORM_BUFFER,
         BindingType::StorageBuffer => vk::DescriptorType::STORAGE_BUFFER,
         BindingType::StorageTexelBuffer => vk::DescriptorType::STORAGE_TEXEL_BUFFER,
+        BindingType::ReadOnlyStorageTexture | BindingType::WriteOnlyStorageTexture => vk::DescriptorType::STORAGE_IMAGE,
     }
 }
 
@@ -211,6 +212,16 @@ impl BindGroupInner {
                 (&BindingResource::BufferView(ref buffer_view), BindingType::StorageTexelBuffer) => {
                     texel_buffer_views[num_writes] = buffer_view.inner.handle;
                     write.p_texel_buffer_view = &texel_buffer_views[num_writes];
+                }
+                (&BindingResource::TextureView(ref texture_view), BindingType::ReadOnlyStorageTexture) => {
+                    image_infos[num_writes].image_view = texture_view.inner.handle;
+                    image_infos[num_writes].image_layout = vk::ImageLayout::GENERAL;
+                    write.p_image_info = &image_infos[num_writes];
+                }
+                (&BindingResource::TextureView(ref texture_view), BindingType::WriteOnlyStorageTexture) => {
+                    image_infos[num_writes].image_view = texture_view.inner.handle;
+                    image_infos[num_writes].image_layout = vk::ImageLayout::GENERAL;
+                    write.p_image_info = &image_infos[num_writes];
                 }
                 _ => {
                     let resource_type = match binding.resource {
