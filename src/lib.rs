@@ -170,12 +170,19 @@ pub enum TextureFormat {
     //    Rgb8Unorm,
 
     // TODO: Update 32-bit formats
+    R8G8B8A8Snorm,
+    R8G8B8A8Sint,
     R8G8B8A8Unorm,
     R8G8B8A8UnormSRGB,
     R8G8B8A8Uint,
     B8G8R8A8Unorm,
     B8G8R8A8UnormSRGB,
     R16G16Unorm,
+
+    // TODO: Update 64-bit formats
+    RGBA16Float,
+    RGBA16Uint,
+    RGBA16Sint,
 
     // TODO: Update 128-bit formats
     RGBA32Float,
