@@ -49,6 +49,12 @@ jobs:
         with:
           command: update
       - name: Cache cargo
+        # TODO: Cached builds are failing on macOS when compiling the examples:
+        # error[E0463]: can't find crate for `serde_derive` which `gltf` depends on
+        #    --> examples/gltf_viewer.rs:400:13
+        # Note that it only seems to affect cached builds -- azure pipelines builds
+        # are still working (and they don't use a build cache)
+        if: ${{ runner.os != 'macOS' }}
         uses: actions/cache@v2
         with:
           path: |
