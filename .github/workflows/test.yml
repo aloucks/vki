@@ -30,7 +30,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       RUST_BACKTRACE: 1
-      CARGO_INCREMENTAL: 0
+      CARGO_INCREMENTAL: 1
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
