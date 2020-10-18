@@ -214,7 +214,10 @@ impl DeviceInner {
                 device: raw.clone(),
                 instance: adapter.instance.raw.clone(),
                 physical_device: adapter.physical_device,
-                ..Default::default()
+                flags: Default::default(),
+                preferred_large_heap_block_size: 0,
+                frame_in_use_count: 0,
+                heap_size_limits: None,
             };
 
             // TODO: Add generic error type
