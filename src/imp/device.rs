@@ -153,7 +153,13 @@ impl Device {
     }
 
     pub fn create_command_encoder(&self) -> Result<CommandEncoder, Error> {
-        let command_encoder = CommandEncoderInner::new(self.inner.clone())?;
+        let mut command_encoder_pool = self.inner.command_encoder_pool.lock();
+        let command_encoder = if let Some(state) = command_encoder_pool.pop() {
+            CommandEncoderInner::with_device_and_state(self.inner.clone(), state)?
+        } else {
+            CommandEncoderInner::new(self.inner.clone())?
+        };
+        drop(command_encoder_pool);
         Ok(command_encoder.into())
     }
 }
@@ -237,6 +243,7 @@ impl DeviceInner {
             };
 
             let state = Mutex::new(state);
+            let command_encoder_pool = Mutex::new(Vec::new());
 
             let inner = DeviceInner {
                 raw,
@@ -246,6 +253,7 @@ impl DeviceInner {
                 adapter,
                 queue,
                 state,
+                command_encoder_pool,
                 allocator: ManuallyDrop::new(allocator),
             };
 

@@ -1,5 +1,4 @@
 use ash::vk;
-use typed_arena::Arena;
 
 use std::convert::TryFrom;
 
@@ -13,7 +12,6 @@ use crate::{
 use std::sync::Arc;
 
 use crate::imp::command::{BufferCopy, Command, TextureBlit, TextureCopy};
-use crate::imp::command_buffer::CommandBufferState;
 use crate::imp::pass_resource_usage::{CommandBufferResourceUsage, PassResourceUsageTracker};
 use crate::imp::{binding, pipeline};
 use crate::imp::{
@@ -69,25 +67,15 @@ impl<'a> From<RenderPassDepthStencilAttachmentDescriptor<'a>> for RenderPassDept
     }
 }
 
+#[derive(Debug, Default)]
 pub struct CommandEncoderState {
-    pub commands: Arena<Command>,
+    pub commands: Vec<Command>,
     pub resource_usages: CommandBufferResourceUsage,
-}
-
-impl std::fmt::Debug for CommandEncoderState {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        // TODO: The command arena would need to also be wrapped in an UnsafeCell
-        //       in order for us to iterate and collect command references.
-        f.debug_struct("CommandBufferState")
-            .field("commands", &"<commands>")
-            .field("resource_usages", &self.resource_usages)
-            .finish()
-    }
 }
 
 impl CommandEncoderState {
     pub fn new() -> CommandEncoderState {
-        let commands = Arena::new();
+        let commands = Vec::new();
         let resource_usages = CommandBufferResourceUsage::default();
         CommandEncoderState {
             commands,
@@ -96,13 +84,29 @@ impl CommandEncoderState {
     }
 
     fn push(&mut self, command: Command) {
-        self.commands.alloc(command);
+        self.commands.push(command);
+    }
+
+    pub fn iter(&self) -> std::slice::Iter<Command> {
+        self.commands.iter()
+    }
+
+    pub fn reset(&mut self) {
+        self.commands.clear();
+        self.resource_usages.clear();
     }
 }
 
 impl CommandEncoderInner {
     pub fn new(device: Arc<DeviceInner>) -> Result<CommandEncoderInner, Error> {
         let state = CommandEncoderState::new();
+        Ok(CommandEncoderInner { device, state })
+    }
+
+    pub fn with_device_and_state(
+        device: Arc<DeviceInner>,
+        state: CommandEncoderState,
+    ) -> Result<CommandEncoderInner, Error> {
         Ok(CommandEncoderInner { device, state })
     }
 
@@ -217,11 +221,11 @@ impl CommandEncoderInner {
     }
 }
 
-impl Into<CommandBufferState> for CommandEncoderState {
-    fn into(self) -> CommandBufferState {
-        CommandBufferState::new(self)
-    }
-}
+// impl Into<CommandBufferState> for CommandEncoderState {
+//     fn into(self) -> CommandBufferState {
+//         CommandBufferState::new(self)
+//     }
+// }
 
 impl Into<CommandEncoder> for CommandEncoderInner {
     fn into(self) -> CommandEncoder {
@@ -385,7 +389,7 @@ impl CommandEncoder {
     pub fn finish(self) -> Result<CommandBuffer, Error> {
         // TODO: Validation?
         let command_buffer = CommandBufferInner {
-            state: self.inner.state.into(),
+            state: self.inner.state,
             device: self.inner.device,
         };
         Ok(CommandBuffer { inner: command_buffer })

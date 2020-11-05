@@ -1,11 +1,9 @@
 use ash::version::DeviceV1_0;
 use ash::vk;
 use smallvec::SmallVec;
-use typed_arena::Arena;
 
 use crate::imp::command::{BufferCopy, Command, TextureBlit, TextureCopy};
 use crate::imp::fenced_deleter::DeleteWhenUnused;
-use crate::imp::pass_resource_usage::CommandBufferResourceUsage;
 use crate::imp::render_pass::{ColorInfo, DepthStencilInfo, RenderPassCacheQuery};
 use crate::imp::{binding, pipeline};
 use crate::imp::{render_pass, sampler, texture, util, DeviceInner, PipelineLayoutInner};
@@ -17,63 +15,10 @@ use crate::imp::command_encoder::{
 };
 use crate::imp::device::DeviceState;
 
-use std::cell::UnsafeCell;
 use std::sync::Arc;
 
 pub const MAX_VERTEX_INPUTS: usize = 16;
 pub const MAX_BIND_GROUPS: usize = 4;
-
-pub struct CommandBufferState {
-    commands: UnsafeCell<Arena<Command>>,
-    resource_usages: CommandBufferResourceUsage,
-}
-
-impl std::fmt::Debug for CommandBufferState {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let arena = unsafe { &mut *self.commands.get() };
-        let commands: Vec<&Command> = CommandIter::new(arena).collect();
-        f.debug_struct("CommandBufferState")
-            .field("commands", &commands)
-            .field("resource_usages", &self.resource_usages)
-            .finish()
-    }
-}
-
-pub struct CommandIter<'a> {
-    inner: typed_arena::IterMut<'a, Command>,
-}
-
-impl<'a> CommandIter<'a> {
-    pub fn new(arena: &'a mut Arena<Command>) -> CommandIter<'a> {
-        CommandIter {
-            inner: arena.iter_mut(),
-        }
-    }
-}
-
-impl<'a> Iterator for CommandIter<'a> {
-    type Item = &'a Command;
-    fn next(&mut self) -> Option<&'a Command> {
-        self.inner.next().map(|v| &*v)
-    }
-    fn size_hint(&self) -> (usize, Option<usize>) {
-        self.inner.size_hint()
-    }
-}
-
-impl CommandBufferState {
-    pub fn new(encoder_state: CommandEncoderState) -> CommandBufferState {
-        CommandBufferState {
-            commands: UnsafeCell::new(encoder_state.commands),
-            resource_usages: encoder_state.resource_usages,
-        }
-    }
-
-    pub fn iter(&self) -> CommandIter {
-        let arena = unsafe { &mut *self.commands.get() };
-        CommandIter::new(arena)
-    }
-}
 
 fn index_type(format: IndexFormat) -> vk::IndexType {
     match format {
@@ -650,10 +595,7 @@ impl CommandBufferInner {
                             .cmd_bind_index_buffer(command_buffer, buffer.handle, offset, index_type);
                     }
                 }
-                Command::SetVertexBuffers {
-                    start_slot,
-                    buffers,
-                } => {
+                Command::SetVertexBuffers { start_slot, buffers } => {
                     let offsets = buffers
                         .iter()
                         .map(|(_, offset)| *offset)
@@ -928,5 +870,15 @@ impl<'a> DescriptorSetTracker<'a> {
                 .raw
                 .cmd_push_constants(command_buffer, layout, stage_flags, offset_bytes, values)
         }
+    }
+}
+
+impl Drop for CommandBufferInner {
+    fn drop(&mut self) {
+        let mut state = CommandEncoderState::default();
+        std::mem::swap(&mut state, &mut self.state);
+        state.reset();
+        let mut command_encoder_pool = self.device.command_encoder_pool.lock();
+        command_encoder_pool.push(state);
     }
 }

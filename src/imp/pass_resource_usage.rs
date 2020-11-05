@@ -31,6 +31,14 @@ pub struct CommandBufferResourceUsage {
     pub top_level_textures: HashSet<Arc<TextureInner>, ahash::RandomState>,
 }
 
+impl CommandBufferResourceUsage {
+    pub fn clear(&mut self) {
+        self.per_pass.clear();
+        self.top_level_buffers.clear();
+        self.top_level_textures.clear();
+    }
+}
+
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
 pub enum PassType {
     Render,

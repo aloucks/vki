@@ -152,6 +152,7 @@ pub struct DeviceInner {
     limits: Limits,
     queue: QueueInfo,
     state: Mutex<device::DeviceState>,
+    command_encoder_pool: Mutex<Vec<command_encoder::CommandEncoderState>>,
     allocator: ManuallyDrop<Allocator>,
 }
 
@@ -328,7 +329,7 @@ pub struct CommandEncoderInner {
 
 #[derive(Debug)]
 pub struct CommandBufferInner {
-    state: command_buffer::CommandBufferState,
+    state: command_encoder::CommandEncoderState,
     device: Arc<DeviceInner>,
 }
 
