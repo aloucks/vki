@@ -28,8 +28,6 @@ mod surface;
 mod swapchain;
 mod texture;
 mod util;
-
-mod cookbook;
 mod vec;
 
 pub use crate::imp::debug::validate;
