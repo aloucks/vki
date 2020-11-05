@@ -27,8 +27,8 @@ impl PassResourceUsage {
 #[derive(Debug, Default, Clone)]
 pub struct CommandBufferResourceUsage {
     pub per_pass: Vec<PassResourceUsage>,
-    pub top_level_buffers: HashSet<Arc<BufferInner>>,
-    pub top_level_textures: HashSet<Arc<TextureInner>>,
+    pub top_level_buffers: HashSet<Arc<BufferInner>, ahash::RandomState>,
+    pub top_level_textures: HashSet<Arc<TextureInner>, ahash::RandomState>,
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Hash)]
@@ -39,8 +39,8 @@ pub enum PassType {
 
 #[derive(Debug, Default)]
 pub struct PassResourceUsageTracker {
-    buffer_usages: HashMap<Arc<BufferInner>, BufferUsage>,
-    texture_usages: HashMap<Arc<TextureInner>, TextureUsage>,
+    buffer_usages: HashMap<Arc<BufferInner>, BufferUsage, ahash::RandomState>,
+    texture_usages: HashMap<Arc<TextureInner>, TextureUsage, ahash::RandomState>,
     storage_used_multiple_times: bool,
 }
 

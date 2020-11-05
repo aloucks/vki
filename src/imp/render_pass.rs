@@ -71,7 +71,7 @@ pub fn attachment_load_op(op: LoadOp) -> vk::AttachmentLoadOp {
 
 #[derive(Debug, Default)]
 pub struct RenderPassCache {
-    cache: HashMap<RenderPassCacheQuery, vk::RenderPass>,
+    cache: HashMap<RenderPassCacheQuery, vk::RenderPass, ahash::RandomState>,
 }
 
 pub fn color_attachment_reference(attachment: u32) -> vk::AttachmentReference {

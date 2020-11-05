@@ -196,7 +196,7 @@ handle_traits!(SwapchainInner);
 pub struct SurfaceInner {
     handle: vk::SurfaceKHR,
     instance: Arc<InstanceInner>,
-    supported_formats: Mutex<HashMap<vk::PhysicalDevice, Vec<vk::SurfaceFormatKHR>>>,
+    supported_formats: Mutex<HashMap<vk::PhysicalDevice, Vec<vk::SurfaceFormatKHR>, ahash::RandomState>>,
 }
 
 handle_traits!(SurfaceInner);

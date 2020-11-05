@@ -651,7 +651,7 @@ impl TextureView {
 
 #[derive(Debug)]
 pub struct SubresourceUsageTracker {
-    ranges: HashMap<Subresource, TextureUsage>,
+    ranges: HashMap<Subresource, TextureUsage, ahash::RandomState>,
     aspect_mask: vk::ImageAspectFlags,
     mip_levels: u32,
     array_layers: u32,
@@ -666,7 +666,7 @@ pub struct Subresource {
 impl SubresourceUsageTracker {
     pub fn new(mip_levels: u32, array_layers: u32, format: TextureFormat) -> SubresourceUsageTracker {
         let none = TextureUsage::NONE;
-        let mut ranges = HashMap::with_capacity((mip_levels * array_layers) as usize);
+        let mut ranges = HashMap::with_capacity_and_hasher((mip_levels * array_layers) as usize, Default::default());
         (0..array_layers).for_each(|array_layer| {
             (0..mip_levels).for_each(|mip_level| {
                 let subresource = Subresource { mip_level, array_layer };

@@ -127,8 +127,8 @@ pub unsafe extern "system" fn debug_report_callback_test(
 }
 
 lazy_static::lazy_static! {
-    static ref ERRORS: Mutex<HashMap<vk::Instance, Vec<ValidationError>>> = {
-        Mutex::new(HashMap::new())
+    static ref ERRORS: Mutex<HashMap<vk::Instance, Vec<ValidationError>, ahash::RandomState>> = {
+        Mutex::new(HashMap::default())
     };
 }
 
