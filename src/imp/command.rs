@@ -161,21 +161,3 @@ fn command_size() {
     // raises awareness..
     assert_eq!(88, std::mem::size_of::<Command>());
 }
-
-#[derive(Debug, Clone)]
-enum Foo {
-    SetVertexBuffers {
-        start_slot: u32,
-        // 3 is the max that we can use without increasing the size of the enum
-        buffers: SmallVec<[(Arc<BufferInner>, u32); 4]>,
-        //offsets: SmallVec<[u64; 3]>,
-    },
-}
-
-
-#[test]
-fn foo_zie() {
-    // The command size can balloon if we embed a SmallVec or fixed sized array. This just
-    // raises awareness..
-    assert_eq!(88, std::mem::size_of::<Foo>());
-}
