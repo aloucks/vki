@@ -609,22 +609,16 @@ impl<'a> RenderPassEncoder<'a> {
 
         let mut buffers_vec = smallvec::SmallVec::with_capacity(buffers.len());
 
-        for buffer in buffers.iter() {
-            buffers_vec.push(Arc::clone(&buffer.inner));
+        for (index, buffer) in buffers.iter().enumerate() {
+            buffers_vec.push((Arc::clone(&buffer.inner), offsets[index] as u64));
             self.inner
                 .usage_tracker
                 .buffer_used_as(Arc::clone(&buffer.inner), BufferUsage::VERTEX);
         }
 
-        let offsets = offsets
-            .iter()
-            .map(|v| u64::try_from(*v).expect("offset > u64::MAX"))
-            .collect();
-
         self.inner.top_level_encoder.push(Command::SetVertexBuffers {
             buffers: buffers_vec,
             start_slot,
-            offsets,
         });
     }
 

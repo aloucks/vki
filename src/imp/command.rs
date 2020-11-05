@@ -141,9 +141,9 @@ pub enum Command {
     },
     SetVertexBuffers {
         start_slot: u32,
-        // 3 is the max that we can use without increasing the size of the enum
-        buffers: SmallVec<[Arc<BufferInner>; 3]>,
-        offsets: SmallVec<[u64; 3]>,
+        /// (`buffer`, `offset`). The length of `4` is the max that we can use without
+        /// increasing the size of the enum
+        buffers: SmallVec<[(Arc<BufferInner>, u64); 4]>,
     },
     SetViewport {
         x: f32,

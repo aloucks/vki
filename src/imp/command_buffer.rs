@@ -653,16 +653,19 @@ impl CommandBufferInner {
                 Command::SetVertexBuffers {
                     start_slot,
                     buffers,
-                    offsets,
                 } => {
+                    let offsets = buffers
+                        .iter()
+                        .map(|(_, offset)| *offset)
+                        .collect::<SmallVec<[u64; MAX_VERTEX_INPUTS]>>();
                     let buffers = buffers
                         .iter()
-                        .map(|buffer| buffer.handle)
+                        .map(|(buffer, _)| buffer.handle)
                         .collect::<SmallVec<[vk::Buffer; MAX_VERTEX_INPUTS]>>();
                     unsafe {
                         self.device
                             .raw
-                            .cmd_bind_vertex_buffers(command_buffer, *start_slot, &*buffers, offsets);
+                            .cmd_bind_vertex_buffers(command_buffer, *start_slot, &*buffers, &*offsets);
                     }
                 }
                 Command::SetRenderPipeline { pipeline } => {
