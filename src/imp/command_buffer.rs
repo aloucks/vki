@@ -15,6 +15,7 @@ use crate::imp::command_encoder::{
 };
 use crate::imp::device::DeviceState;
 
+use std::ffi::CStr;
 use std::sync::Arc;
 
 pub const MAX_VERTEX_INPUTS: usize = 16;
@@ -112,15 +113,12 @@ fn image_blit(src: &TextureBlit, dst: &TextureBlit) -> vk::ImageBlit {
     }
 }
 
-fn push_debug_group(device: &DeviceInner, command_buffer: vk::CommandBuffer, group_label: &str) {
-    let mut label_name = SmallVec::<[u8; 64]>::new();
-    label_name.extend_from_slice(group_label.as_bytes());
-    label_name.push(0);
+fn push_debug_group(device: &DeviceInner, command_buffer: vk::CommandBuffer, group_label: &CStr) {
     let label = vk::DebugUtilsLabelEXT {
         s_type: vk::StructureType::DEBUG_UTILS_LABEL_EXT,
         p_next: std::ptr::null(),
         color: [0.0, 0.0, 0.0, 0.0],
-        p_label_name: label_name.as_ptr() as *const _,
+        p_label_name: group_label.as_ptr() as *const _,
     };
     unsafe {
         device
@@ -132,15 +130,12 @@ fn push_debug_group(device: &DeviceInner, command_buffer: vk::CommandBuffer, gro
     }
 }
 
-fn insert_debug_marker(device: &DeviceInner, command_buffer: vk::CommandBuffer, marker_label: &str) {
-    let mut label_name = SmallVec::<[u8; 64]>::new();
-    label_name.extend_from_slice(marker_label.as_bytes());
-    label_name.push(0);
+fn insert_debug_marker(device: &DeviceInner, command_buffer: vk::CommandBuffer, marker_label: &CStr) {
     let label = vk::DebugUtilsLabelEXT {
         s_type: vk::StructureType::DEBUG_UTILS_LABEL_EXT,
         p_next: std::ptr::null(),
         color: [0.0, 0.0, 0.0, 0.0],
-        p_label_name: label_name.as_ptr() as *const _,
+        p_label_name: marker_label.as_ptr() as *const _,
     };
     unsafe {
         device
@@ -302,9 +297,21 @@ impl CommandBufferInner {
                     command_iter = self.record_compute_pass(command_buffer, command_iter)?;
                     pass += 1;
                 }
-                Command::PushDebugGroup { group_label } => push_debug_group(&self.device, command_buffer, &group_label),
-                Command::InsertDebugMarker { marker_label } => {
-                    insert_debug_marker(&self.device, command_buffer, &marker_label)
+                &Command::PushDebugGroup {
+                    data_offset,
+                    label_name_with_nul_len,
+                } => {
+                    let bytes = &self.state.data[data_offset..data_offset + label_name_with_nul_len];
+                    let group_label = unsafe { CStr::from_bytes_with_nul_unchecked(bytes) };
+                    push_debug_group(&self.device, command_buffer, group_label)
+                }
+                &Command::InsertDebugMarker {
+                    data_offset,
+                    label_name_with_nul_len,
+                } => {
+                    let bytes = &self.state.data[data_offset..data_offset + label_name_with_nul_len];
+                    let label_name = unsafe { CStr::from_bytes_with_nul_unchecked(bytes) };
+                    insert_debug_marker(&self.device, command_buffer, label_name)
                 }
                 Command::PopDebugGroup => pop_debug_group(&self.device, command_buffer),
                 _ => unreachable!("command: {:?}", command),
@@ -555,19 +562,22 @@ impl CommandBufferInner {
                         )
                     }
                 }
-                Command::SetPushConstants {
+                &Command::SetPushConstants {
                     stages,
                     offset_bytes,
                     size_bytes,
-                    values,
-                } => descriptor_sets.on_set_push_constants(
-                    &self.device,
-                    command_buffer,
-                    *stages,
-                    *offset_bytes,
-                    *size_bytes,
-                    &values,
-                ),
+                    data_offset,
+                } => {
+                    let values = &self.state.data[data_offset..data_offset + size_bytes as usize];
+                    descriptor_sets.on_set_push_constants(
+                        &self.device,
+                        command_buffer,
+                        stages,
+                        offset_bytes,
+                        size_bytes,
+                        values,
+                    )
+                }
                 Command::SetBindGroup {
                     index,
                     bind_group,
@@ -661,9 +671,21 @@ impl CommandBufferInner {
                         self.device.raw.cmd_set_viewport(command_buffer, 0, &[viewport]);
                     }
                 }
-                Command::PushDebugGroup { group_label } => push_debug_group(&self.device, command_buffer, &group_label),
-                Command::InsertDebugMarker { marker_label } => {
-                    insert_debug_marker(&self.device, command_buffer, &marker_label)
+                &Command::PushDebugGroup {
+                    data_offset,
+                    label_name_with_nul_len,
+                } => {
+                    let bytes = &self.state.data[data_offset..data_offset + label_name_with_nul_len];
+                    let group_label = unsafe { CStr::from_bytes_with_nul_unchecked(bytes) };
+                    push_debug_group(&self.device, command_buffer, group_label)
+                }
+                &Command::InsertDebugMarker {
+                    data_offset,
+                    label_name_with_nul_len,
+                } => {
+                    let bytes = &self.state.data[data_offset..data_offset + label_name_with_nul_len];
+                    let label_name = unsafe { CStr::from_bytes_with_nul_unchecked(bytes) };
+                    insert_debug_marker(&self.device, command_buffer, label_name)
                 }
                 Command::PopDebugGroup => pop_debug_group(&self.device, command_buffer),
                 _ => unreachable!("command: {:?}", command),
@@ -721,22 +743,37 @@ impl CommandBufferInner {
                     let dynamic_offsets = dynamic_offsets.as_ref().map(SmallVec::as_slice);
                     descriptor_sets.on_set_bind_group(*index, bind_group.handle, dynamic_offsets);
                 }
-                Command::SetPushConstants {
+                &Command::SetPushConstants {
                     stages,
                     offset_bytes,
                     size_bytes,
-                    values,
-                } => descriptor_sets.on_set_push_constants(
-                    &self.device,
-                    command_buffer,
-                    *stages,
-                    *offset_bytes,
-                    *size_bytes,
-                    &values,
-                ),
-                Command::PushDebugGroup { group_label } => push_debug_group(&self.device, command_buffer, &group_label),
-                Command::InsertDebugMarker { marker_label } => {
-                    insert_debug_marker(&self.device, command_buffer, &marker_label)
+                    data_offset,
+                } => {
+                    let values = &self.state.data[data_offset..data_offset + size_bytes as usize];
+                    descriptor_sets.on_set_push_constants(
+                        &self.device,
+                        command_buffer,
+                        stages,
+                        offset_bytes,
+                        size_bytes,
+                        values,
+                    )
+                }
+                &Command::PushDebugGroup {
+                    data_offset,
+                    label_name_with_nul_len,
+                } => {
+                    let bytes = &self.state.data[data_offset..data_offset + label_name_with_nul_len];
+                    let group_label = unsafe { CStr::from_bytes_with_nul_unchecked(bytes) };
+                    push_debug_group(&self.device, command_buffer, group_label)
+                }
+                &Command::InsertDebugMarker {
+                    data_offset,
+                    label_name_with_nul_len,
+                } => {
+                    let bytes = &self.state.data[data_offset..data_offset + label_name_with_nul_len];
+                    let label_name = unsafe { CStr::from_bytes_with_nul_unchecked(bytes) };
+                    insert_debug_marker(&self.device, command_buffer, label_name)
                 }
                 Command::PopDebugGroup => pop_debug_group(&self.device, command_buffer),
                 _ => {}

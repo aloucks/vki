@@ -71,15 +71,18 @@ impl<'a> From<RenderPassDepthStencilAttachmentDescriptor<'a>> for RenderPassDept
 pub struct CommandEncoderState {
     pub commands: Vec<Command>,
     pub resource_usages: CommandBufferResourceUsage,
+    pub data: Vec<u8>,
 }
 
 impl CommandEncoderState {
     pub fn new() -> CommandEncoderState {
         let commands = Vec::new();
         let resource_usages = CommandBufferResourceUsage::default();
+        let data = Vec::new();
         CommandEncoderState {
             commands,
             resource_usages,
+            data,
         }
     }
 
@@ -94,6 +97,7 @@ impl CommandEncoderState {
     pub fn reset(&mut self) {
         self.commands.clear();
         self.resource_usages.clear();
+        self.data.clear();
     }
 }
 
@@ -123,25 +127,19 @@ impl CommandEncoderInner {
             );
             Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
         } else if offset_bytes % 4 != 0 {
-            log::error!(
-                "push constants offset_bytes must be a multiple of 4",
-            );
+            log::error!("push constants offset_bytes must be a multiple of 4",);
             Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
         } else if size_bytes % 4 != 0 {
-            log::error!(
-                "push constants size_of::<T> must be a multiple of 4",
-            );
+            log::error!("push constants size_of::<T> must be a multiple of 4",);
             Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
         } else {
-            let mut values = vec![0_u8; pipeline::MAX_PUSH_CONSTANTS_SIZE];
-            let src = &value as *const _ as *const u8;
-            unsafe {
-                std::ptr::copy_nonoverlapping(src, values.as_mut_ptr(), values.len());
-            }
+            let data_offset = self.state.data.len();
+            let value = unsafe { std::slice::from_raw_parts(&value as *const _ as *const u8, size_bytes) };
+            self.state.data.extend_from_slice(value);
             self.push(Command::SetPushConstants {
                 size_bytes: size_bytes as u32,
                 offset_bytes: offset_bytes as u32,
-                values,
+                data_offset,
                 stages,
             });
             Ok(())
@@ -381,14 +379,24 @@ impl CommandEncoder {
     }
 
     pub fn push_debug_group(&mut self, group_label: &str) {
+        let data_offset = self.inner.state.data.len();
+        let label_name_with_nul_len = 1 + group_label.len();
+        self.inner.state.data.extend(group_label.as_bytes());
+        self.inner.state.data.push(0);
         self.inner.push(Command::PushDebugGroup {
-            group_label: group_label.into(),
+            label_name_with_nul_len,
+            data_offset,
         });
     }
 
     pub fn insert_debug_marker(&mut self, marker_label: &str) {
+        let data_offset = self.inner.state.data.len();
+        let label_name_with_nul_len = 1 + marker_label.len();
+        self.inner.state.data.extend(marker_label.as_bytes());
+        self.inner.state.data.push(0);
         self.inner.push(Command::InsertDebugMarker {
-            marker_label: marker_label.into(),
+            label_name_with_nul_len,
+            data_offset,
         })
     }
 
@@ -472,14 +480,24 @@ impl<'a> ComputePassEncoder<'a> {
     }
 
     pub fn push_debug_group(&mut self, group_label: &str) {
+        let data_offset = self.inner.top_level_encoder.state.data.len();
+        let label_name_with_nul_len = 1 + group_label.len();
+        self.inner.top_level_encoder.state.data.extend(group_label.as_bytes());
+        self.inner.top_level_encoder.state.data.push(0);
         self.inner.top_level_encoder.push(Command::PushDebugGroup {
-            group_label: group_label.into(),
+            label_name_with_nul_len,
+            data_offset,
         });
     }
 
     pub fn insert_debug_marker(&mut self, marker_label: &str) {
+        let data_offset = self.inner.top_level_encoder.state.data.len();
+        let label_name_with_nul_len = 1 + marker_label.len();
+        self.inner.top_level_encoder.state.data.extend(marker_label.as_bytes());
+        self.inner.top_level_encoder.state.data.push(0);
         self.inner.top_level_encoder.push(Command::InsertDebugMarker {
-            marker_label: marker_label.into(),
+            label_name_with_nul_len,
+            data_offset,
         })
     }
 
@@ -722,14 +740,24 @@ impl<'a> RenderPassEncoder<'a> {
     }
 
     pub fn push_debug_group(&mut self, group_label: &str) {
+        let data_offset = self.inner.top_level_encoder.state.data.len();
+        let label_name_with_nul_len = 1 + group_label.len();
+        self.inner.top_level_encoder.state.data.extend(group_label.as_bytes());
+        self.inner.top_level_encoder.state.data.push(0);
         self.inner.top_level_encoder.push(Command::PushDebugGroup {
-            group_label: group_label.into(),
+            label_name_with_nul_len,
+            data_offset,
         });
     }
 
     pub fn insert_debug_marker(&mut self, marker_label: &str) {
+        let data_offset = self.inner.top_level_encoder.state.data.len();
+        let label_name_with_nul_len = 1 + marker_label.len();
+        self.inner.top_level_encoder.state.data.extend(marker_label.as_bytes());
+        self.inner.top_level_encoder.state.data.push(0);
         self.inner.top_level_encoder.push(Command::InsertDebugMarker {
-            marker_label: marker_label.into(),
+            label_name_with_nul_len,
+            data_offset,
         })
     }
 

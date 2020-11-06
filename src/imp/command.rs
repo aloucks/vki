@@ -100,11 +100,13 @@ pub enum Command {
     EndComputePass,
     EndRenderPass,
     InsertDebugMarker {
-        marker_label: String,
+        data_offset: usize,
+        label_name_with_nul_len: usize,
     },
     PopDebugGroup,
     PushDebugGroup {
-        group_label: String,
+        data_offset: usize,
+        label_name_with_nul_len: usize,
     },
     SetComputePipeline {
         pipeline: Arc<ComputePipelineInner>,
@@ -116,7 +118,7 @@ pub enum Command {
         stages: ShaderStage,
         offset_bytes: u32,
         size_bytes: u32,
-        values: Vec<u8>,
+        data_offset: usize,
     },
     SetStencilReference {
         reference: u32,
