@@ -122,6 +122,16 @@ impl CommandEncoderInner {
                 pipeline::MAX_PUSH_CONSTANTS_SIZE
             );
             Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
+        } else if offset_bytes % 4 != 0 {
+            log::error!(
+                "push constants offset_bytes must be a multiple of 4",
+            );
+            Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
+        } else if size_bytes % 4 != 0 {
+            log::error!(
+                "push constants size_of::<T> must be a multiple of 4",
+            );
+            Err(Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT))
         } else {
             let mut values = vec![0_u8; pipeline::MAX_PUSH_CONSTANTS_SIZE];
             let src = &value as *const _ as *const u8;
