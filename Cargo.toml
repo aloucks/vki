@@ -6,7 +6,7 @@ edition = "2018"
 license = "MIT/Apache-2.0"
 
 [dependencies]
-ash = "0.31.0"
+ash = "0.32.0"
 vk-mem = { version = "0.2.2", default-features = false }
 lazy_static = "1.4.0"
 libc = "0.2.68"
@@ -44,7 +44,7 @@ rand = "0.7.3" # note: only used directly by the particle simulator
 memoffset = "0.5.4"
 gltf = { version  = "0.15.2", features = ["utils", "import", "names"] }
 
-spng = { version = "=0.1.0-alpha.3" }
+spng = { version = "0.1.0" }
 
 [patch.crates-io]
 #gltf = { git = "https://github.com/gltf-rs/gltf.git", rev = "f489c26cbb7fad7a790972738f8c9771dc9a09b7" }
