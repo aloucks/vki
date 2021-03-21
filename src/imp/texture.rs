@@ -129,16 +129,20 @@ pub fn image_format(format: TextureFormat) -> vk::Format {
     }
 }
 
-pub fn texture_format(format: vk::Format) -> TextureFormat {
-    match format {
+pub fn texture_format(format: vk::Format) -> Option<TextureFormat> {
+    let texture_format = match format {
         vk::Format::B8G8R8A8_SRGB => TextureFormat::B8G8R8A8UnormSRGB,
         vk::Format::B8G8R8A8_UNORM => TextureFormat::B8G8R8A8Unorm,
         vk::Format::R8G8B8A8_SRGB => TextureFormat::R8G8B8A8UnormSRGB,
         vk::Format::R8G8B8A8_UNORM => TextureFormat::R8G8B8A8Unorm,
         vk::Format::R16_UNORM => TextureFormat::R16Unorm,
         vk::Format::R16_UINT => TextureFormat::R16Uint,
-        _ => unimplemented!("todo: missing format conversion: {:?}", format), // TODO
-    }
+        _ => {
+            log::warn!("missing texture format conversion: {:?}", format);
+            return None;
+        }
+    };
+    Some(texture_format)
 }
 
 #[rustfmt::skip]

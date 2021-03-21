@@ -77,7 +77,7 @@ impl Device {
             .iter()
             .cloned()
             .filter(|format| format.color_space == swapchain::COLOR_SPACE)
-            .map(|format| texture::texture_format(format.format))
+            .filter_map(|format| texture::texture_format(format.format))
             .collect();
 
         Ok(formats)
