@@ -55,7 +55,7 @@ jobs:
         #    --> examples/gltf_viewer.rs:400:13
         # Note that it only seems to affect cached builds -- azure pipelines builds
         # are still working (and they don't use a build cache)
-        if: ${{ runner.os != 'macOS' }}
+        if: ${{ runner.os == 'disabled' }} # if: ${{ runner.os != 'macOS' }}
         uses: actions/cache@v2
         with:
           path: |
