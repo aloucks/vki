@@ -32,6 +32,7 @@ jobs:
     env:
       RUST_BACKTRACE: 1
       CARGO_INCREMENTAL: 1
+      RUST_LOG: vki=trace
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
