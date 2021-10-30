@@ -17,7 +17,7 @@ schedules:
 jobs:
   - job: Windows
     pool:
-      vmImage: vs2017-win2016
+      vmImage: windows-2019
     steps:
       - template: ci/azure-install-rust.yml
       - template: ci/azure-install-dependencies.yml
