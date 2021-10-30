@@ -1,4 +1,3 @@
-
 use ash::vk;
 
 use vk_mem::{Allocation, Allocator};

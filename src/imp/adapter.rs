@@ -3,7 +3,6 @@ use crate::{Adapter, AdapterOptions, Device, DeviceDescriptor, Extensions, Power
 
 use crate::error::Error;
 
-
 use ash::vk;
 
 use std::ffi::CStr;

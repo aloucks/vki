@@ -1,4 +1,3 @@
-
 use ash::vk;
 use ash::vk::{DependencyFlags, MemoryPropertyFlags};
 
@@ -334,7 +333,7 @@ impl BufferInner {
                 self.device.allocator.unmap_memory(&self.allocation);
                 *buffer_state = BufferState::Unmapped;
             }
-            BufferState::Unmapped => {},
+            BufferState::Unmapped => {}
         }
     }
 }
@@ -452,8 +451,7 @@ impl MappedBuffer {
 
 impl Drop for MappedBuffer {
     fn drop(&mut self) {
-        self.inner
-            .unmap_memory();
+        self.inner.unmap_memory();
     }
 }
 
@@ -485,11 +483,11 @@ impl<'a, T> WriteData<'a, T> {
         let length_bytes = std::mem::size_of::<T>() * self.element_count as usize;
         let offset_bytes = self.offset_bytes as _;
 
-        self.mapped.inner.device.allocator.flush_allocation(
-            &self.mapped.inner.allocation,
-            offset_bytes,
-            length_bytes,
-        );
+        self.mapped
+            .inner
+            .device
+            .allocator
+            .flush_allocation(&self.mapped.inner.allocation, offset_bytes, length_bytes);
     }
 
     pub fn flush(mut self) {
