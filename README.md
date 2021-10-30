@@ -7,16 +7,9 @@ VKI is a toy implementation of an early version of the [WebGPU](https://github.c
 specification, inspired by [WGPU](https://github.com/gfx-rs/wgpu) and
 modeled after [Dawn](https://dawn.googlesource.com/dawn).
 
-## Should I use this?
+## Examples
 
-It's not in crates.io at the moment. You probably want to check out
-[WGPU](https://github.com/gfx-rs/wgpu-rs),
-[Vulkano](https://github.com/vulkano-rs/vulkano), or
-[Rendy](https://github.com/amethyst/rendy).
-
-## Does it work?
-
-Yes! See the [examples](examples) directory for more interesting things.
+See the [examples](examples) directory.
 
 The examples enable the vulkan validation layers which requires the
 [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to be installed.
