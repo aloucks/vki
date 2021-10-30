@@ -104,7 +104,7 @@ impl SurfaceInner {
             instance
                 .raw_ext
                 .surface_macos
-                .create_mac_os_surface_mvk(&create_info, None)?
+                .create_mac_os_surface(&create_info, None)?
         };
 
         let supported_formats = Mutex::new(HashMap::default());
