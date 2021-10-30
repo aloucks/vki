@@ -3,8 +3,8 @@
 [![Build Status](https://dev.azure.com/aloucks/aloucks/_apis/build/status/aloucks.vki?branchName=master)](https://dev.azure.com/aloucks/aloucks/_build/latest?definitionId=1&branchName=master)
 [![tests](https://github.com/aloucks/vki/workflows/tests/badge.svg)](https://github.com/aloucks/vki/actions?query=workflow%3Atests)
 
-VKI is _currently_ a [WebGPU](https://github.com/gpuweb/gpuweb)
-implementation, inspired by [WGPU](https://github.com/gfx-rs/wgpu) and
+VKI is a toy implementation of an early version of the [WebGPU](https://github.com/gpuweb/gpuweb)
+specification, inspired by [WGPU](https://github.com/gfx-rs/wgpu) and
 modeled after [Dawn](https://dawn.googlesource.com/dawn).
 
 ## Should I use this?
@@ -23,11 +23,6 @@ The examples enable the vulkan validation layers which requires the
 
 A [nuklear-rust backend](https://github.com/aloucks/nuklear-test) for 2D
 UI components also works with VKI.
-
-## What does VKI mean?
-
-The `VK` is for Vulkan and the `I` was chosen randomly! I'll probably
-rename it eventually.
 
 ## License
 
