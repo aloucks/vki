@@ -1,5 +1,5 @@
 use ash::extensions::khr;
-use ash::version::{DeviceV1_0, InstanceV1_0};
+
 use ash::vk;
 use parking_lot::Mutex;
 use vk_mem::{Allocator, AllocatorCreateInfo};

@@ -1,4 +1,4 @@
-use ash::version::DeviceV1_0;
+
 use ash::vk;
 use ash::vk::{DependencyFlags, MemoryPropertyFlags};
 
@@ -327,22 +327,14 @@ impl BufferInner {
     ///       so that the buffer can stay permanently mapped whenever it's created
     ///       with MAP_READ or MAP_WRITE. The buffer state will then become a user
     ///       only state to prevent modification while the buffer is in use.
-    fn unmap_memory(&self) -> Result<(), Error> {
+    fn unmap_memory(&self) {
         let mut buffer_state = self.buffer_state.lock();
         match *buffer_state {
             BufferState::Mapped(_) => {
-                self.device.allocator.unmap_memory(&self.allocation).map_err(|e| {
-                    log::error!("failed to unmap buffer: {:?}", e);
-                    match e.kind() {
-                        vk_mem::ErrorKind::Vulkan(e) => Error::from(*e),
-                        // TODO: Better error handling
-                        _ => Error::from(format!("unmap_memory error: {:?}", e)),
-                    }
-                })?;
+                self.device.allocator.unmap_memory(&self.allocation);
                 *buffer_state = BufferState::Unmapped;
-                Ok(())
             }
-            BufferState::Unmapped => Ok(()),
+            BufferState::Unmapped => {},
         }
     }
 }
@@ -355,9 +347,7 @@ impl Into<Buffer> for BufferInner {
 
 impl Drop for BufferInner {
     fn drop(&mut self) {
-        self.unmap_memory()
-            .map_err(|e| log::error!("failed to unmap_memory: {:?}", e))
-            .ok();
+        self.unmap_memory();
         let mut state = self.device.state.lock();
         let serial = state.get_next_pending_serial();
         state
@@ -430,12 +420,9 @@ impl MappedBuffer {
             self.inner
                 .device
                 .allocator
-                .flush_allocation(&self.inner.allocation, offset_bytes, data_size)
-                .map_err(|e| {
-                    log::error!("failed to flush allocation: {:?}", e);
-                    Error::from(vk::Result::ERROR_VALIDATION_FAILED_EXT) // TODO
-                })
+                .flush_allocation(&self.inner.allocation, offset_bytes, data_size);
         }
+        Ok(())
     }
 
     pub fn read<T: Copy>(&self, element_offset: usize, element_count: usize) -> Result<&[T], Error> {
@@ -451,11 +438,7 @@ impl MappedBuffer {
             self.inner
                 .device
                 .allocator
-                .invalidate_allocation(&self.inner.allocation, offset_bytes, data_size)
-                .map_err(|e| {
-                    log::error!("failed to invalidate allocation: {:?}", e);
-                    vk::Result::ERROR_VALIDATION_FAILED_EXT // TODO
-                })?;
+                .invalidate_allocation(&self.inner.allocation, offset_bytes, data_size);
             Ok(data)
         }
     }
@@ -470,9 +453,7 @@ impl MappedBuffer {
 impl Drop for MappedBuffer {
     fn drop(&mut self) {
         self.inner
-            .unmap_memory()
-            .map_err(|e| log::error!("failed to unmap_memory: {:?}", e))
-            .ok();
+            .unmap_memory();
     }
 }
 
@@ -499,7 +480,8 @@ impl<'a, T: Copy> DerefMut for WriteData<'a, T> {
 }
 
 impl<'a, T> WriteData<'a, T> {
-    fn _flush(&mut self) -> Result<(), Error> {
+    // TODO: Why can't flush() be a no-op and have this logic in drop?
+    fn _flush(&mut self) {
         let length_bytes = std::mem::size_of::<T>() * self.element_count as usize;
         let offset_bytes = self.offset_bytes as _;
 
@@ -507,14 +489,12 @@ impl<'a, T> WriteData<'a, T> {
             &self.mapped.inner.allocation,
             offset_bytes,
             length_bytes,
-        )?;
-        Ok(())
+        );
     }
 
-    pub fn flush(mut self) -> Result<(), Error> {
-        let result = self._flush();
+    pub fn flush(mut self) {
+        self._flush();
         self.element_count = 0;
-        result
     }
 
     /// Returns the number of elements `T` in the slice
@@ -530,11 +510,7 @@ impl<'a, T> WriteData<'a, T> {
 impl<'a, T> Drop for WriteData<'a, T> {
     fn drop(&mut self) {
         if self.element_count > 0 {
-            self._flush()
-                .map_err(|e| {
-                    log::error!("failed to flush allocation: {:?}", e);
-                })
-                .ok();
+            self._flush();
         }
     }
 }

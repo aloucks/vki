@@ -36,7 +36,7 @@ macro_rules! skip_if_no_display {
 pub fn init_environment() {
     // NOTE: This is currently *also* set via instance creation, but that should probably
     //       be configurable. However, we *always* want it enabled for tests.
-    std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_LUNARG_standard_validation");
+    std::env::set_var("VK_INSTANCE_LAYERS", "VK_LAYER_KHRONOS_validation");
 
     let _ = pretty_env_logger::try_init();
 }

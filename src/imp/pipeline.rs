@@ -1,4 +1,4 @@
-use ash::version::DeviceV1_0;
+
 use ash::vk;
 
 use std::convert::TryFrom;
@@ -91,14 +91,17 @@ impl ComputePipelineInner {
         let mut handle = vk::Pipeline::null();
 
         unsafe {
-            device.raw.fp_v1_0().create_compute_pipelines(
+            let ret = device.raw.fp_v1_0().create_compute_pipelines(
                 device.raw.handle(),
                 pipeline_cache,
                 1,
                 &create_info,
                 std::ptr::null(),
                 &mut handle,
-            )
+            );
+            if ret != vk::Result::SUCCESS {
+                Err(Error::from(ret))?;
+            }
         };
 
         let layout = descriptor.layout.inner.clone();
@@ -573,14 +576,17 @@ impl RenderPipelineInner {
         let mut handle = vk::Pipeline::null();
 
         unsafe {
-            device.raw.fp_v1_0().create_graphics_pipelines(
+            let ret = device.raw.fp_v1_0().create_graphics_pipelines(
                 device.raw.handle(),
                 pipeline_cache,
                 1,
                 &create_info,
                 std::ptr::null(),
                 &mut handle,
-            )
+            );
+            if ret != vk::Result::SUCCESS {
+                Err(Error::from(ret))?;
+            }
         };
 
         let layout = descriptor.layout.inner.clone();

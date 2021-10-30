@@ -3,7 +3,7 @@ use crate::{Adapter, AdapterOptions, Device, DeviceDescriptor, Extensions, Power
 
 use crate::error::Error;
 
-use ash::version::InstanceV1_0;
+
 use ash::vk;
 
 use std::ffi::CStr;
@@ -70,17 +70,23 @@ impl AdapterInner {
 
             // TODO: capture these
             let mut num_layers = 0;
-            instance.raw.fp_v1_0().enumerate_device_layer_properties(
+            let ret = instance.raw.fp_v1_0().enumerate_device_layer_properties(
                 physical_device,
                 &mut num_layers,
                 std::ptr::null_mut(),
             );
+            if ret != vk::Result::SUCCESS {
+                Err(Error::from(ret))?;
+            }
             let mut layers = vec![vk::LayerProperties::default(); num_layers as usize];
-            instance.raw.fp_v1_0().enumerate_device_layer_properties(
+            let ret = instance.raw.fp_v1_0().enumerate_device_layer_properties(
                 physical_device,
                 &mut num_layers,
                 layers.as_mut_ptr(),
             );
+            if ret != vk::Result::SUCCESS {
+                Err(Error::from(ret))?;
+            }
             for p in layers.iter() {
                 let name = CStr::from_ptr(p.layer_name.as_ptr());
                 log::debug!("found physical device layer: {}", name.to_string_lossy());
@@ -181,7 +187,7 @@ impl AdapterInner {
             enum Compat {
                 Old(bool),
                 New(Result<bool, vk::Result>),
-            };
+            }
             impl From<bool> for Compat {
                 fn from(value: bool) -> Compat {
                     Compat::Old(value)

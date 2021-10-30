@@ -6,7 +6,7 @@ use std::sync::atomic::Ordering;
 use std::sync::Arc;
 
 use ash::extensions::{ext, khr};
-use ash::version::{EntryV1_0, InstanceV1_0};
+
 use ash::{self, vk};
 use parking_lot::{RwLock, RwLockReadGuard};
 use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};

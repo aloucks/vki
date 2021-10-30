@@ -1,5 +1,5 @@
 use ash::extensions::{ext, khr};
-use ash::version::InstanceV1_0;
+
 use ash::vk::{self, Handle};
 use parking_lot::Mutex;
 use vk_mem::{Allocation, AllocationInfo, Allocator};

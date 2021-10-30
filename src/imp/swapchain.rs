@@ -8,7 +8,7 @@ use crate::{
 };
 
 use ash::prelude::VkResult;
-use ash::version::DeviceV1_0;
+
 use ash::vk;
 use ash::vk::StructureType;
 use parking_lot::Mutex;

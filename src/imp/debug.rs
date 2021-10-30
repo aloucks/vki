@@ -3,7 +3,7 @@ use std::ffi::{c_void, CStr};
 use std::mem;
 use std::sync::atomic::AtomicBool;
 
-use ash::version::InstanceV1_0;
+
 use ash::vk;
 
 use parking_lot::Mutex;

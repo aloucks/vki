@@ -1,4 +1,4 @@
-use ash::version::DeviceV1_0;
+
 use ash::vk;
 
 use vk_mem::{Allocation, Allocator};
@@ -72,16 +72,12 @@ impl FencedDeleter {
 
         for ((handle, allocation), serial) in self.buffers.drain_up_to(last_completed_serial) {
             log::trace!("destroy buffer: {:?}, completed: {:?}", handle, serial);
-            if let Err(e) = allocator.destroy_buffer(handle, &allocation) {
-                log::warn!("buffer destruction failed; buffer: {:?}, error: {:?}", handle, e);
-            }
+            allocator.destroy_buffer(handle, &allocation);
         }
 
         for ((handle, allocation), serial) in self.images.drain_up_to(last_completed_serial) {
             log::trace!("destroy image: {:?}, completed: {:?}", handle, serial);
-            if let Err(e) = allocator.destroy_image(handle, &allocation) {
-                log::warn!("image destruction failed; buffer: {:?}, error: {:?}", handle, e);
-            }
+            allocator.destroy_image(handle, &allocation);
         }
 
         for (handle, serial) in self.image_views.drain_up_to(last_completed_serial) {
