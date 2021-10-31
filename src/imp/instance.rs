@@ -72,7 +72,13 @@ impl InstanceInner {
 
             let instance_version = entry
                 .try_enumerate_instance_version()?
-                .map(|v| (vk::api_version_major(v), vk::api_version_minor(v), vk::api_version_patch(v)))
+                .map(|v| {
+                    (
+                        vk::api_version_major(v),
+                        vk::api_version_minor(v),
+                        vk::api_version_patch(v),
+                    )
+                })
                 .unwrap_or((1, 0, 0));
 
             log::debug!("instance version: {:?}", instance_version);
@@ -173,6 +179,7 @@ impl InstanceInner {
             let surface_macos = ash::extensions::mvk::MacOSSurface::new(entry, &raw);
 
             let debug_utils = ext::DebugUtils::new(entry, &raw);
+            #[allow(deprecated)]
             let debug_report = ext::DebugReport::new(entry, &raw);
             let debug_report_callback = if test_validation_hook {
                 let debug_report_create_info = vk::DebugReportCallbackCreateInfoEXT::builder()
@@ -183,6 +190,7 @@ impl InstanceInner {
                     )
                     .user_data(mem::transmute(raw.handle()))
                     .pfn_callback(Some(debug::debug_report_callback_test));
+                #[allow(deprecated)]
                 Some(debug_report.create_debug_report_callback(&debug_report_create_info, None)?)
             } else {
                 None
@@ -246,6 +254,7 @@ impl Debug for InstanceInner {
 impl Drop for InstanceInner {
     fn drop(&mut self) {
         unsafe {
+            #[allow(deprecated)]
             if let Some(debug_report_callback) = self.debug_report_callback {
                 self.raw_ext
                     .debug_report

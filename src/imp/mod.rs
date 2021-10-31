@@ -114,6 +114,8 @@ struct InstanceExt {
     surface_macos: ash::extensions::mvk::MacOSSurface,
 
     debug_utils: ext::DebugUtils,
+
+    #[allow(deprecated)]
     debug_report: ext::DebugReport,
 }
 
