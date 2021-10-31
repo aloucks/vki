@@ -14,8 +14,8 @@ See the [examples](examples) directory.
 The examples enable the vulkan validation layers which requires the
 [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to be installed.
 
-A [nuklear-rust backend](https://github.com/aloucks/nuklear-test) for 2D
-UI components also works with VKI.
+- [nuklear-rust backend](https://github.com/aloucks/nuklear-test) 
+- [imgui backend](https://github.com/aloucks/imgui-vki)
 
 ## License
 
