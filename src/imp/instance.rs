@@ -72,7 +72,7 @@ impl InstanceInner {
 
             let instance_version = entry
                 .try_enumerate_instance_version()?
-                .map(|v| (vk::version_major(v), vk::version_minor(v), vk::version_patch(v)))
+                .map(|v| (vk::api_version_major(v), vk::api_version_minor(v), vk::api_version_patch(v)))
                 .unwrap_or((1, 0, 0));
 
             log::debug!("instance version: {:?}", instance_version);
@@ -108,7 +108,7 @@ impl InstanceInner {
                 log::debug!("found instance layer: {}", name.to_string_lossy());
             }
 
-            let app_info = vk::ApplicationInfo::builder().api_version(vk::make_version(1, 0, 0));
+            let app_info = vk::ApplicationInfo::builder().api_version(vk::make_api_version(0, 1, 0, 0));
 
             let requested_layer_names = vec![
                 #[cfg(debug_assertions)]
