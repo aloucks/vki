@@ -222,7 +222,7 @@ impl AdapterInner {
         };
         AdapterProperties {
             api_version: version(self.physical_device_properties.api_version),
-            driver_version: version(self.physical_device_properties.driver_version),
+            driver_version: self.physical_device_properties.driver_version,
             vender_id: self.physical_device_properties.vendor_id,
             device_id: self.physical_device_properties.device_id,
             device_type: self.physical_device_properties.device_type,
@@ -233,18 +233,40 @@ impl AdapterInner {
 }
 
 fn version(v: u32) -> (u32, u32, u32) {
-    (vk::version_major(v), vk::version_minor(v), vk::version_patch(v))
+    (vk::api_version_major(v), vk::api_version_minor(v), vk::api_version_patch(v))
 }
 
 #[derive(Debug, Copy, Clone)]
 pub struct AdapterProperties<'a> {
     pub device_name: &'a str,
     pub api_version: (u32, u32, u32),
-    pub driver_version: (u32, u32, u32),
+    pub driver_version: u32,
     pub vender_id: u32,
     pub device_id: u32,
     pub device_type: vk::PhysicalDeviceType,
     pub limits: vk::PhysicalDeviceLimits,
+}
+
+impl<'a> AdapterProperties<'a> {
+    pub fn driver_version_string(&self) -> String {
+        let v = self.driver_version;
+        if self.vender_id == 4318 {
+            // NVIDIA
+            let major = (v >> 22) & 0x3ff;
+            let minor = (v >> 14) & 0x0ff;
+            let patch = (v >> 6) & 0x0ff;
+            let rev = (v >> 6) & 0x003f;
+            format!("{}.{}.{}.{}", major, minor, patch, rev)
+        } else if self.vender_id == 32902 {
+            // INTEL (windows only?)
+            let major = (v >> 14) & 0x3ff;
+            let minor = v & 0x3ff;
+            format!("{}.{}", major, minor)
+        } else {
+            let (major, minor, patch) = version(v);
+            format!("{}.{}.{}", major, minor, patch)
+        }
+    }
 }
 
 impl Debug for Adapter {
