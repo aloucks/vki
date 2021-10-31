@@ -365,7 +365,7 @@ impl Material {
 impl<'a> From<gltf::material::Material<'a>> for Material {
     fn from(v: gltf::material::Material) -> Material {
         let name = v.name().map(|s| s.to_owned());
-        let alpha_cutoff = v.alpha_cutoff();
+        let alpha_cutoff = v.alpha_cutoff().unwrap_or(0.0); // TODO
         let alpha_mode = v.alpha_mode().into();
         let double_sided = v.double_sided();
         let pbr_metallic_roughness = PbrMetallicRoughness::from(v.pbr_metallic_roughness());
