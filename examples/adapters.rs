@@ -12,7 +12,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let properties = adapter.properties();
         println!("Adapter Name:   {:?}", adapter.name());
         println!("API Version:    {:?}", properties.api_version);
-        println!("Driver Version: {:?} ({})", properties.driver_version_string(), properties.driver_version);
+        println!(
+            "Driver Version: {:?} ({})",
+            properties.driver_version_string(),
+            properties.driver_version
+        );
         println!("Device Type:    {:?}", properties.device_type);
         println!("Device ID:      {:?}", properties.device_id);
         println!("Vendor ID:      {:?}", properties.vender_id);

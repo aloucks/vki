@@ -233,7 +233,11 @@ impl AdapterInner {
 }
 
 fn version(v: u32) -> (u32, u32, u32) {
-    (vk::api_version_major(v), vk::api_version_minor(v), vk::api_version_patch(v))
+    (
+        vk::api_version_major(v),
+        vk::api_version_minor(v),
+        vk::api_version_patch(v),
+    )
 }
 
 #[derive(Debug, Copy, Clone)]
