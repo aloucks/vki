@@ -120,6 +120,8 @@ pub fn image_format(format: TextureFormat) -> vk::Format {
         TextureFormat::RGBA16Float => vk::Format::R16G16B16A16_SFLOAT,
         TextureFormat::RGBA16Sint => vk::Format::R16G16B16A16_SINT,
         TextureFormat::RGBA16Uint => vk::Format::R16G16B16A16_UINT,
+        TextureFormat::RGBA16Snorm => vk::Format::R16G16B16A16_SNORM,
+        TextureFormat::RGBA16Unorm => vk::Format::R16G16B16A16_UNORM,
 
         TextureFormat::RGBA32Float => vk::Format::R32G32B32A32_SFLOAT,
 
@@ -168,6 +170,12 @@ pub fn pixel_size(format: TextureFormat) -> u32 {
         TextureFormat::R16G16Unorm
         => 4,
         TextureFormat::D32Float
+        => 4,
+        TextureFormat::RGBA16Float |
+        TextureFormat::RGBA16Sint |
+        TextureFormat::RGBA16Uint |
+        TextureFormat::RGBA16Snorm |
+        TextureFormat::RGBA16Unorm
         => 8,
         // TODO: D32FloatS8Uint
         // Dawn has this as "8", but the Vulkan spec states:
@@ -176,13 +184,8 @@ pub fn pixel_size(format: TextureFormat) -> u32 {
         //  bits in the depth component and 8 unsigned integer bits in the stencil component. There
         //  are optionally: 24-bits that are unused.
         //
-        // This sounds like 64 bits total?
         TextureFormat::D32FloatS8Uint
-        => 16,
-        TextureFormat::RGBA16Float |
-        TextureFormat::RGBA16Sint |
-        TextureFormat::RGBA16Uint
-        => 16,
+        => 5,
         TextureFormat::RGBA32Float
         => 32,
     }

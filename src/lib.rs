@@ -183,6 +183,8 @@ pub enum TextureFormat {
     RGBA16Float,
     RGBA16Uint,
     RGBA16Sint,
+    RGBA16Snorm,
+    RGBA16Unorm,
 
     // TODO: Update 128-bit formats
     RGBA32Float,
